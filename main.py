@@ -56,5 +56,5 @@ def main(page: ft.Page):
   page.add(lines)
 
 if __name__ == "__main__":
-  ft.app(target=main, view=ft.AppView.WEB_BROWSER)
+  ft.app(target=main, view=ft.AppView.WEB_BROWSER, host="0.0.0.0", port=8080)
 
