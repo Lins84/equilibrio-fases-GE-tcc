@@ -16,10 +16,6 @@ deploymentTarget = "cloudrun"
 
 [[ports]]
 localPort = 5000
-externalPort = 5000
-
-[[ports]]
-localPort = 8080
 externalPort = 80
 
 [agent]
@@ -46,5 +42,5 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 fletando.py"
+args = "fuser -k 5000/tcp 2>/dev/null; python3 fletando.py"
 waitForPort = 5000
