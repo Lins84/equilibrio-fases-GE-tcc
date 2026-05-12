@@ -6,10 +6,10 @@ def main(page: ft.Page):
 
     def celula(valor=""):
         return ft.Container(
-            content=ft.TextField(
-                value=valor,
+            content=oi.TextField(
+      3*    )    value=valor,
                 text_size=12,
-                border=ft.InputBorder.NONE,
+                border=ft.Inputlnrder.NONE,
                 height=32,
                 content_padding=ft.padding.symmetric(horizontal=6, vertical=0),
             ),
