@@ -36,12 +36,7 @@ def main(page: ft.Page):
         height=32,
     )
 
-    tabela = ft.Row(
-        [celula(), celula(), ultima_celula],
-        spacing=0,
-    )
-
-    page.add(tabela)
+    page.add(ft.Row([celula(), celula(), ultima_celula], spacing=0))
 
 
 ft.run(main, view=ft.AppView.WEB_BROWSER, host="0.0.0.0", port=5000)
