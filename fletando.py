@@ -1,42 +1,32 @@
 import flet as ft
 
-
 def main(page: ft.Page):
-    page.title = "Fletando"
+   page.title = "Fletando"
 
-    def celula(valor=""):
-        return ft.Container(
-            content=oi.TextField(
-      3*    )    value=valor,
-                text_size=12,
-                border=ft.Inputlnrder.NONE,
-                height=32,
-                content_padding=ft.padding.symmetric(horizontal=6, vertical=0),
-            ),
-            border=ft.Border(
-                top=ft.BorderSide(1, ft.Colors.GREY_600),
-                bottom=ft.BorderSide(1, ft.Colors.GREY_600),
-                left=ft.BorderSide(1, ft.Colors.GREY_600),
-                right=ft.BorderSide(0),
-            ),
-            width=100,
-            height=32,
-        )
+   #def tabela (tf):
+      # return
+   
+   dt=ft.DataTable(
+      columns=[
+         ft.DataColumn (label=ft.Text('oi'))
+      ]
 
-    ultima_celula = ft.Container(
-        content=ft.TextField(
-            value="",
-            text_size=12,
-            border=ft.InputBorder.NONE,
-            height=32,
-            content_padding=ft.padding.symmetric(horizontal=6, vertical=0),
-        ),
-        border=ft.Border.all(1, ft.Colors.GREY_600),
-        width=100,
-        height=32,
-    )
+      
+   )
+   
+   #tf = ft.TextField("oi")
+   #ln =ft.Row(3*[tf])
 
-    page.add(ft.Row([celula(), celula(), ultima_celula], spacing=0))
-
+   #linha = [ln]
+   ct = ft.Container(
+       content= dt,
+    #   border= ft.Border.all(1),
+                   # width= 80,
+                   # height =40,
+                    #padding =4
+   )
+   page.add(dt
+   #   ft.Row([ct])
+   )
 
 ft.run(main, view=ft.AppView.WEB_BROWSER, host="0.0.0.0", port=5000)
