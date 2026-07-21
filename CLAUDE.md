@@ -20,7 +20,7 @@ Esses três arquivos ainda estão desconectados: `gemini.py` tem a lógica de
 cálculo, `fletando.py` e `main.py` são protótipos de interface que ainda
 não consomem `calculate_vle_isothermal`.
 
-## Estado atual (última sessão — 2026-07-20/21)
+## Estado atual (última sessão — 2026-07-21)
 
 Auditoria em `gemini.py`, focada nos modelos `model_margules_1p` e
 `model_van_laar`:
@@ -28,9 +28,9 @@ Auditoria em `gemini.py`, focada nos modelos `model_margules_1p` e
 - **Bug encontrado e corrigido**: em `model_van_laar`, os casos-limite de
   divisão por zero (`x1 == 0` e `x2 == 0`) estavam trocando γ1 e γ2. O valor
   `np.exp(A12)` deve corresponder a γ1 quando x1→0 (não γ2), e
-  `np.exp(A21)` a γ2 quando x2→0. Correção já aplicada em `gemini.py`
-  (linhas ~20-21), **mas ainda não commitada** (`git status` mostra
-  `gemini.py` modificado, working tree à frente do commit `f58049b`).
+  `np.exp(A21)` a γ2 quando x2→0. Correção aplicada e **commitada** em
+  `8c29dcb` ("Corrige troca de gamma1/gamma2 nos limites do modelo Van
+  Laar").
 - **Validação**: resultados conferidos com dados reais do `thermo` para o
   sistema **Dioxano/Metanol**. Os parâmetros `A12`/`A21` usados no teste
   foram valores de exemplo (não os parâmetros reais do sistema).
@@ -40,8 +40,7 @@ Auditoria em `gemini.py`, focada nos modelos `model_margules_1p` e
 1. Buscar os valores reais de `A12`/`A21` (Van Laar) para o sistema
    Dioxano/Metanol na literatura (ou banco de dados do `thermo`, se
    disponível) e revalidar com eles.
-2. Commitar a correção do bug de troca γ1↔γ2 em `model_van_laar`.
-3. Integrar `gemini.py` (cálculo) com a UI (`fletando.py`/`main.py`), que
+2. Integrar `gemini.py` (cálculo) com a UI (`fletando.py`/`main.py`), que
    hoje são protótipos isolados.
 
 ## Notas
