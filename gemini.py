@@ -17,8 +17,8 @@ def model_van_laar(x1, params):
     x2 = 1 - x1
 
     # Prevenção de divisão por zero nos extremos
-    if x1 == 0: return 1.0, np.exp(A21)
-    if x2 == 0: return np.exp(A12), 1.0
+    if x1 == 0: return np.exp(A12), 1.0
+    if x2 == 0: return 1.0, np.exp(A21)
 
     lngamma1 = A12 * (A21 * x2 / (A12 * x1 + A21 * x2))**2
     lngamma2 = A21 * (A12 * x1 / (A12 * x1 + A21 * x2))**2
