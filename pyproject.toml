@@ -5,7 +5,8 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 requires-python = ">=3.11"
 dependencies = [
-    "flet>=0.28.3",
+    "flet>=0.86.2",
+    "flet-charts>=0.86.2",
     "numpy>=2.3.2",
     "thermo>=0.4.2",
 ]
