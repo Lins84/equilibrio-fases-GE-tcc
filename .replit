@@ -44,3 +44,8 @@ outputType = "webview"
 task = "shell.exec"
 args = "flet run fletando.py -d --web --port 5000 --host 0.0.0.0"
 waitForPort = 5000
+
+[userenv]
+
+[userenv.shared]
+CLAUDE_CONFIG_DIR = "/home/runner/workspace/.claude-config"
