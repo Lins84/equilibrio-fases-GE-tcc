@@ -31,7 +31,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Start application"
+args = "Start Grafico"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -42,7 +42,19 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flet run fletando.py -d --web --port 5000 --host 0.0.0.0"
+args = "python3 fletando.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Start Grafico"
+author = "agent"
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python3 fletando_grafico.py"
 waitForPort = 5000
 
 [userenv]
