@@ -32,15 +32,28 @@ def model_van_laar(x1, params):
     lngamma2 = A21 * (A12 * x1 / (A12 * x1 + A21 * x2))**2
     return np.exp(lngamma1), np.exp(lngamma2)
 
-# Adicione outros modelos (Wilson, NRTL, UNIQUAC) aqui como funções separadas...
-# def model_wilson(x1, params): ...
+def model_wilson(x1, params):
+    """Calcula os coeficientes de atividade (gamma) usando Wilson."""
+    L12, L21 = params['L12'], params['L21']
+    x2 = 1 - x1
+
+    if x1 == 0:
+        return 1.0, np.exp(1 - L21 - np.log(L21))
+    if x2 == 0:
+        return np.exp(1 - L12 - np.log(L12)), 1.0
+
+    a = x1 + L12 * x2
+    b = x2 + L21 * x1
+    lngamma1 = -np.log(a) + x2 * (L12 / a - L21 / b)
+    lngamma2 = -np.log(b) - x1 * (L12 / a - L21 / b)
+    return np.exp(lngamma1), np.exp(lngamma2)
 
 # Dicionário para selecionar o modelo facilmente
 MODELS_GE = {
     "Margules (1-P)": model_margules_1p,
     "Margules (2-P)": model_margules_2p,
     "Van Laar": model_van_laar,
-    # "Wilson": model_wilson,
+    "Wilson": model_wilson,
 }
 
 # --- Calculadora Principal de Equilíbrio ---
