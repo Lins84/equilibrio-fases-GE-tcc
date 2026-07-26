@@ -11,6 +11,14 @@ def model_margules_1p(x1, params):
     lngamma2 = A * x1**2
     return np.exp(lngamma1), np.exp(lngamma2)
 
+def model_margules_2p(x1, params):
+    """Calcula os coeficientes de atividade (gamma) usando Margules de 2 parâmetros."""
+    A12, A21 = params['A12'], params['A21']
+    x2 = 1 - x1
+    lngamma1 = x2**2 * (A12 + 2 * (A21 - A12) * x1)
+    lngamma2 = x1**2 * (A21 + 2 * (A12 - A21) * x2)
+    return np.exp(lngamma1), np.exp(lngamma2)
+
 def model_van_laar(x1, params):
     """Calcula os coeficientes de atividade (gamma) usando Van Laar."""
     A12, A21 = params['A12'], params['A21']
@@ -30,6 +38,7 @@ def model_van_laar(x1, params):
 # Dicionário para selecionar o modelo facilmente
 MODELS_GE = {
     "Margules (1-P)": model_margules_1p,
+    "Margules (2-P)": model_margules_2p,
     "Van Laar": model_van_laar,
     # "Wilson": model_wilson,
 }
