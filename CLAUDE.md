@@ -20,28 +20,39 @@ Esses três arquivos ainda estão desconectados: `gemini.py` tem a lógica de
 cálculo, `fletando.py` e `main.py` são protótipos de interface que ainda
 não consomem `calculate_vle_isothermal`.
 
-## Estado atual (última sessão — 2026-07-21)
+## Estado atual (última sessão — 2026-07-26)
 
-Auditoria em `gemini.py`, focada nos modelos `model_margules_1p` e
-`model_van_laar`:
+`gemini.py` cresceu bastante desde a auditoria do Van Laar: além de
+`model_margules_1p` e `model_van_laar` (com o fix de γ1/γ2 já commitado em
+`8c29dcb`), foram adicionados `model_margules_2p`, `model_wilson`,
+`model_uniquac` e `model_unifac` (este último com tabelas de subgrupos e
+parâmetros de interação embutidas), todos registrados em `MODELS_GE`.
 
-- **Bug encontrado e corrigido**: em `model_van_laar`, os casos-limite de
-  divisão por zero (`x1 == 0` e `x2 == 0`) estavam trocando γ1 e γ2. O valor
-  `np.exp(A12)` deve corresponder a γ1 quando x1→0 (não γ2), e
-  `np.exp(A21)` a γ2 quando x2→0. Correção aplicada e **commitada** em
-  `8c29dcb` ("Corrige troca de gamma1/gamma2 nos limites do modelo Van
-  Laar").
-- **Validação**: resultados conferidos com dados reais do `thermo` para o
-  sistema **Dioxano/Metanol**. Os parâmetros `A12`/`A21` usados no teste
-  foram valores de exemplo (não os parâmetros reais do sistema).
+- **Histórico local vs. GitHub**: local e `origin/main` haviam divergido
+  (commits novos dos 4 modelos só localmente; fix do Van Laar, CLAUDE.md e
+  outros só no GitHub). Resolvido via `git rebase origin/main` — histórico
+  local limpo, sem `.claude-config/` rastreado, 15 commits à frente de
+  `origin/main`, prontos para push.
+- **Push pendente/bloqueado**: `git push origin main` falha com
+  `403 Permission denied to Lins84`, mesmo com o `GITHUB_TOKEN` autenticando
+  corretamente na API (leituras funcionam). Causa provável: o token é
+  *fine-grained* e não tem a permissão **"Contents: Read and write"**
+  habilitada para este repositório — sem isso a API de leitura funciona mas
+  o `git push` (que exige essa permissão) é negado. Ação pendente: revisar
+  em GitHub → Settings → Developer settings → Fine-grained tokens.
+- **Decisão do usuário**: abandonar o relatório/fluxo do Replit Agent para
+  esse push e conduzir o restante do trabalho diretamente por aqui (Claude
+  Code).
 
 ## Próximos passos
 
-1. Buscar os valores reais de `A12`/`A21` (Van Laar) para o sistema
-   Dioxano/Metanol na literatura (ou banco de dados do `thermo`, se
-   disponível) e revalidar com eles.
+1. **(retomar daqui)** Buscar os valores reais de `A12`/`A21` (Van Laar)
+   para o sistema Dioxano/Metanol na literatura (ou banco de dados do
+   `thermo`, se disponível) e revalidar com eles.
 2. Integrar `gemini.py` (cálculo) com a UI (`fletando.py`/`main.py`), que
    hoje são protótipos isolados.
+3. Resolver a permissão do `GITHUB_TOKEN` (Contents: Read and write) e
+   fazer o `git push origin main` pendente (15 commits locais).
 
 ## Notas
 
