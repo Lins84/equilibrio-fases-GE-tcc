@@ -32,6 +32,65 @@ def model_van_laar(x1, params):
     lngamma2 = A21 * (A12 * x1 / (A12 * x1 + A21 * x2))**2
     return np.exp(lngamma1), np.exp(lngamma2)
 
+def model_uniquac(x1, params):
+    """Calcula os coeficientes de atividade (gamma) usando UNIQUAC.
+
+    Parâmetros esperados em params:
+        r1, q1  : parâmetros estruturais do componente 1
+        r2, q2  : parâmetros estruturais do componente 2
+        a12, a21: parâmetros de interação (em K)  →  τij = exp(-aij / T_K)
+        T_K     : temperatura em Kelvin (adicionado automaticamente pelo calculador)
+    """
+    r1, q1 = params['r1'], params['q1']
+    r2, q2 = params['r2'], params['q2']
+    a12, a21 = params['a12'], params['a21']
+    T_K = params['T_K']
+    x2 = 1 - x1
+    z = 10
+
+    tau12 = np.exp(-a12 / T_K)
+    tau21 = np.exp(-a21 / T_K)
+
+    # Frações de segmento (Φ) e de área (θ)
+    denom_r = x1 * r1 + x2 * r2
+    denom_q = x1 * q1 + x2 * q2
+    Phi1 = x1 * r1 / denom_r
+    Phi2 = x2 * r2 / denom_r
+    th1 = x1 * q1 / denom_q
+    th2 = x2 * q2 / denom_q
+
+    l1 = z / 2 * (r1 - q1) - (r1 - 1)
+    l2 = z / 2 * (r2 - q2) - (r2 - 1)
+
+    # Parte combinatorial
+    def lnγ_C(xi, Phii, thi, li, Phi1_, Phi2_, l1_, l2_, x1_, x2_):
+        return (np.log(Phii / xi) + z / 2 * params[f'q{1 if xi==x1_ else 2}'] *
+                np.log(thi / Phii) + li - Phii / xi * (x1_ * l1_ + x2_ * l2_))
+
+    if x1 == 0:
+        lnγ1_C = np.log(r1 / r2) + 1 - r1 / r2 - z / 2 * q1 * (np.log(r1 * q2 / (r2 * q1)) + 1 - r1 * q2 / (r2 * q1))
+        lnγ2_C = 0.0
+    elif x2 == 0:
+        lnγ1_C = 0.0
+        lngamma2_C_val = np.log(r2 / r1) + 1 - r2 / r1 - z / 2 * q2 * (np.log(r2 * q1 / (r1 * q2)) + 1 - r2 * q1 / (r1 * q2))
+    else:
+        lnγ1_C = (np.log(Phi1 / x1) + z / 2 * q1 * np.log(th1 / Phi1)
+                  + l1 - Phi1 / x1 * (x1 * l1 + x2 * l2))
+        lnγ2_C = (np.log(Phi2 / x2) + z / 2 * q2 * np.log(th2 / Phi2)
+                  + l2 - Phi2 / x2 * (x1 * l1 + x2 * l2))
+
+    # Parte residual
+    S1 = th1 + th2 * tau21
+    S2 = th2 + th1 * tau12
+    lnγ1_R = q1 * (1 - np.log(S1) - th1 / S1 - th2 * tau12 / S2)
+    lnγ2_R = q2 * (1 - np.log(S2) - th2 / S2 - th1 * tau21 / S1)
+
+    if x1 == 0:
+        return np.exp(lnγ1_C + lnγ1_R), 1.0
+    if x2 == 0:
+        return 1.0, np.exp(lngamma2_C_val + lnγ2_R)
+    return np.exp(lnγ1_C + lnγ1_R), np.exp(lnγ2_C + lnγ2_R)
+
 def model_wilson(x1, params):
     """Calcula os coeficientes de atividade (gamma) usando Wilson."""
     L12, L21 = params['L12'], params['L21']
@@ -54,6 +113,7 @@ MODELS_GE = {
     "Margules (2-P)": model_margules_2p,
     "Van Laar": model_van_laar,
     "Wilson": model_wilson,
+    "UNIQUAC": model_uniquac,
 }
 
 # --- Calculadora Principal de Equilíbrio ---
@@ -93,9 +153,11 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
     P_list_Pa = []
     y1_list = []
 
+    params_com_T = {**model_params, 'T_K': T_K}
+
     for x1 in x1_array:
         # 1. Calcular os coeficientes de atividade para a composição x1
-        gamma1, gamma2 = model_function(x1, model_params)
+        gamma1, gamma2 = model_function(x1, params_com_T)
 
         # 2. Calcular a pressão total (Lei de Raoult Modificada)
         P_Pa = x1 * gamma1 * P1_sat_Pa + (1 - x1) * gamma2 * P2_sat_Pa
