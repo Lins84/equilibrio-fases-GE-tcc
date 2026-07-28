@@ -62,11 +62,49 @@ diagramas P-x-y sem NaN/Inf, com P>0 e y1 ∈ [0,1] em toda a faixa.
 - Trabalho conduzido diretamente aqui no Claude Code (decisão já tomada em
   sessão anterior, abandonando o fluxo do Replit Agent para o push).
 
+## Sessão de aprendizado `thermo` (2026-07-28)
+
+Sessão dedicada a entender, na prática, como o `gemini.py` usa a `thermo`:
+
+- **`Chemical(id, T=...)`**: resolve o identificador (nome/sinônimo/CAS) e dá
+  acesso a propriedades constantes (`MW`, `Tc`, `Pc`, `omega`) e a
+  sub-objetos "calculadores" por propriedade termofísica.
+- **`Chemical.Psat`** é um atalho para `Chemical.VaporPressure(T)`. O objeto
+  `VaporPressure` escolhe automaticamente, por substância, o melhor método
+  disponível entre várias correlações (ex.: `HEOS_FIT` para etanol/metanol,
+  `DIPPR_PERRY_8E` para 1,4-dioxano) — consultável via
+  `.VaporPressure.method` e `.VaporPressure.all_methods`.
+- **Achado importante para os próximos passos**: a `thermo` tem um banco de
+  parâmetros de interação binária real (`thermo.interaction_parameters.IPDB`,
+  fonte ChemSep) com tabelas `'ChemSep NRTL'`, `'ChemSep Wilson'` e
+  `'ChemSep UNIQUAC'` — e o par Dioxano (CAS `123-91-1`) / Metanol (CAS
+  `67-56-1`) tem dados nas três. Não há tabela de Van Laar no IPDB (modelo
+  mais antigo, pouco usado em bancos modernos).
+  ```python
+  from thermo.interaction_parameters import IPDB
+  from thermo import NRTL_gammas
+
+  bij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'bij')
+  alphaij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'alphaij')
+  tau = [[bij[i][j] / T for j in range(2)] for i in range(2)]
+  gamma1, gamma2 = NRTL_gammas([x1, x2], tau, alphaij)
+  ```
+  A `thermo` também expõe `Wilson_gammas` e `UNIQUAC_gammas` prontas — dá
+  para implementar os modelos TODO (`model_wilson`, `model_nrtl`,
+  `model_uniquac`) como adaptadores finos dessas funções + `IPDB`, ao invés
+  de reimplementar as fórmulas ou procurar parâmetros manualmente na
+  literatura.
+
 ## Próximos passos
 
-1. Integrar `gemini.py` (cálculo, já validado) com a UI
+1. Implementar `model_nrtl` em `gemini.py` (único modelo Gᴱ ainda
+   pendente — Wilson e UNIQUAC já foram implementados e validados na
+   sessão 2026-07-27), buscando os parâmetros binários reais via `IPDB`
+   (tabela `'ChemSep NRTL'`) em vez de hardcodar valores da literatura, e
+   validando contra `thermo.NRTL_gammas` em toda a faixa de x1.
+2. Integrar `gemini.py` (cálculo, já validado) com a UI
    (`fletando.py`/`main.py`), que hoje são protótipos isolados.
-2. Resolver a permissão do `GITHUB_TOKEN` (Contents: Read and write) e
+3. Resolver a permissão do `GITHUB_TOKEN` (Contents: Read and write) e
    fazer o `git push origin main` pendente.
 
 ## Notas
