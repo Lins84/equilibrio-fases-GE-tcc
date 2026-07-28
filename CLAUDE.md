@@ -35,12 +35,48 @@ Auditoria em `gemini.py`, focada nos modelos `model_margules_1p` e
   sistema **Dioxano/Metanol**. Os parâmetros `A12`/`A21` usados no teste
   foram valores de exemplo (não os parâmetros reais do sistema).
 
+## Sessão de aprendizado `thermo` (2026-07-28)
+
+Sessão dedicada a entender, na prática, como o `gemini.py` usa a `thermo`:
+
+- **`Chemical(id, T=...)`**: resolve o identificador (nome/sinônimo/CAS) e dá
+  acesso a propriedades constantes (`MW`, `Tc`, `Pc`, `omega`) e a
+  sub-objetos "calculadores" por propriedade termofísica.
+- **`Chemical.Psat`** é um atalho para `Chemical.VaporPressure(T)`. O objeto
+  `VaporPressure` escolhe automaticamente, por substância, o melhor método
+  disponível entre várias correlações (ex.: `HEOS_FIT` para etanol/metanol,
+  `DIPPR_PERRY_8E` para 1,4-dioxano) — consultável via
+  `.VaporPressure.method` e `.VaporPressure.all_methods`.
+- **Achado importante para os próximos passos**: a `thermo` tem um banco de
+  parâmetros de interação binária real (`thermo.interaction_parameters.IPDB`,
+  fonte ChemSep) com tabelas `'ChemSep NRTL'`, `'ChemSep Wilson'` e
+  `'ChemSep UNIQUAC'` — e o par Dioxano (CAS `123-91-1`) / Metanol (CAS
+  `67-56-1`) tem dados nas três. Não há tabela de Van Laar no IPDB (modelo
+  mais antigo, pouco usado em bancos modernos).
+  ```python
+  from thermo.interaction_parameters import IPDB
+  from thermo import NRTL_gammas
+
+  bij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'bij')
+  alphaij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'alphaij')
+  tau = [[bij[i][j] / T for j in range(2)] for i in range(2)]
+  gamma1, gamma2 = NRTL_gammas([x1, x2], tau, alphaij)
+  ```
+  A `thermo` também expõe `Wilson_gammas` e `UNIQUAC_gammas` prontas — dá
+  para implementar os modelos TODO (`model_wilson`, `model_nrtl`,
+  `model_uniquac`) como adaptadores finos dessas funções + `IPDB`, ao invés
+  de reimplementar as fórmulas ou procurar parâmetros manualmente na
+  literatura.
+
 ## Próximos passos
 
-1. Buscar os valores reais de `A12`/`A21` (Van Laar) para o sistema
-   Dioxano/Metanol na literatura (ou banco de dados do `thermo`, se
-   disponível) e revalidar com eles.
-2. Integrar `gemini.py` (cálculo) com a UI (`fletando.py`/`main.py`), que
+1. Implementar `model_nrtl`/`model_wilson`/`model_uniquac` em `gemini.py`
+   como adaptadores para `NRTL_gammas`/`Wilson_gammas`/`UNIQUAC_gammas` da
+   `thermo`, buscando os parâmetros binários via `IPDB` (tabelas ChemSep)
+   em vez de hardcodar valores da literatura.
+2. Revalidar o sistema Dioxano/Metanol com os parâmetros NRTL reais do
+   `IPDB` (substituindo os valores de exemplo usados para o Van Laar).
+3. Integrar `gemini.py` (cálculo) com a UI (`fletando.py`/`main.py`), que
    hoje são protótipos isolados.
 
 ## Notas
