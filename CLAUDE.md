@@ -119,6 +119,41 @@ em toda a faixa — mesmo padrão de validação usado nos outros 6 modelos.
 Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
 `NRTL`, `UNIQUAC`, `UNIFAC`) estão implementados e validados em `gemini.py`.
 
+## Sessão de validação cruzada com thermo (2026-07-29)
+
+Comparação numérica, ponto a ponto (x1 de 0 a 1, 101 pontos), entre os
+modelos manuais do `gemini.py` e as implementações equivalentes da própria
+`thermo` (`Wilson_gammas`, `NRTL_gammas`, `UNIQUAC_gammas`,
+`UNIFAC.from_subgroups(...).gammas()`):
+
+- **Wilson** e **NRTL**: erro máximo de `~1e-16` contra `thermo`, em toda a
+  faixa de x1 incluindo os extremos (x1=0 e x1=1). Equivalência total.
+- **UNIQUAC** e **UNIFAC**: erro máximo de `~1e-14`/`1e-15` contra `thermo`
+  no interior da faixa (0 < x1 < 1). Equivalência total onde a `thermo`
+  consegue calcular.
+
+**Achado**: nos extremos exatos (x1=0 e x1=1), a própria `thermo` **falha**
+para UNIQUAC — tanto a função solta `UNIQUAC_gammas` (retorna `NaN`, com
+`RuntimeWarning: invalid value encountered in scalar divide`) quanto a
+classe completa `thermo.UNIQUAC` (`ZeroDivisionError: float division by
+zero`). O `model_uniquac` do `gemini.py` trata esses limites analiticamente
+(mesmo padrão dos outros `model_xxx`) e por isso **não tem esse problema**
+— ou seja, nesse caso específico a implementação manual do projeto é mais
+robusta que a implementação de referência da própria `thermo`. Já o
+`UNIFAC.from_subgroups(...).gammas()` da `thermo` lida bem com os extremos
+(testado x1=0 e x1=1), então esse problema é específico do UNIQUAC.
+
+**Decisão**: manter todos os 7 modelos Gᴱ manuais em `gemini.py`, sem
+migrar nenhum para chamar `thermo` diretamente (nem Wilson/NRTL, que
+poderiam ser substituídos sem perda). Motivos: (1) já validados
+exaustivamente contra a `thermo`, migrar não ganha corretude; (2) evita
+risco de regressão em código que já funciona; (3) evita depender de
+versão da `thermo` para resultados reproduzirem igual no futuro; (4) valor
+pedagógico de ter a matemática implementada e compreendida na mão, com o
+achado do bug de fronteira do UNIQUAC como evidência extra de rigor de
+validação. Margules (1P/2P) e Van Laar continuam sendo os únicos
+"obrigatoriamente" manuais, por não existir equivalente na `thermo`.
+
 ## Próximos passos
 
 1. Integrar `gemini.py` (cálculo, já validado — todos os 7 modelos Gᴱ) com
