@@ -163,6 +163,23 @@ validação. Margules (1P/2P) e Van Laar continuam sendo os únicos
 2. Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
    possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
+3. Tradução PT→EN do nome da substância para resolver `Chemical(...)`: foi
+   explorado um protótipo (`Puros`, fora deste repo) usando
+   `deep_translator.GoogleTranslator` para traduzir o nome digitado em
+   português antes de passar pra `Chemical`. Testado nesta sessão:
+   - A chamada à API do Google Translate **é bloqueada por proxy/firewall
+     em ambientes restritos** (confirmado neste sandbox: `ProxyError: 403
+     Forbidden`). É uma dependência de rede externa real, com risco de
+     falhar num ambiente diferente do Replit (ex.: rede da universidade no
+     dia da defesa). Recomendação: ter um dicionário PT→EN local pros
+     nomes mais comuns como fallback (ou único mecanismo), em vez de
+     depender só da API.
+   - O protótipo também tentava um "modo flash" (`Chemical.calculate(H=...,
+     S=..., VF=...)`) que **não existe** nesta versão da `thermo`
+     (`Chemical.calculate(self, T=None, P=None)` só aceita T e P — testado,
+     dá `TypeError`). Flash com outras variáveis de estado exigiria a API
+     mais pesada `thermo.flash`, fora do escopo do objeto `Chemical` simples
+     usado hoje em `gemini.py`.
 
 ## Sessão de tutoria — fundamentos de `Chemical` (2026-07-29)
 
