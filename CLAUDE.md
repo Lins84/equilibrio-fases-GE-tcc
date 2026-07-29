@@ -164,6 +164,30 @@ validação. Margules (1P/2P) e Van Laar continuam sendo os únicos
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
    possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
 
+## Sessão de tutoria — fundamentos de `Chemical` (2026-07-29)
+
+Explorando `thermo.chemical.Chemical` além do `Psat` já usado em `gemini.py`:
+
+- **`Chemical.Hvap` está em J/kg (base mássica), não J/mol.** Testado com
+  água a 298.15 K: `Chemical('water', T=298.15).Hvap` retorna `2441674.29`,
+  que só bate com o valor conhecido de literatura (~44000 J/mol) depois de
+  multiplicar por `MW/1000` (`Hvap * MW / 1000 ≈ 43987 J/mol`). A própria
+  docstring confirma: "in units of [J/kg]... converts its results from
+  molar to mass units". `gemini.py` não usa `Hvap` hoje, mas é uma pegadinha
+  de unidade real caso o projeto venha a precisar dessa propriedade —
+  **nunca assumir unidade pelo nome do atributo, sempre checar a docstring**
+  (`MW` também foge do padrão SI: é g/mol, não kg/mol).
+- **`Chemical(id, ...)` aceita nome, sinônimo, fórmula ou CAS** como
+  identificador — inclusive testado `'Agua'` (português, sem acento), que
+  resolveu corretamente para água (`CAS 7732-18-5`). Provavelmente
+  coincidência de correspondência ampla no banco de sinônimos, não suporte
+  i18n oficial, mas relevante para a UI do projeto (que é em português) —
+  vale testar a robustez disso com mais nomes em português antes de confiar
+  como recurso de UX.
+- Composto não reconhecido lança `ValueError` claro
+  (`"Chemical name (...) not recognized"`), útil para tratamento de erro na
+  UI ao validar entrada do usuário.
+
 ## Notas
 
 - `x1_array` cobre 0 a 1 em 101 pontos (`np.linspace(0, 1, 101)`), então os
