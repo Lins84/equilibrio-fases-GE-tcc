@@ -281,6 +281,43 @@ def model_unifac(x1, params):
 
     return np.exp(lnγ1_C + lnγ1_R), np.exp(lnγ2_C + lnγ2_R)
 
+def model_nrtl(x1, params):
+    """Calcula os coeficientes de atividade (gamma) usando NRTL.
+
+    Parâmetros esperados em params:
+        tau12, tau21 : parâmetros de interação adimensionais (τij = bij / T_K)
+        alpha12      : parâmetro de não-aleatoriedade (α12 = α21 no NRTL clássico)
+    """
+    tau12, tau21 = params['tau12'], params['tau21']
+    alpha12 = params['alpha12']
+    x2 = 1 - x1
+
+    G12 = np.exp(-alpha12 * tau12)
+    G21 = np.exp(-alpha12 * tau21)
+
+    denom1 = x1 + x2 * G21
+    denom2 = x2 + x1 * G12
+
+    lngamma1 = x2**2 * (tau21 * (G21 / denom1)**2 + tau12 * G12 / denom2**2)
+    lngamma2 = x1**2 * (tau12 * (G12 / denom2)**2 + tau21 * G21 / denom1**2)
+    return np.exp(lngamma1), np.exp(lngamma2)
+
+
+def nrtl_params_from_ipdb(cas1, cas2, T_K):
+    """Busca bij/αij na tabela 'ChemSep NRTL' do thermo.interaction_parameters.IPDB
+    e retorna os parâmetros já prontos para model_nrtl (τij = bij / T_K)."""
+    from thermo.interaction_parameters import IPDB
+
+    bij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'bij')
+    alphaij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'alphaij')
+
+    return {
+        'tau12': bij[0][1] / T_K,
+        'tau21': bij[1][0] / T_K,
+        'alpha12': alphaij[0][1],
+    }
+
+
 def model_wilson(x1, params):
     """Calcula os coeficientes de atividade (gamma) usando Wilson."""
     L12, L21 = params['L12'], params['L21']
@@ -303,6 +340,7 @@ MODELS_GE = {
     "Margules (2-P)": model_margules_2p,
     "Van Laar": model_van_laar,
     "Wilson": model_wilson,
+    "NRTL": model_nrtl,
     "UNIQUAC": model_uniquac,
     "UNIFAC": model_unifac,
 }

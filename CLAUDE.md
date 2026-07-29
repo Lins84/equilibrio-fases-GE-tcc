@@ -53,14 +53,11 @@ Após as correções, os 6 modelos foram revalidados de ponta a ponta via
 `calculate_vle_isothermal` com o sistema etanol/água a 70 °C — todos geram
 diagramas P-x-y sem NaN/Inf, com P>0 e y1 ∈ [0,1] em toda a faixa.
 
-- **Push ainda pendente/bloqueado**: `git push origin main` falha com
-  `403 Permission denied to Lins84`, mesmo com o `GITHUB_TOKEN` autenticando
-  corretamente na API (leituras funcionam). Causa provável: o token é
-  *fine-grained* e não tem a permissão **"Contents: Read and write"**
-  habilitada para este repositório. Ação pendente: revisar em GitHub →
-  Settings → Developer settings → Fine-grained tokens.
 - Trabalho conduzido diretamente aqui no Claude Code (decisão já tomada em
   sessão anterior, abandonando o fluxo do Replit Agent para o push).
+- **Push resolvido em 2026-07-28**: o bloqueio 403 do `GITHUB_TOKEN` que
+  havia nesta sessão não ocorre mais; `git push origin main` volta a
+  funcionar normalmente.
 
 ## Sessão de aprendizado `thermo` (2026-07-28)
 
@@ -95,17 +92,42 @@ Sessão dedicada a entender, na prática, como o `gemini.py` usa a `thermo`:
   de reimplementar as fórmulas ou procurar parâmetros manualmente na
   literatura.
 
+## Sessão NRTL (2026-07-29)
+
+Implementado `model_nrtl` em `gemini.py`, o último modelo Gᴱ que faltava.
+Segue o mesmo padrão dos demais (`model_xxx(x1, params)` → `(gamma1,
+gamma2)`, registrado em `MODELS_GE`), mas com uma diferença notável: a
+fórmula do NRTL **não** tem indeterminação 0/0 nos limites x1=0/x2=0 (ao
+contrário de Wilson/UNIQUAC/UNIFAC), então não precisou de casos especiais
+nos extremos.
+
+Também foi adicionada `nrtl_params_from_ipdb(cas1, cas2, T_K)`, um adaptador
+fino que busca bij/αij em `thermo.interaction_parameters.IPDB` (tabela
+`'ChemSep NRTL'`) e retorna `{tau12, tau21, alpha12}` prontos para
+`model_nrtl` (τij = bij / T_K) — evitando hardcodar parâmetros da
+literatura, como planejado na sessão anterior.
+
+Validado com erro máximo ~1e-15 contra `thermo.NRTL_gammas`:
+- em toda a faixa de x1 (0 a 1, 101 pontos) com parâmetros sintéticos;
+- em toda a faixa de x1 com parâmetros reais do par Dioxano (CAS
+  `123-91-1`) / Metanol (CAS `67-56-1`) via `nrtl_params_from_ipdb`.
+
+Teste ponta-a-ponta via `calculate_vle_isothermal('1,4-dioxane', 'methanol',
+70.0, 'NRTL', ...)` gerou diagrama P-x-y sem NaN/Inf, com P>0 e y1 ∈ [0,1]
+em toda a faixa — mesmo padrão de validação usado nos outros 6 modelos.
+
+Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
+`NRTL`, `UNIQUAC`, `UNIFAC`) estão implementados e validados em `gemini.py`.
+
 ## Próximos passos
 
-1. Implementar `model_nrtl` em `gemini.py` (único modelo Gᴱ ainda
-   pendente — Wilson e UNIQUAC já foram implementados e validados na
-   sessão 2026-07-27), buscando os parâmetros binários reais via `IPDB`
-   (tabela `'ChemSep NRTL'`) em vez de hardcodar valores da literatura, e
-   validando contra `thermo.NRTL_gammas` em toda a faixa de x1.
-2. Integrar `gemini.py` (cálculo, já validado) com a UI
-   (`fletando.py`/`main.py`), que hoje são protótipos isolados.
-3. Resolver a permissão do `GITHUB_TOKEN` (Contents: Read and write) e
-   fazer o `git push origin main` pendente.
+1. Integrar `gemini.py` (cálculo, já validado — todos os 7 modelos Gᴱ) com
+   a UI (`fletando.py`/`main.py`), que hoje são protótipos isolados. Esse é
+   o próximo item de maior valor: sem essa integração o núcleo de cálculo
+   não é utilizável pelo usuário final.
+2. Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
+   equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
+   possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
 
 ## Notas
 
@@ -115,8 +137,8 @@ Sessão dedicada a entender, na prática, como o `gemini.py` usa a `thermo`:
   já apareceu três vezes — Van Laar (`8c29dcb`), Wilson e UNIFAC (sessão
   2026-07-27) — vale conferir esse caso específico ao mexer em qualquer
   `model_xxx`.
-- Ao adicionar novos modelos Gᴱ (NRTL é o próximo candidato natural),
-  seguir o mesmo padrão: função `model_xxx(x1, params)` que retorna
-  `(gamma1, gamma2)`, registrada no dicionário `MODELS_GE`, e validar
-  contra a implementação de referência do `thermo` (ex.: `thermo.NRTL_gammas`)
-  em toda a faixa de x1, não só em um ponto.
+- Ao adicionar novos modelos Gᴱ, seguir o mesmo padrão: função
+  `model_xxx(x1, params)` que retorna `(gamma1, gamma2)`, registrada no
+  dicionário `MODELS_GE`, e validar contra a implementação de referência
+  do `thermo` (ex.: `thermo.NRTL_gammas`) em toda a faixa de x1, não só em
+  um ponto.
