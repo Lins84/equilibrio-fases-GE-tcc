@@ -5,24 +5,66 @@ usando a biblioteca **thermo** para propriedades dos componentes (Psat, etc.).
 
 ## Estrutura do projeto
 
-- `gemini.py` — núcleo de cálculo: modelos de coeficiente de atividade (Gᴱ) e a
-  função `calculate_vle_isothermal` que gera os diagramas P-x-y a partir da
-  Lei de Raoult modificada.
-- `fletando.py` — protótipo de UI Flet (tabela dinâmica de pontos P/x/y com
-  adição/remoção de linhas via `ft.DataTable`).
-- `main.py` — protótipo de UI Flet mais simples, gera um gráfico estático
-  (matplotlib) de exemplo e exibe via `ft.Image`. Ainda não integrado ao
-  `gemini.py`.
-- `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit, gerenciado
-  com `uv`.
+**Cálculo:**
 
-Esses três arquivos ainda estão desconectados: `gemini.py` tem a lógica de
-cálculo, `fletando.py` e `main.py` são protótipos de interface que ainda
-não consomem `calculate_vle_isothermal`.
+- `gemini.py` (~405 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
+  (`model_margules_1p`, `model_margules_2p`, `model_van_laar`,
+  `model_wilson`, `model_nrtl`, `model_uniquac`, `model_unifac`),
+  registrados em `MODELS_GE`; o adaptador `nrtl_params_from_ipdb`; e
+  `calculate_vle_isothermal`, que gera os diagramas P-x-y a partir da Lei
+  de Raoult modificada. Todos os modelos validados contra o `thermo`.
 
-## Estado atual (última sessão — 2026-07-27)
+**UI (protótipos Flet, em ordem de evolução):**
 
-Os 6 modelos Gᴱ registrados em `MODELS_GE` (`model_margules_1p`,
+- `main.py` (~34 linhas) — o mais antigo/simples: gráfico estático de
+  exemplo via matplotlib, exibido como `ft.Image`.
+- `fletando.py` (~218 linhas) — tabela dinâmica de pontos P/x/y com
+  adição/remoção de linhas via `ft.DataTable`.
+- `fletando_grafico.py` (~218 linhas) — **a linha viva da UI**: a tabela
+  do `fletando.py` mais um `flet_charts.LineChart` que plota o diagrama
+  P-x-y a partir dos dados brutos digitados (`parse_ponto` +
+  `pontos_para_series`), com validação de entrada e mensagem de erro.
+  Ainda "Etapa 2": nenhum cálculo de modelo, só visualiza o que o usuário
+  digitou.
+
+**Apoio:**
+
+- `testes/` — scripts avulsos, rodados direto com `python3` (não há
+  runner/pytest): `teste_margules_2p_MEK_tolueno.py` (validação numérica
+  contra planilha XSEOS) e `teste_parse_ponto_tabela.py` (lógica pura da
+  tabela, sem dependência de `flet`).
+- `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
+  orientador, problema, objetivos, plano de execução).
+- `referencias/` — material de referência: print da planilha XSEOS e dois
+  `.jsx` de Margules 1P/2P.
+- `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
+  gerenciado com `uv`.
+
+**Lacuna central:** cálculo e UI seguem desconectados. `gemini.py` está
+pronto e validado, mas **nenhum** dos protótipos de UI chama
+`calculate_vle_isothermal` — é exatamente o item 1 de "Próximos passos".
+
+## Estado atual (2026-08-19)
+
+Snapshot; o histórico por sessão vem logo abaixo.
+
+- **Cálculo — pronto.** Os 7 modelos Gᴱ implementados e validados contra
+  as referências do `thermo` em toda a faixa de x1 (0 a 1, extremos
+  inclusos), não só em pontos de exemplo. Parâmetros reais disponíveis via
+  `IPDB` (ChemSep) para NRTL, com `nrtl_params_from_ipdb`.
+- **UI — protótipos.** `fletando_grafico.py` é o mais avançado: tabela
+  editável + gráfico P-x-y dos dados digitados, com validação de entrada.
+  Não faz nenhum cálculo de modelo.
+- **Integração — não iniciada.** É o gargalo: nada na UI chama
+  `calculate_vle_isothermal`, então o núcleo validado ainda não chega ao
+  usuário final.
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI.
+- **Sem pendências de decisão em aberto** — a última (curva poligonal) foi
+  fechada em 2026-08-19, ver seção própria.
+
+## Sessão de auditoria dos modelos (2026-07-27)
+
+Os 6 modelos Gᴱ então registrados em `MODELS_GE` (`model_margules_1p`,
 `model_margules_2p`, `model_van_laar`, `model_wilson`, `model_uniquac`,
 `model_unifac`) estão todos auditados e validados por comparação direta
 com as implementações de referência do `thermo` (`Wilson_gammas`,
