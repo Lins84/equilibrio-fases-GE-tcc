@@ -141,10 +141,12 @@ monotônica/PCHIP via scipy) sobre os pontos digitados; (2) recalcular via
 NRTL usando `gemini.calculate_vle_isothermal`; (3) as duas combinadas.
 
 **Decisão (2026-08-19): nenhuma das três — não haverá interpolação.**
-Os pontos experimentais permanecem como **marcadores discretos**. A
-aparência poligonal **não é defeito**: dado experimental é ponto, modelo é
-linha. A suavização virá da **curva calculada**, quando a integração
-`gemini.py` + UI acontecer (item 1 de "Próximos passos").
+Os pontos experimentais ficam **discretos**, ou seja: o gráfico mostra
+apenas os pontos que foram medidos e digitados na tabela, sem gerar
+nenhum ponto intermediário entre eles. A aparência poligonal **não é
+defeito**: dado experimental é ponto, modelo é linha. A suavização virá
+da **curva calculada**, quando a integração `gemini.py` + UI acontecer
+(item 1 de "Próximos passos").
 
 Consequências práticas:
 
@@ -153,9 +155,13 @@ Consequências práticas:
 - Interpolar pontos experimentais seria inventar dado que não foi medido;
   para um material didático de VLE isso é justamente o que não se quer
   ensinar.
-- Quando a integração acontecer, o gráfico terá dois papéis visuais
-  distintos e não intercambiáveis: **marcadores** para os dados da tabela
-  e **linha contínua** para a curva do modelo Gᴱ calculada em malha densa.
+- **Nenhuma mudança de código é necessária agora**: `fletando_grafico.py`
+  já plota só os pontos brutos da tabela. A decisão fecha a pendência sem
+  gerar tarefa.
+- Essa decisão não trata de como os pontos são desenhados (marcador,
+  traço ligando-os, espessura) — isso segue como está e é assunto de UI,
+  a ser revisto junto com a integração, quando a curva do modelo passar a
+  dividir o mesmo gráfico com os dados da tabela.
 
 ## Notas
 
