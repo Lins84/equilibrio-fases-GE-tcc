@@ -129,34 +129,33 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
    possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
 
-## Decisão pendente: curva poligonal em fletando_grafico.py (2026-08-10)
+## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
-Comparando visualmente `fletando_grafico.py` (plota os pontos brutos da
-tabela editável, hoje só ~9 pontos no exemplo dioxano/metanol) com
-`teste_dioxano_nrtl.py` (curva suave com ~50-100 pontos calculados via
-NRTL), o formato bate, mas a curva do `fletando_grafico.py` fica poligonal
-por ter poucos pontos. Ainda **não foi decidido** como resolver isso.
-Três abordagens foram levantadas, nenhuma implementada ainda:
+**Contexto (levantado em 2026-08-10):** comparando visualmente
+`fletando_grafico.py` (plota os pontos brutos da tabela editável, hoje só
+~9 pontos no exemplo dioxano/metanol) com `teste_dioxano_nrtl.py` (curva
+suave com ~50-100 pontos calculados via NRTL), o formato bate, mas o
+traçado do `fletando_grafico.py` fica poligonal por ter poucos pontos.
+Três abordagens foram levantadas: (1) interpolação matemática (spline
+monotônica/PCHIP via scipy) sobre os pontos digitados; (2) recalcular via
+NRTL usando `gemini.calculate_vle_isothermal`; (3) as duas combinadas.
 
-1. **Interpolação matemática (spline monotônica, ex. PCHIP via scipy)**
-   sobre os pontos já digitados na tabela. Mantém a tabela como está hoje
-   (P, x, y de qualquer origem — experimental ou de qualquer modelo Gᴱ),
-   não exige saber qual modelo gerou os dados nem T/parâmetros. Mudança
-   pequena e contida em `fletando_grafico.py`. `scipy` já está disponível
-   transitivamente (dependência do `thermo`), mas passaria a ser usado
-   diretamente e precisaria ser declarado em `pyproject.toml`.
-2. **Recalcular via NRTL**, usando `gemini.calculate_vle_isothermal` como
-   em `teste_dioxano_nrtl.py`, para gerar a curva densa a partir do modelo
-   de verdade. Exige adicionar à UI: escolha de componentes, T, parâmetros
-   NRTL (ou busca via IPDB) — ou seja, começar de fato a integração
-   `gemini.py` + UI (item 1 de "Próximos passos" acima), não só uma
-   melhoria visual da tabela.
-3. **As duas combinadas**: interpolação sempre disponível (funciona com
-   qualquer tabela), mais um botão/opção separado para recalcular via NRTL
-   quando o usuário tiver os dados do sistema (T, CAS).
+**Decisão (2026-08-19): nenhuma das três — não haverá interpolação.**
+Os pontos experimentais permanecem como **marcadores discretos**. A
+aparência poligonal **não é defeito**: dado experimental é ponto, modelo é
+linha. A suavização virá da **curva calculada**, quando a integração
+`gemini.py` + UI acontecer (item 1 de "Próximos passos").
 
-Ao retomar esse ponto, perguntar ao usuário qual das três (ou outra) antes
-de implementar.
+Consequências práticas:
+
+- **Não** adicionar `scipy` como dependência direta em `pyproject.toml`
+  para esse fim — a opção 1 está descartada.
+- Interpolar pontos experimentais seria inventar dado que não foi medido;
+  para um material didático de VLE isso é justamente o que não se quer
+  ensinar.
+- Quando a integração acontecer, o gráfico terá dois papéis visuais
+  distintos e não intercambiáveis: **marcadores** para os dados da tabela
+  e **linha contínua** para a curva do modelo Gᴱ calculada em malha densa.
 
 ## Notas
 
