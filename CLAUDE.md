@@ -3,6 +3,38 @@
 Ferramenta interativa em **Flet** para ensino de equilíbrio líquido-vapor (VLE),
 usando a biblioteca **thermo** para propriedades dos componentes (Psat, etc.).
 
+## Como trabalhar neste projeto — ler primeiro
+
+Este é um **TCC**, e o uso de IA no desenvolvimento **será explicitado** no
+trabalho final. Os papéis são fixos:
+
+- **O autor é o diretor geral e o gerente operacional.** Define rumos,
+  escopo, prioridades e ritmo. É quem decide.
+- **O assistente é o operário.** Implementa, audita, testa e documenta
+  **segundo o que o autor planejou**. Não decide rumo.
+
+> **Regra central: nenhuma decisão entra no projeto sem ordem de validação
+> do autor.**
+
+Na prática:
+
+1. **Propor, não executar.** Diante de escolha de rumo — arquitetura,
+   dependência nova, mudança de abordagem, início de etapa — apresente a
+   proposta e as alternativas e **aguarde**. Não avance por conta própria.
+2. **Roadmap não é autorização.** "Próximos passos" descreve o previsto,
+   não o liberado. A liberação é pedido explícito do autor, item a item —
+   por mais que o item pareça óbvio, urgente ou de maior valor.
+3. **O ritmo é o do autor.** A evolução acompanha o aprendizado dele, que
+   precisa defender cada linha na banca. Ir mais rápido que esse
+   entendimento produz código indefensável na arguição.
+4. **Decisão só vai para a documentação depois que o autor a toma.** Você
+   pode levantar a pendência, mapear opções e recomendar; quem fecha é ele.
+5. **Explique antes do aceite.** O autor não aprova o que não entende.
+
+Isso é o que dá o **caráter crítico humano especializado** aos rumos do
+projeto e torna o uso de IA aqui auditável. Detalhamento na seção 5.2 de
+`Docs/mapeamento_e_plano_TCC-1.md`.
+
 ## Estrutura do projeto
 
 **Cálculo:**
@@ -163,14 +195,10 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
 
 ## Próximos passos
 
-> **Ritmo de trabalho — ler antes de pegar qualquer item desta lista.**
-> Esta lista é um **roadmap, não uma fila de tarefas autorizadas**. Este é
-> um TCC: o autor precisa entender e defender cada linha do código na
-> banca, então a evolução acompanha o aprendizado dele, não a velocidade
-> do assistente. **Não inicie a integração (item 1) por conta própria** —
-> ela só avança quando o autor pedir explicitamente, mesmo que o item
-> esteja listado como o de maior valor e mesmo que o contexto pareça
-> convidar a isso. O mesmo vale para os demais itens. Combinado em
+> **Roadmap, não fila de tarefas autorizadas** — ver "Como trabalhar neste
+> projeto" no topo. Nenhum item abaixo está liberado por estar listado
+> aqui; cada um aguarda pedido explícito do autor. Vale em especial para a
+> integração (item 1), mesmo sendo o de maior valor. Combinado em
 > 2026-08-20.
 
 1. Integrar `gemini.py` (cálculo, já validado — todos os 7 modelos Gᴱ) com

@@ -174,6 +174,29 @@ Durante a integração dos ambientes de desenvolvimento (julho 2026), foi descob
 
 **Pendência:** entendimento linha a linha do `gemini.py` pelo autor (com apoio do Claude Code explicando o código), de forma que o autor seja capaz de defender qualquer trecho perante a banca sem depender de memória de terceiros.
 
+### 5.2 Modelo de trabalho: papéis e cadeia de validação (2026-08-20)
+
+O uso de IA neste TCC **será explicitado** no trabalho final. Para que essa explicitação seja verificável — e não uma declaração genérica —, o modelo de trabalho fica definido aqui, e é o mesmo desde o início do desenvolvimento.
+
+**Papéis:**
+
+- **Autor (Leonardo de Sousa Lins) — diretor geral e gerente operacional.** Define os rumos do projeto, o escopo, as prioridades e o ritmo. Planeja o que será feito e em que ordem. É quem decide.
+- **Claude Code — operário/executor.** Põe a mão na massa: implementa, audita, testa e documenta **segundo o que foi planejado pelo autor**. Não decide rumo.
+
+**Cadeia de validação — regra central:**
+
+> Nenhuma decisão entra no projeto sem passar por ordem de validação do autor.
+
+Na prática, isso significa:
+
+1. **Propor antes de executar.** Diante de uma escolha de rumo — arquitetura, dependência nova, mudança de abordagem, início de uma etapa —, o assistente apresenta a proposta e as alternativas, e aguarda. Não executa por iniciativa própria.
+2. **Roadmap não é autorização.** Um item listado em "Próximos passos" (aqui ou no `CLAUDE.md`) descreve o que está previsto, não o que está liberado. A liberação é sempre um pedido explícito do autor, item a item.
+3. **O ritmo é o do autor, não o do assistente.** A evolução acompanha o aprendizado do autor, que precisa entender e defender cada linha perante a banca. Avançar mais rápido do que esse entendimento produziria código indefensável na arguição — o oposto do objetivo do TCC.
+4. **Decisões só são registradas depois de tomadas pelo autor.** O assistente pode levantar uma pendência, mapear as opções e recomendar; quem fecha é o autor, e só então a decisão vai para a documentação, com data.
+5. **Explicação exigida antes do aceite** (já previsto no item 2 da seção 5): o autor não aprova mudança que não entenda.
+
+**Por que isso importa para a banca:** é essa cadeia que garante o **caráter crítico humano especializado** sobre os rumos do projeto, do início até a finalização. A IA aqui é ferramenta de execução sob direção, não fonte de decisão técnica. O histórico do repositório (commits, `CLAUDE.md` e esta seção) é a evidência auditável disso — inclusive dos casos em que a auditoria conduzida sob essa direção encontrou e corrigiu erros reais no código (ver seção 5.1 e o registro de auditoria dos modelos Gᴱ no `CLAUDE.md`).
+
 *(Este documento serve como registro inicial dessa prestação de contas — recomenda-se atualizá-lo conforme decisões técnicas forem tomadas ao longo do desenvolvimento.)*
 
 ---
