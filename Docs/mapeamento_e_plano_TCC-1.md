@@ -5,6 +5,9 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
+**Última atualização:** 2026-08-20
+
+> **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
 ---
 
@@ -55,7 +58,7 @@ Aplicação em Python (Flet + thermo) que permite ao usuário ajustar parâmetro
 Layout: **tabela de dados à esquerda** + dois gráficos sincronizados à direita, todos alimentados pela **mesma função de cálculo**.
 
 **Tabela de dados (entrada):**
-- Colunas P, x, y (já implementada em `fletando.py`, ainda sem os outros elementos)
+- Colunas P, x, y (implementada em `fletando.py` e, com gráfico, em `fletando_grafico.py` — ainda sem os outros elementos)
 - Dois modos de entrada, ambos necessários:
   - **Manual**: linha por linha, com botão de adicionar/excluir (já implementado)
   - **Importação via CSV**: carregar um arquivo com colunas P, x, y de uma vez, populando a tabela automaticamente
@@ -75,7 +78,7 @@ Layout: **tabela de dados à esquerda** + dois gráficos sincronizados à direit
   Gráfico 1 (ln γ vs x)   Gráfico 2 (P vs x,y — bolha/orvalho)
 ```
 
-- **Dropdown de modelo:** Margules 1P, Margules 2P, NRTL, Wilson, UNIFAC
+- **Dropdown de modelo:** os 7 modelos já disponíveis em `MODELS_GE` — Margules 1P, Margules 2P, Van Laar, Wilson, NRTL, UNIQUAC, UNIFAC (a lista original desta seção previa 5; o `gemini.py` hoje entrega 7)
 - **Sliders A e B:** genéricos na UI, mas seu significado muda por modelo (ex: NRTL usa τ/α, Van Laar usa A/B, Wilson usa Λ)
 - **Regra de ouro:** tudo que for sensível à mudança de parâmetros deve atualizar em tempo real, nos dois gráficos, a partir do mesmo ciclo de cálculo
 
@@ -89,12 +92,25 @@ Layout: **tabela de dados à esquerda** + dois gráficos sincronizados à direit
 ### 2.4 Validação de referência
 Sistema **1,4-Dioxano / Metanol a 308,5 K** já testado contra dados de literatura (desvio significativo da idealidade — bom caso de teste para modelos de atividade). Serve de base para expandir a suíte de testes com exercícios de Koretsky e Smith/Van Ness/Abbott.
 
-**Validações já realizadas** (ver log completo na seção 7 e prestação de contas na seção 5.1):
-- **Van Laar**: modelo já implementado no `gemini.py` (junto com Margules 1P) desde antes da integração dos ambientes de desenvolvimento. Auditado pelo Claude Code contra dados reais de `thermo` para o sistema Dioxano/Metanol — bug de troca γ1↔γ2 identificado e corrigido; consistência confirmada nas bordas (P calculado batendo com os Psat puros)
-- **Margules 1P**: implementado no `gemini.py` junto com o Van Laar, mas **ainda não submetido a auditoria/validação numérica específica** — pendente
+**Estado da validação em 2026-08-20** (detalhamento na seção 5.1; histórico por sessão no `CLAUDE.md`):
 
-**Pendente de implementação (não confundir com validado):**
-- **Margules 2P (three-suffix)**: **ainda não implementado** no `gemini.py`. Existe apenas um **caso de teste de referência** (`teste_margules_2p_MEK_tolueno.py`), construído a partir de dados de uma planilha Excel (pacote XSEOS, sistema Metil-etil-cetona/Tolueno a 323,15 K), com a fórmula de referência já validada internamente (diferença inferior a 0,001 em todos os pontos) — esse teste aguarda a implementação real do modelo no `gemini.py` para servir de comparação
+Os **7 modelos Gᴱ** estão implementados no `gemini.py` e validados contra as implementações de referência do `thermo`, varrendo toda a faixa de composição (x1 de 0 a 1 em 101 pontos, extremos inclusos):
+
+| Modelo | Implementado | Validado contra | Observação |
+|---|---|---|---|
+| Margules 1P | ✅ | `thermo` (faixa completa) | herdado do código pré-existente |
+| Margules 2P | ✅ | `thermo` + planilha XSEOS | caso MEK/Tolueno a 323,15 K, em `testes/` |
+| Van Laar | ✅ | `thermo` (faixa completa) | bug γ1↔γ2 nos limites corrigido (`8c29dcb`) |
+| Wilson | ✅ | `Wilson_gammas` | bug nos limites corrigido (2026-07-27) |
+| NRTL | ✅ | `NRTL_gammas` | erro máx. ~1e-15; sem indeterminação nos limites |
+| UNIQUAC | ✅ | `UNIQUAC_gammas` | — |
+| UNIFAC | ✅ | `UNIFAC.from_subgroups` | 2 bugs + tabela de interação corrigidos |
+
+Além da validação por modelo, os 7 foram exercitados ponta a ponta via `calculate_vle_isothermal`, gerando diagramas P-x-y sem NaN/Inf, com P > 0 e y1 ∈ [0,1] em toda a faixa (etanol/água a 70 °C e 1,4-dioxano/metanol a 70 °C).
+
+**Parâmetros reais:** disponíveis via `thermo.interaction_parameters.IPDB` (fonte ChemSep) para NRTL, Wilson e UNIQUAC — o adaptador `nrtl_params_from_ipdb` já os consome no NRTL. **Van Laar não tem tabela no IPDB**, então segue pendente de parâmetros reais de literatura.
+
+**Pendente:** ampliar a suíte com exercícios de Koretsky e Smith/Van Ness/Abbott (Fase 2), e transformar os scripts avulsos de `testes/` em suíte com runner.
 
 ### 2.5 Protótipos de estudo e referências visuais
 
@@ -120,21 +136,34 @@ Esse e-mail serve como registro documentado e datado de acompanhamento do orient
 
 ---
 
-## 3. Estado Atual do Código
+## 3. Estado Atual do Código (2026-08-20)
 
-Arquivo `fletando.py` — implementa apenas a primeira etapa:
-- Tabela de input (P, x, y) com botões de adicionar/remover linha
-- Sem cálculo, sem gráfico, sem sliders, sem seleção de modelo
+**Camada de cálculo — pronta.** `gemini.py` (~405 linhas): os 7 modelos Gᴱ registrados em `MODELS_GE`, todos validados (seção 2.4), o adaptador `nrtl_params_from_ipdb` para parâmetros reais via IPDB, e `calculate_vle_isothermal`, que monta o diagrama P-x-y pela Lei de Raoult modificada.
+
+**Camada de interface — protótipos, em ordem de evolução:**
+
+- `main.py` — o mais antigo: gráfico estático de exemplo (matplotlib) exibido como `ft.Image`.
+- `fletando.py` — tabela dinâmica P/x/y com adicionar/remover linha (`ft.DataTable`). Concluiu a Etapa 1.
+- `fletando_grafico.py` — **a linha viva**: a tabela acima mais um `flet_charts.LineChart` que plota o P-x-y a partir dos dados digitados, com validação de entrada e mensagem de erro. Corresponde à **Etapa 2** do plano (simulação gráfica com os dados da tabela).
+
+**Ainda não implementado da Etapa 2 em diante:** importação via CSV, sliders de parâmetros (`on_change_end`), dropdown de seleção de modelo, e o gráfico de ln γ vs x1 (o segundo gráfico previsto na seção 2.2).
+
+**Lacuna central — as duas camadas seguem desconectadas.** Nenhum protótipo de interface chama `calculate_vle_isothermal`: o `fletando_grafico.py` só redesenha os números que o usuário digitou, sem cálculo de modelo. É o próximo item de maior valor do projeto — sem ele, o núcleo validado não chega ao usuário final. **A integração aguarda ordem explícita do autor** (seção 5.2); não é iniciada por conta própria.
+
+**Apoio:** `testes/` com dois scripts avulsos rodados à mão com `python3`, sem runner nem CI (`teste_margules_2p_MEK_tolueno.py`, validação numérica contra a planilha XSEOS; `teste_parse_ponto_tabela.py`, lógica pura da tabela, sem dependência de `flet`). `referencias/` com a imagem da planilha XSEOS e os dois protótipos `.jsx` da seção 2.5.
 
 ---
 
 ## 4. Ambiente e Fluxo de Trabalho
 
 ### 4.1 Ferramentas
-- **Edição atual:** Termux + Acode (edição manual, Termux só executava)
-- **Planejado:** Claude Code assumindo edição + execução + auditoria de erros dentro do Termux, enquanto o código for simples
-- **Migração planejada:** para desktop quando entrar a parte pesada (múltiplos modelos, suíte de testes, performance)
-- **Status da assinatura:** ainda em avaliação (Claude Pro, ~mês que vem)
+
+*Atualizado em 2026-08-20 — o estado abaixo substitui o planejamento original de julho, que previa Termux + Acode com o Claude Code ainda por avaliar.*
+
+- **Assinatura:** Claude Pro **ativa** desde julho de 2026 (log de ativação e autenticação na seção 7.3). Ponto encerrado.
+- **Edição e execução:** o Claude Code assumiu de fato o papel previsto — edição, execução, auditoria e documentação —, e é por ele que o trabalho técnico vem sendo conduzido desde a auditoria dos modelos (2026-07-27). O fluxo de push via Replit Agent foi abandonado em favor do push direto pelo Claude Code.
+- **Hospedagem do projeto:** Replit (`.replit`, `pyproject.toml`, `uv.lock`), com `uv` como gerenciador.
+- **Migração para desktop:** segue como previsto para a fase mais pesada (suíte de testes, performance) — ainda não realizada, ainda não necessária.
 
 ### 4.2 Por que Termux funciona para este projeto
 - Flet é usado em modo web (`flet run --web`), sem necessidade de build nativo (que exigiria maturin e companhia — o gargalo real do Flet no Android)
@@ -162,6 +191,8 @@ Considerando que a banca incluirá um professor especialista em Python e uso de 
 
 ### 5.1 Caso registrado: código pré-existente gerado por outra IA (`gemini.py`)
 
+> **Estado em 2026-08-20:** o `gemini.py` cresceu muito além do que esta seção descrevia originalmente — hoje são **7 modelos Gᴱ implementados e validados** (~405 linhas). O relato abaixo é o registro histórico de julho de 2026, quando o arquivo tinha apenas Margules 1P e Van Laar; a atualização vem em "Desdobramento" ao final da seção. O princípio adotado continua valendo integralmente.
+
 Durante a integração dos ambientes de desenvolvimento (julho 2026), foi descoberto no repositório um arquivo `gemini.py` — um módulo de cálculo de equilíbrio líquido-vapor (modelos Margules 1P e Van Laar, função `calculate_vle_isothermal`), produzido em um teste anterior com o Google Gemini Pro, **quase sem supervisão do autor na época da criação**.
 
 **Critério de decisão adotado:** a origem do código (gerado por outra IA, sem supervisão prévia) não é, por si só, motivo para descarte — mas também não é motivo para uso direto sem processo. O código passou pelo seguinte tratamento antes de ser considerado parte legítima do projeto:
@@ -173,6 +204,21 @@ Durante a integração dos ambientes de desenvolvimento (julho 2026), foi descob
 **Princípio adotado para uso futuro de código de origem similar:** um código gerado por IA sem supervisão prévia pode ser incorporado ao projeto desde que (a) seja submetido a auditoria técnica documentada, (b) o autor seja capaz de explicar seu funcionamento após o processo, e (c) a origem e o processo de validação sejam registrados nesta prestação de contas — transformando uma origem potencialmente frágil em prática de revisão de código documentada, e não em ocultação.
 
 **Pendência:** entendimento linha a linha do `gemini.py` pelo autor (com apoio do Claude Code explicando o código), de forma que o autor seja capaz de defender qualquer trecho perante a banca sem depender de memória de terceiros.
+
+#### Desdobramento (julho–agosto de 2026): de 2 para 7 modelos, e o que a auditoria encontrou
+
+O princípio da auditoria documentada, aplicado inicialmente ao código herdado, virou a prática padrão do projeto. Estado do `gemini.py` em 2026-08-20:
+
+- **7 modelos Gᴱ implementados e validados**: Margules 1P, Margules 2P, Van Laar, Wilson, NRTL, UNIQUAC e UNIFAC, todos registrados em `MODELS_GE` seguindo o mesmo padrão (`model_xxx(x1, params)` → `(γ1, γ2)`).
+- **Critério de validação elevado**: cada modelo é comparado à implementação de referência do `thermo` (`Wilson_gammas`, `UNIQUAC_gammas`, `NRTL_gammas`, `UNIFAC.from_subgroups`) **em toda a faixa de composição** — x1 de 0 a 1 em 101 pontos, incluindo os extremos —, não em um ponto de exemplo. Erro máximo observado da ordem de 1e-15 no NRTL.
+- **A auditoria de 2026-07-27 encontrou três bugs adicionais** além do já registrado no Van Laar: (a) `model_wilson` trocava γ1↔γ2 e usava o parâmetro de interação errado nos limites exatos x1=0 e x2=0; (b) a parte residual do `model_unifac` tinha os índices dos parâmetros τ trocados na soma do denominador (`tau(n, m)` em vez de `tau(m, n)`), erro que afeta praticamente todo sistema real, por serem assimétricos; (c) a parte combinatorial do `model_unifac` zerava o termo nos limites em vez de calcular o limite analítico.
+- **Erro de dados, não de fórmula**: a tabela de parâmetros de interação UNIFAC embutida no `gemini.py` tinha **41 dos 66 pares errados** — erro de transcrição, não sistemático — frente à tabela de referência `UFIP` do `thermo`. Foi reescrita por completo a partir da fonte. A tabela de subgrupos (R, Q, grupo principal) estava correta e não foi alterada.
+
+**Leitura para a banca:** os quatro bugs e a tabela errada não foram encontrados por inspeção visual nem por "o código rodou sem erro" — foram encontrados por **validação sistemática contra uma referência independente**, exigida pelo autor como condição para aceitar o código. Três deles pertencem à mesma classe (comportamento nos limites de composição), o que gerou uma regra permanente de revisão registrada no `CLAUDE.md`. Isso é o oposto do risco que se costuma atribuir ao uso de IA em trabalhos acadêmicos: o processo de auditoria dirigida pelo autor **aumentou** a corretude do código em relação ao que existiria sem ele.
+
+**Resolvida a ressalva sobre parâmetros reais** (item 3 acima): a descoberta do banco `thermo.interaction_parameters.IPDB` (fonte ChemSep) permitiu buscar parâmetros de interação binária reais em vez de usar valores de exemplo. O adaptador `nrtl_params_from_ipdb(cas1, cas2, T_K)` já faz isso para o NRTL, e o par 1,4-Dioxano (CAS `123-91-1`) / Metanol (CAS `67-56-1`) tem dados nas tabelas de NRTL, Wilson e UNIQUAC. Não há tabela de Van Laar no IPDB — modelo antigo, pouco presente em bancos modernos —, então a ressalva **permanece em aberto especificamente para o Van Laar**.
+
+**Pendências que seguem abertas:** o entendimento linha a linha do `gemini.py` pelo autor (registrado acima) e a validação do Van Laar com parâmetros reais de literatura.
 
 ### 5.2 Modelo de trabalho: papéis e cadeia de validação (2026-08-20)
 
@@ -253,7 +299,7 @@ Na prática, isso significa:
 ---
 
 ## 7. Pontos em Aberto (decidir ao longo do caminho)
-- Assinatura do Claude Code (Pro) — avaliação em andamento
+- ~~Assinatura do Claude Code (Pro) — avaliação em andamento~~ → **resolvido**: assinatura ativa desde julho de 2026 (seção 7.3)
 - Formato de empacotamento final: executável nativo vs. web hospedado vs. script local — decisão adiada para a Fase 2
 - Hospedagem gratuita (se optado por web): opções identificadas incluem Render e PythonAnywhere, com ressalva de cold-start em planos gratuitos — inadequado para demonstração ao vivo sem mitigação
 - Confirmação de prazos oficiais da coordenação (prévia, depósito, defesa) para 2027.1, já que os prazos anteriores encontrados nos slides eram de outro semestre
