@@ -163,10 +163,21 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
 
 ## Próximos passos
 
+> **Ritmo de trabalho — ler antes de pegar qualquer item desta lista.**
+> Esta lista é um **roadmap, não uma fila de tarefas autorizadas**. Este é
+> um TCC: o autor precisa entender e defender cada linha do código na
+> banca, então a evolução acompanha o aprendizado dele, não a velocidade
+> do assistente. **Não inicie a integração (item 1) por conta própria** —
+> ela só avança quando o autor pedir explicitamente, mesmo que o item
+> esteja listado como o de maior valor e mesmo que o contexto pareça
+> convidar a isso. O mesmo vale para os demais itens. Combinado em
+> 2026-08-20.
+
 1. Integrar `gemini.py` (cálculo, já validado — todos os 7 modelos Gᴱ) com
-   a UI (`fletando.py`/`main.py`), que hoje são protótipos isolados. Esse é
-   o próximo item de maior valor: sem essa integração o núcleo de cálculo
-   não é utilizável pelo usuário final.
+   a UI (hoje `fletando_grafico.py` é a linha viva; `fletando.py`/`main.py`
+   são protótipos anteriores). Esse é o próximo item de maior valor: sem
+   essa integração o núcleo de cálculo não é utilizável pelo usuário final.
+   **Aguardando o "vamos integrar" do autor.**
 2. Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
    possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
