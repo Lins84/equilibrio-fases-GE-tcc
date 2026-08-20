@@ -1,4 +1,4 @@
-entrypoint = "main.py"
+entrypoint = "interface/main.py"
 modules = ["nodejs-20", "python-3.11"]
 
 [nix]
@@ -12,7 +12,7 @@ language = "python3"
 requiredFiles = [".replit", "replit.nix"]
 
 [deployment]
-run = ["python3", "main.py"]
+run = ["python3", "interface/main.py"]
 deploymentTarget = "cloudrun"
 
 [[ports]]
@@ -43,7 +43,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 fletando.py"
+args = "python3 interface/fletando.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -55,7 +55,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flet run fletando_grafico.py -d --web --port 5000 --host 0.0.0.0"
+args = "flet run interface/fletando_grafico.py -d --web --port 5000 --host 0.0.0.0"
 waitForPort = 5000
 
 [userenv]

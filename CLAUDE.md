@@ -37,23 +37,27 @@ projeto e torna o uso de IA aqui auditável. Detalhamento na seção 5.2 de
 
 ## Estrutura do projeto
 
-**Cálculo:**
+Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
+`calculos/` (motor de cálculo), `interface/` (UI Flet), `testes/`,
+`Docs/`, `referencias/`.
 
-- `gemini.py` (~405 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
+**Cálculo — `calculos/`:**
+
+- `calculos/gemini.py` (~405 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
   (`model_margules_1p`, `model_margules_2p`, `model_van_laar`,
   `model_wilson`, `model_nrtl`, `model_uniquac`, `model_unifac`),
   registrados em `MODELS_GE`; o adaptador `nrtl_params_from_ipdb`; e
   `calculate_vle_isothermal`, que gera os diagramas P-x-y a partir da Lei
   de Raoult modificada. Todos os modelos validados contra o `thermo`.
 
-**UI (protótipos Flet, em ordem de evolução):**
+**UI — `interface/` (protótipos Flet, em ordem de evolução):**
 
-- `main.py` (~34 linhas) — o mais antigo/simples: gráfico estático de
-  exemplo via matplotlib, exibido como `ft.Image`.
-- `fletando.py` (~218 linhas) — tabela dinâmica de pontos P/x/y com
-  adição/remoção de linhas via `ft.DataTable`.
-- `fletando_grafico.py` (~218 linhas) — **a linha viva da UI**: a tabela
-  do `fletando.py` mais um `flet_charts.LineChart` que plota o diagrama
+- `interface/main.py` (~34 linhas) — o mais antigo/simples: gráfico
+  estático de exemplo via matplotlib, exibido como `ft.Image`.
+- `interface/fletando.py` (~218 linhas) — tabela dinâmica de pontos P/x/y
+  com adição/remoção de linhas via `ft.DataTable`.
+- `interface/fletando_grafico.py` (~218 linhas) — **a linha viva da UI**:
+  a tabela do `fletando.py` mais um `flet_charts.LineChart` que plota o diagrama
   P-x-y a partir dos dados brutos digitados (`parse_ponto` +
   `pontos_para_series`), com validação de entrada e mensagem de erro.
   Ainda "Etapa 2": nenhum cálculo de modelo, só visualiza o que o usuário
@@ -61,10 +65,12 @@ projeto e torna o uso de IA aqui auditável. Detalhamento na seção 5.2 de
 
 **Apoio:**
 
-- `testes/` — scripts avulsos, rodados direto com `python3` (não há
-  runner/pytest): `teste_margules_2p_MEK_tolueno.py` (validação numérica
-  contra planilha XSEOS) e `teste_parse_ponto_tabela.py` (lógica pura da
-  tabela, sem dependência de `flet`).
+- `testes/` — scripts avulsos, rodados direto com `python3` **a partir da
+  raiz** (não há runner/pytest): `teste_margules_2p_MEK_tolueno.py`
+  (validação numérica contra planilha XSEOS, sem dependências externas) e
+  `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
+  `sys.path` para achar o módulo, e exige `flet` instalado — ver ressalva
+  no topo do arquivo).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS e dois
@@ -72,9 +78,17 @@ projeto e torna o uso de IA aqui auditável. Detalhamento na seção 5.2 de
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
   gerenciado com `uv`.
 
-**Lacuna central:** cálculo e UI seguem desconectados. `gemini.py` está
-pronto e validado, mas **nenhum** dos protótipos de UI chama
+**Lacuna central:** cálculo e UI seguem desconectados. `calculos/gemini.py`
+está pronto e validado, mas **nenhum** dos protótipos de UI chama
 `calculate_vle_isothermal` — é exatamente o item 1 de "Próximos passos".
+
+> **Nota para a integração:** com a separação em pastas, um script rodado
+> de dentro de `interface/` não enxerga `calculos/` automaticamente (o
+> Python põe em `sys.path[0]` a pasta do script, não a raiz). Como a UI
+> importar o motor de cálculo é decisão de arquitetura — `sys.path`,
+> pacote com `__init__.py`, ou instalação editável via `pyproject.toml` —
+> e fica para o autor decidir quando a integração for liberada. Nada foi
+> pré-resolvido aqui.
 
 ## Estado atual (2026-08-19)
 

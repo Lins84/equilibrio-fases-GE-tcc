@@ -138,13 +138,13 @@ Esse e-mail serve como registro documentado e datado de acompanhamento do orient
 
 ## 3. Estado Atual do Código (2026-08-20)
 
-**Camada de cálculo — pronta.** `gemini.py` (~405 linhas): os 7 modelos Gᴱ registrados em `MODELS_GE`, todos validados (seção 2.4), o adaptador `nrtl_params_from_ipdb` para parâmetros reais via IPDB, e `calculate_vle_isothermal`, que monta o diagrama P-x-y pela Lei de Raoult modificada.
+**Camada de cálculo — pronta.** `calculos/gemini.py` (~405 linhas): os 7 modelos Gᴱ registrados em `MODELS_GE`, todos validados (seção 2.4), o adaptador `nrtl_params_from_ipdb` para parâmetros reais via IPDB, e `calculate_vle_isothermal`, que monta o diagrama P-x-y pela Lei de Raoult modificada.
 
 **Camada de interface — protótipos, em ordem de evolução:**
 
-- `main.py` — o mais antigo: gráfico estático de exemplo (matplotlib) exibido como `ft.Image`.
-- `fletando.py` — tabela dinâmica P/x/y com adicionar/remover linha (`ft.DataTable`). Concluiu a Etapa 1.
-- `fletando_grafico.py` — **a linha viva**: a tabela acima mais um `flet_charts.LineChart` que plota o P-x-y a partir dos dados digitados, com validação de entrada e mensagem de erro. Corresponde à **Etapa 2** do plano (simulação gráfica com os dados da tabela).
+- `interface/main.py` — o mais antigo: gráfico estático de exemplo (matplotlib) exibido como `ft.Image`.
+- `interface/fletando.py` — tabela dinâmica P/x/y com adicionar/remover linha (`ft.DataTable`). Concluiu a Etapa 1.
+- `interface/fletando_grafico.py` — **a linha viva**: a tabela acima mais um `flet_charts.LineChart` que plota o P-x-y a partir dos dados digitados, com validação de entrada e mensagem de erro. Corresponde à **Etapa 2** do plano (simulação gráfica com os dados da tabela).
 
 **Ainda não implementado da Etapa 2 em diante:** importação via CSV, sliders de parâmetros (`on_change_end`), dropdown de seleção de modelo, e o gráfico de ln γ vs x1 (o segundo gráfico previsto na seção 2.2).
 
@@ -265,7 +265,7 @@ Na prática, isso significa:
 ### Fase 0 — Preparação (Jul–Ago 2026)
 - Decidir sobre assinatura do Claude Code
 - Criar repositório git (local, com possibilidade de remoto futuro)
-- Estruturar pastas do projeto (`calculos/`, `interface/`, `testes/`)
+- ~~Estruturar pastas do projeto (`calculos/`, `interface/`, `testes/`)~~ → **feito em 2026-08-20** (ver seção 3)
 - Iniciar o documento de prestação de contas como arquivo vivo
 
 ### Fase 1 — Núcleo funcional (Ago–Out 2026)

@@ -2,10 +2,22 @@
 Testes da lógica pura de leitura da tabela P/x/y (Etapa 2 — gráfico a
 partir dos dados brutos da tabela, sem cálculo de modelo).
 
-`parse_ponto` e `pontos_para_series` não dependem de `flet`/`flet_charts`,
-então este teste roda com `python3 testes/teste_parse_ponto_tabela.py` sem
-precisar instalar nada além da lib padrão.
+Roda com `python3 testes/teste_parse_ponto_tabela.py` a partir da raiz do
+repositório. O `sys.path` abaixo é necessário porque o Python coloca em
+`sys.path[0]` a pasta do script (`testes/`), não a raiz — sem isso, o
+módulo de interface não é encontrado.
+
+Ressalva: as funções testadas são lógica pura (não usam `flet`), mas
+vivem em `interface/fletando.py`, cujo topo importa `flet`/`flet_charts`.
+Importar o módulo executa esses imports, então este teste **exige as
+dependências instaladas**. Extrair as duas funções para um módulo próprio
+resolveria isso — é decisão de arquitetura, pendente do autor.
 """
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "interface"))
 
 from fletando import parse_ponto, pontos_para_series
 
