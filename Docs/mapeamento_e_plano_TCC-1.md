@@ -5,7 +5,7 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
-**Última atualização:** 2026-08-20
+**Última atualização:** 2026-09-01
 
 > **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
@@ -134,6 +134,8 @@ Como parte do acompanhamento do desenvolvimento, os dois protótipos interativos
 
 Esse e-mail serve como registro documentado e datado de acompanhamento do orientador ao longo do processo — relevante tanto para a prestação de contas de uso de IA (seção 5) quanto como evidência de comunicação contínua com a orientação.
 
+**Tira-dúvidas em 2026-09-01:** conversa breve com o orientador. Pergunta levada pelo autor: se é preciso entender o código do TCC a fundo, ou se deve se ater a fazer funcionar. Resposta do Dr. Filipe: entender o **básico** de cada parte, com prioridade em **entregar funcionando** — a redação do TCC em si vem depois. Desdobramento registrado na seção 5.2 (substitui a formulação anterior de "entender e defender cada linha", ajustando a barra de profundidade sem dispensar a exigência de entendimento).
+
 ---
 
 ## 3. Estado Atual do Código (2026-08-20)
@@ -218,7 +220,7 @@ O princípio da auditoria documentada, aplicado inicialmente ao código herdado,
 
 **Resolvida a ressalva sobre parâmetros reais** (item 3 acima): a descoberta do banco `thermo.interaction_parameters.IPDB` (fonte ChemSep) permitiu buscar parâmetros de interação binária reais em vez de usar valores de exemplo. O adaptador `nrtl_params_from_ipdb(cas1, cas2, T_K)` já faz isso para o NRTL, e o par 1,4-Dioxano (CAS `123-91-1`) / Metanol (CAS `67-56-1`) tem dados nas tabelas de NRTL, Wilson e UNIQUAC. Não há tabela de Van Laar no IPDB — modelo antigo, pouco presente em bancos modernos —, então a ressalva **permanece em aberto especificamente para o Van Laar**.
 
-**Pendências que seguem abertas:** o entendimento linha a linha do `gemini.py` pelo autor (registrado acima) e a validação do Van Laar com parâmetros reais de literatura.
+**Pendências que seguem abertas:** o entendimento do **essencial** do `gemini.py` pelo autor — a barra deixou de ser "linha a linha" em 2026-09-01, ver seção 5.2 — e a validação do Van Laar com parâmetros reais de literatura.
 
 ### 5.2 Modelo de trabalho: papéis e cadeia de validação (2026-08-20)
 
@@ -237,11 +239,13 @@ Na prática, isso significa:
 
 1. **Propor antes de executar.** Diante de uma escolha de rumo — arquitetura, dependência nova, mudança de abordagem, início de uma etapa —, o assistente apresenta a proposta e as alternativas, e aguarda. Não executa por iniciativa própria.
 2. **Roadmap não é autorização.** Um item listado em "Próximos passos" (aqui ou no `CLAUDE.md`) descreve o que está previsto, não o que está liberado. A liberação é sempre um pedido explícito do autor, item a item.
-3. **O ritmo é o do autor, não o do assistente.** A evolução acompanha o aprendizado do autor, que precisa entender e defender cada linha perante a banca. Avançar mais rápido do que esse entendimento produziria código indefensável na arguição — o oposto do objetivo do TCC.
+3. **O ritmo é o do autor, e a barra de entendimento é a que a orientação fixou.** Ver "Orientação sobre profundidade de entendimento" logo abaixo — não é mais "linha a linha".
 4. **Decisões só são registradas depois de tomadas pelo autor.** O assistente pode levantar uma pendência, mapear as opções e recomendar; quem fecha é o autor, e só então a decisão vai para a documentação, com data.
-5. **Explicação exigida antes do aceite** (já previsto no item 2 da seção 5): o autor não aprova mudança que não entenda.
+5. **Explicação exigida antes do aceite** (já previsto no item 2 da seção 5): o autor não aprova mudança que não entenda — a orientação abaixo calibra o "quanto", não dispensa o "entenda".
 
-**Por que isso importa para a banca:** é essa cadeia que garante o **caráter crítico humano especializado** sobre os rumos do projeto, do início até a finalização. A IA aqui é ferramenta de execução sob direção, não fonte de decisão técnica. O histórico do repositório (commits, `CLAUDE.md` e esta seção) é a evidência auditável disso — inclusive dos casos em que a auditoria conduzida sob essa direção encontrou e corrigiu erros reais no código (ver seção 5.1 e o registro de auditoria dos modelos Gᴱ no `CLAUDE.md`).
+**Orientação sobre profundidade de entendimento (tira-dúvidas com o Dr. Filipe Xavier Feitosa, 2026-09-01):** consultado diretamente sobre se o autor precisa entender o código do TCC a fundo ou se deve se ater a fazer funcionar, o orientador respondeu que é para **entender o básico** de cada parte, com prioridade em **entregar funcionando**; a redação do TCC vem depois, construída sobre o que já está funcional. Isso substitui a formulação anterior desta seção ("entender e defender cada linha"), que era mais rígida do que a orientação real. Não afeta a regra central (item 1: nenhuma decisão sem validação do autor) nem o item 5 (explicação antes do aceite) — muda apenas o nível de profundidade exigido, não a exigência de entendimento em si.
+
+**Por que isso importa para a banca:** é essa cadeia que garante o **caráter crítico humano especializado** sobre os rumos do projeto, do início até a finalização. A IA aqui é ferramenta de execução sob direção, não fonte de decisão técnica. O histórico do repositório (commits, `CLAUDE.md` e esta seção) é a evidência auditável disso — inclusive dos casos em que a auditoria conduzida sob essa direção encontrou e corrigiu erros reais no código (ver seção 5.1 e o registro de auditoria dos modelos Gᴱ no `CLAUDE.md`), e da orientação registrada acima, obtida diretamente do orientador que também compõe a banca.
 
 *(Este documento serve como registro inicial dessa prestação de contas — recomenda-se atualizá-lo conforme decisões técnicas forem tomadas ao longo do desenvolvimento.)*
 
