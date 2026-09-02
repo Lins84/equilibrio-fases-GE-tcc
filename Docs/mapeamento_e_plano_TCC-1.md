@@ -136,6 +136,25 @@ Esse e-mail serve como registro documentado e datado de acompanhamento do orient
 
 **Tira-dúvidas em 2026-09-01:** conversa breve com o orientador. Pergunta levada pelo autor: se é preciso entender o código do TCC a fundo, ou se deve se ater a fazer funcionar. Resposta do Dr. Filipe: entender o **básico** de cada parte, com prioridade em **entregar funcionando** — a redação do TCC em si vem depois. Desdobramento registrado na seção 5.2 (substitui a formulação anterior de "entender e defender cada linha", ajustando a barra de profundidade sem dispensar a exigência de entendimento).
 
+### 2.7 Como o UNIFAC funciona e seus limites (tira-dúvidas com o orientador, 2026-09-01)
+
+O orientador perguntou como o UNIFAC funciona, já que depende da molécula, e se serve para qualquer molécula. **Resposta: sim, mas só para moléculas e pares já catalogados** — não é universal. Explicação e o porquê do limite:
+
+**A ideia central — grupos, não moléculas inteiras.** Ao contrário de Wilson, NRTL e UNIQUAC (que, neste projeto, usam parâmetros de interação medidos para aquele par específico de moléculas, buscados via `IPDB`/ChemSep — ver seção 2.4), o UNIFAC quebra cada molécula em grupos funcionais padronizados (`CH3`, `CH2`, `OH`, `CH` aromático, `CH3COO`, etc.). Cada grupo tem parâmetros próprios de tamanho/área (`R`, `Q`) e um parâmetro de **interação entre pares de grupos** (`a_mn`), ajustado uma única vez a partir de um volume grande de dados experimentais reais, cobrindo muitas famílias químicas — não um parâmetro por par de moléculas.
+
+O cálculo em `calculos/gemini.py` (`model_unifac`, linhas ~182–273) segue essa divisão clássica do método:
+- **Parte combinatorial** — depende só do tamanho/forma da molécula (soma dos `R`/`Q` dos grupos que ela contém). Não precisa de nenhum dado de interação.
+- **Parte residual** — a parte energética, soma as interações grupo-a-grupo usando a tabela `a_mn` (a mesma tabela que teve 41 de 66 pares corrigidos na auditoria de 2026-07-27, seção 5.1).
+
+**Os dois limites reais de cobertura** (por que a resposta não é "sim, qualquer molécula"):
+
+1. A molécula precisa ser decomponível nos grupos que existem na tabela `UNIFAC_SUBGROUPS` — uma lista fixa e finita. Cobre bem hidrocarbonetos, álcoois, ésteres, cetonas, aromáticos comuns; não cobre uma funcionalidade fora dessa lista (heteroátomos específicos, estruturas exóticas).
+2. Mesmo com os grupos cobertos, a **interação entre os grupos presentes na mistura** precisa estar na tabela `a_mn`. Se aquele par de grupos nunca foi ajustado a partir de dados suficientes, o UNIFAC não roda para esse par — mesmo que cada grupo isoladamente seja conhecido.
+
+Dentro desses dois limites, é isso que dá ao UNIFAC seu valor pedagógico: ele é **preditivo** — estima o comportamento de um par de moléculas sem exigir dado experimental medido daquele par específico, ao contrário do NRTL/Wilson/UNIQUAC com `IPDB`.
+
+**Pendência de implementação identificada durante essa explicação:** hoje, `model_unifac` **não decompõe a molécula sozinho a partir do nome/CAS** — ao contrário dos outros 6 modelos, que recebem `component1_id`/`component2_id` e deixam o `thermo` resolver tudo, o UNIFAC espera que quem chama a função já forneça os grupos e as quantidades prontos (`groups1`, `groups2`). Isso significa que, quando a integração acontecer (item 1 de "Próximos passos" no `CLAUDE.md`), será preciso decidir como o usuário escolhe a molécula para o UNIFAC na UI — mapear nome → grupos é uma peça própria, ainda não resolvida, em cima dos dois limites de cobertura acima.
+
 ---
 
 ## 3. Estado Atual do Código (2026-08-20)
