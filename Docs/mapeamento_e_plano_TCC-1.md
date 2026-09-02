@@ -155,6 +155,8 @@ Dentro desses dois limites, é isso que dá ao UNIFAC seu valor pedagógico: ele
 
 **Pendência de implementação identificada durante essa explicação:** hoje, `model_unifac` **não decompõe a molécula sozinho a partir do nome/CAS** — ao contrário dos outros 6 modelos, que recebem `component1_id`/`component2_id` e deixam o `thermo` resolver tudo, o UNIFAC espera que quem chama a função já forneça os grupos e as quantidades prontos (`groups1`, `groups2`). Isso significa que, quando a integração acontecer (item 1 de "Próximos passos" no `CLAUDE.md`), será preciso decidir como o usuário escolhe a molécula para o UNIFAC na UI — mapear nome → grupos é uma peça própria, ainda não resolvida, em cima dos dois limites de cobertura acima.
 
+**Registro do envio ao orientador (2026-09-01):** esta explicação foi condensada em prosa e enviada por e-mail para `fxfeitosa@ufc.br`, assunto "TCC — UNIFAC: resposta por escrito da nossa conversa", como resposta formal e datada ao tira-dúvidas presencial do mesmo dia. Antes do envio, o autor identificou uma ambiguidade na primeira redação desta seção — "lista fixa e finita" dava a entender que a tabela de subgrupos era um recorte feito para os componentes deste projeto — corrigida no texto acima antes de mandar (ver commit `d4408e8`). O e-mail enviado já reflete a versão corrigida.
+
 ---
 
 ## 3. Estado Atual do Código (2026-08-20)
