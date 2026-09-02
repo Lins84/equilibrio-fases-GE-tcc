@@ -148,7 +148,7 @@ O cálculo em `calculos/gemini.py` (`model_unifac`, linhas ~182–273) segue ess
 
 **Os dois limites reais de cobertura** (por que a resposta não é "sim, qualquer molécula"):
 
-1. A molécula precisa ser decomponível nos grupos que existem na tabela `UNIFAC_SUBGROUPS` — uma lista fixa e finita. Cobre bem hidrocarbonetos, álcoois, ésteres, cetonas, aromáticos comuns; não cobre uma funcionalidade fora dessa lista (heteroátomos específicos, estruturas exóticas).
+1. A molécula precisa ser decomponível nos grupos da tabela `UNIFAC_SUBGROUPS` — que é a **tabela clássica do método UNIFAC, publicada na literatura** (Fredenslund/Jones/Prausnitz) e usada universalmente, não um recorte feito para este projeto ou para os componentes escolhidos aqui. Veio pronta no `gemini.py` herdado e foi auditada (confirmada correta) contra `thermo.unifac.UFIP`, não montada a dedo. Cobre bem hidrocarbonetos, álcoois, ésteres, cetonas, aromáticos comuns; não cobre uma funcionalidade fora dela (heteroátomos específicos, estruturas exóticas). Existe uma versão mais moderna e maior — o UNIFAC Modificado de Dortmund, com mais grupos —, que este projeto **não** implementa; o que está aqui é o conjunto clássico original.
 2. Mesmo com os grupos cobertos, a **interação entre os grupos presentes na mistura** precisa estar na tabela `a_mn`. Se aquele par de grupos nunca foi ajustado a partir de dados suficientes, o UNIFAC não roda para esse par — mesmo que cada grupo isoladamente seja conhecido.
 
 Dentro desses dois limites, é isso que dá ao UNIFAC seu valor pedagógico: ele é **preditivo** — estima o comportamento de um par de moléculas sem exigir dado experimental medido daquele par específico, ao contrário do NRTL/Wilson/UNIQUAC com `IPDB`.
