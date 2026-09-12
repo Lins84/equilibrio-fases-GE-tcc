@@ -257,8 +257,33 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    iteração do ajuste dos parâmetros) — mais complexa de implementar que
    o indireto, aceita conscientemente pelo autor em troca do rigor
    estatístico.
-   Segue em aberto: α12 do NRTL (fixar ou ajustar), mínimo de pontos
-   exigido, e gatilho automático vs. manual na UI.
+   **α12 do NRTL, decidido em 2026-09-13: fixado, não ajustado.** Evita o
+   mau-condicionamento de regredir 3 parâmetros com poucos pontos.
+   **Requisito de UI vinculado:** nota explicativa junto ao valor de α,
+   no mesmo padrão selo+ícone ⓘ já definido para a origem do parâmetro —
+   avisando que aquele α foi fixado por convenção (valor de referência
+   comum na literatura, algo entre 0,2 e 0,47 conforme o tipo de sistema;
+   valor exato a definir na implementação), não obtido por regressão.
+   Sem essa nota, o usuário pode presumir que os 3 parâmetros do NRTL
+   foram ajustados igualmente, quando só τ12/τ21 foram.
+   Segue em aberto: mínimo de pontos exigido, e gatilho automático vs.
+   manual na UI.
+
+## Atualizações futuras (pós-projeto piloto)
+
+Criada em 2026-09-13. Ideias explicitamente **adiadas para depois da
+entrega do TCC** — não fazem parte do escopo do projeto piloto e não
+devem ser implementadas sem novo pedido explícito do autor, mesmo que
+pareçam pequenas. Diferem de "Próximos passos": aquela lista é o que
+falta para o piloto funcionar; esta é o que vem **depois**, se o projeto
+continuar sendo mantido.
+
+- **α12 do NRTL não fixo.** Hoje decidido como fixo (seção "Próximos
+  passos", item 3), por simplicidade e estabilidade numérica com poucos
+  pontos experimentais. Se a aplicação amadurecer e passar a lidar com
+  tabelas maiores/mais confiáveis (uso de pesquisa, Eixo 3), ajustar os
+  três parâmetros do NRTL simultaneamente (ou expor a escolha ao usuário)
+  vira uma opção viável a reconsiderar.
 
 ## Decisões de engenharia do aluno na produção da aplicação
 
@@ -375,6 +400,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Um parâmetro ajustado a 5 pontos digitados e um parâmetro medido e
   publicado não têm a mesma força, e a interface não pode apagar essa
   diferença.
+- **(2026-09-13) Fixar α12 do NRTL na regressão, com nota explicativa
+  obrigatória.** Entre fixar α num valor convencional (ajustando só
+  τ12/τ21) ou tentar ajustar os três parâmetros simultaneamente, o autor
+  escolheu fixar — mesmo raciocínio de mau-condicionamento já aplicado ao
+  método de Barker. Mas exigiu que isso não fique escondido: a mesma
+  transparência de origem do parâmetro (item acima) se aplica aqui —
+  reaproveita o padrão selo+ícone ⓘ para avisar que α foi fixado por
+  convenção, não regredido.
 
 ### B. Decisões de arquitetura e stack
 

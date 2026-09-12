@@ -171,7 +171,9 @@ Isso define três origens possíveis para o parâmetro de um modelo Gᴱ, em ord
 
 **Método de redução escolhido (2026-09-13): Barker, direto.** Existem dois métodos clássicos para essa regressão: o **indireto**, que inverte a Lei de Raoult modificada para obter γ1/γ2 "experimentais" em cada ponto e ajusta o modelo a esses valores; e o **direto (método de Barker)**, que ajusta o modelo contra o resíduo de P e y diretamente, sem passar por esse cálculo intermediário de γ. O autor escolheu Barker — mais rigoroso, pois trata o erro no espaço onde ele foi de fato medido (P, y), evitando a amplificação de ruído que a divisão do método indireto produz perto das bordas de composição (x1 → 0 ou 1). Custo computacional (otimização aninhada: resolver P/y a cada iteração do ajuste) avaliado e descartado como preocupação de desempenho — para o tamanho de tabela esperado (dezenas de pontos, não milhares), a regressão inteira roda na casa de poucos milissegundos, irrelevante perto do custo de renderizar o gráfico, que é o mesmo nos dois métodos.
 
-**Seguem em aberto:** o que fazer com α12 do NRTL (3 parâmetros, não 2 — fixar num valor convencional ou tentar ajustar os três), o mínimo de pontos exigido para permitir a regressão, e se o gatilho na UI é automático ou por ação explícita do usuário.
+**α12 do NRTL, decidido em 2026-09-13: fixado, não ajustado junto com τ12/τ21.** O NRTL tem 3 parâmetros, não 2 (diferente de Van Laar/Margules 2P/Wilson/UNIQUAC); tentar ajustar os três com poucos pontos experimentais tende a mau-condicionamento — mesmo raciocínio já aplicado na escolha do método de Barker. **Requisito de UI vinculado:** o autor exigiu que essa simplificação não fique escondida — reaproveita o padrão selo+ícone ⓘ já definido para a origem do parâmetro, avisando junto ao valor de α que ele foi fixado por convenção (referência comum na literatura, entre 0,2 e 0,47 conforme o tipo de sistema; valor exato a definir na implementação), não obtido por regressão.
+
+**Seguem em aberto:** o mínimo de pontos exigido para permitir a regressão, e se o gatilho na UI é automático ou por ação explícita do usuário.
 
 **Requisito de UI (2026-09-12):** a interface precisa **indicar explicitamente qual das três origens gerou o parâmetro usado** em cada cálculo. Isso não é só transparência de UX: um parâmetro regredido de poucos pontos digitados tem uma confiabilidade diferente de um parâmetro medido e publicado, e o usuário (professor, aluno ou pesquisador) precisa saber qual dos dois está vendo antes de tirar conclusão do gráfico.
 
@@ -457,3 +459,11 @@ Com a assinatura Claude Pro ativa ("Habemus Pro"), o roteiro de testes de uso re
 **Nota para prestação de contas (seção 5):** o obstáculo de cópia de URL no Replit é um bom exemplo de troubleshooting documentável — ilustra domínio técnico do autor sobre peculiaridades de ambientes não convencionais (terminal mobile, quebra de linha, atalhos de CLI), reforçando a narrativa de uso dirigido e compreendido da ferramenta, não apenas seguir passos cegamente.
 
 **Próximo passo em aberto:** testar o Claude Code de fato trabalhando sobre o código do projeto (`fletando.py`) — leitura, edição e execução — em um dos dois ambientes validados, como primeiro uso prático real.
+
+---
+
+## 8. Atualizações Futuras (pós-projeto piloto)
+
+Criada em 2026-09-13. Ideias explicitamente **adiadas para depois da entrega do TCC** — não fazem parte do escopo do projeto piloto e não devem ser implementadas sem novo pedido explícito do autor, mesmo que pareçam pequenas. Diferem da seção 7 ("Pontos em Aberto"): aquela é o que falta decidir **dentro** do piloto; esta é o que vem **depois**, se o projeto continuar sendo mantido.
+
+- **α12 do NRTL não fixo.** Hoje decidido como fixo na regressão de parâmetros (seção 2.8), por simplicidade e estabilidade numérica com poucos pontos experimentais. Se a aplicação amadurecer e passar a lidar com tabelas maiores/mais confiáveis (uso de pesquisa, Eixo 3), ajustar os três parâmetros do NRTL simultaneamente (ou expor a escolha ao usuário) vira uma opção viável a reconsiderar.
