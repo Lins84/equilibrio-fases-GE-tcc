@@ -254,9 +254,9 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    milhares), a regressão inteira fica na casa de poucos milissegundos —
    irrelevante perto do custo de renderizar o gráfico, que é o mesmo nos
    dois métodos. Implica otimização aninhada (resolver P/y a cada
-   iteração do ajuste dos parâmetros) — mais complexa que o indireto, e
-   o autor precisa entender esse método antes de aceitar o código
-   (item 5 no topo deste arquivo), não só o resultado que ele produz.
+   iteração do ajuste dos parâmetros) — mais complexa de implementar que
+   o indireto, aceita conscientemente pelo autor em troca do rigor
+   estatístico.
    Segue em aberto: α12 do NRTL (fixar ou ajustar), mínimo de pontos
    exigido, e gatilho automático vs. manual na UI.
 
