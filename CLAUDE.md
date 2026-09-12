@@ -244,6 +244,21 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    detalhe opcional — não pode depender de clique pra aparecer). O selo
    atualiza em tempo real com o parâmetro, pela regra de ouro da seção
    2.2 do mapeamento.
+   **Método de redução escolhido em 2026-09-13: Barker (direto).** O
+   modelo é ajustado contra o resíduo de P e y diretamente, não contra γ
+   "experimental" calculado ponto a ponto (método indireto, descartado).
+   Motivo: rigor estatístico — trata o erro no espaço onde ele foi de
+   fato medido (P, y), em vez de propagá-lo por uma divisão que amplifica
+   ruído perto de x1→0/1. Custo de desempenho analisado e descartado como
+   preocupação: para o tamanho de tabela esperado (dezenas de pontos, não
+   milhares), a regressão inteira fica na casa de poucos milissegundos —
+   irrelevante perto do custo de renderizar o gráfico, que é o mesmo nos
+   dois métodos. Implica otimização aninhada (resolver P/y a cada
+   iteração do ajuste dos parâmetros) — mais complexa que o indireto, e
+   o autor precisa entender esse método antes de aceitar o código
+   (item 5 no topo deste arquivo), não só o resultado que ele produz.
+   Segue em aberto: α12 do NRTL (fixar ou ajustar), mínimo de pontos
+   exigido, e gatilho automático vs. manual na UI.
 
 ## Decisões de engenharia do aluno na produção da aplicação
 
@@ -337,11 +352,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   houver outra fonte.** O autor identificou que caçar um valor de
   literatura para um par específico não resolve o problema geral — a
   aplicação tem que funcionar para qualquer par que o usuário escolher, e
-  nenhum banco cobre todo par possível. Decisão: inverter a Lei de Raoult
-  modificada nos pontos digitados para obter γ "experimental" e ajustar o
-  modelo por regressão não-linear. Insight do autor, não sugestão do
-  assistente. Reformula a antiga pendência do Van Laar em capacidade
-  geral (seção 2.8 do mapeamento).
+  nenhum banco cobre todo par possível. Decisão: ajustar o modelo por
+  regressão não-linear a partir dos pontos (P, x, y) digitados. Insight
+  do autor, não sugestão do assistente. Reformula a antiga pendência do
+  Van Laar em capacidade geral (seção 2.8 do mapeamento).
+- **(2026-09-13) Método de redução: Barker (direto), não o indireto.**
+  Entre ajustar o modelo contra γ "experimental" calculado ponto a ponto
+  (invertendo Raoult) ou contra o resíduo de P e y diretamente (Barker),
+  o autor escolheu Barker — mais rigoroso estatisticamente, pois trata o
+  erro no espaço onde ele foi medido (P, y) em vez de propagá-lo por uma
+  divisão que amplifica ruído perto das bordas de composição. Antes de
+  decidir, o autor levantou a preocupação de que o custo computacional
+  extra do Barker (otimização aninhada) pudesse se somar a outros custos
+  futuros e prejudicar a fluidez da aplicação — preocupação analisada e
+  descartada: pelo tamanho de tabela esperado (dezenas de pontos), a
+  regressão fica na casa de milissegundos, irrelevante perto do custo de
+  renderizar o gráfico, que independe do método escolhido.
 - **(2026-09-12) Exigir que a aplicação declare a origem de cada
   parâmetro.** Requisito de transparência científica levantado pelo
   autor: quem usa precisa saber se está vendo valor fornecido, de banco,

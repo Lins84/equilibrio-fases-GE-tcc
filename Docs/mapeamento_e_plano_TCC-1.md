@@ -5,7 +5,7 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
-**Última atualização:** 2026-09-12
+**Última atualização:** 2026-09-13
 
 > **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
@@ -167,7 +167,11 @@ Isso define três origens possíveis para o parâmetro de um modelo Gᴱ, em ord
 
 1. **Fornecido pelo usuário** — digitado diretamente (ex: Eixo 1, exploração livre com sliders; ou Eixo 2, reproduzindo um parâmetro já publicado num exercício de livro-texto).
 2. **Banco de dados** — `IPDB`/ChemSep (via `nrtl_params_from_ipdb`, hoje só para NRTL) ou outra fonte equivalente que venha a ser integrada para Wilson/UNIQUAC.
-3. **Calculado (regredido)** — quando nem 1 nem 2 se aplicam, o parâmetro é obtido por regressão não-linear a partir dos pontos (P, x, y) que o usuário digitou na tabela para aquele par específico, invertendo a Lei de Raoult modificada para obter γ1/γ2 "experimentais" em cada ponto e ajustando o modelo escolhido a esses valores (técnica de "redução de dados de ELV", Smith/Van Ness/Abbott). Não se aplica ao UNIFAC, que não tem parâmetro ajustável por par — ele é preditivo por construção (seção 2.7). Ainda não implementado; fica registrado aqui como a solução adotada para quando a integração acontecer.
+3. **Calculado (regredido)** — quando nem 1 nem 2 se aplicam, o parâmetro é obtido por regressão não-linear a partir dos pontos (P, x, y) que o usuário digitou na tabela para aquele par específico (técnica de "redução de dados de ELV", Smith/Van Ness/Abbott). Não se aplica ao UNIFAC, que não tem parâmetro ajustável por par — ele é preditivo por construção (seção 2.7). Ainda não implementado; fica registrado aqui como a solução adotada para quando a integração acontecer.
+
+**Método de redução escolhido (2026-09-13): Barker, direto.** Existem dois métodos clássicos para essa regressão: o **indireto**, que inverte a Lei de Raoult modificada para obter γ1/γ2 "experimentais" em cada ponto e ajusta o modelo a esses valores; e o **direto (método de Barker)**, que ajusta o modelo contra o resíduo de P e y diretamente, sem passar por esse cálculo intermediário de γ. O autor escolheu Barker — mais rigoroso, pois trata o erro no espaço onde ele foi de fato medido (P, y), evitando a amplificação de ruído que a divisão do método indireto produz perto das bordas de composição (x1 → 0 ou 1). Custo computacional (otimização aninhada: resolver P/y a cada iteração do ajuste) avaliado e descartado como preocupação de desempenho — para o tamanho de tabela esperado (dezenas de pontos, não milhares), a regressão inteira roda na casa de poucos milissegundos, irrelevante perto do custo de renderizar o gráfico, que é o mesmo nos dois métodos.
+
+**Seguem em aberto:** o que fazer com α12 do NRTL (3 parâmetros, não 2 — fixar num valor convencional ou tentar ajustar os três), o mínimo de pontos exigido para permitir a regressão, e se o gatilho na UI é automático ou por ação explícita do usuário.
 
 **Requisito de UI (2026-09-12):** a interface precisa **indicar explicitamente qual das três origens gerou o parâmetro usado** em cada cálculo. Isso não é só transparência de UX: um parâmetro regredido de poucos pontos digitados tem uma confiabilidade diferente de um parâmetro medido e publicado, e o usuário (professor, aluno ou pesquisador) precisa saber qual dos dois está vendo antes de tirar conclusão do gráfico.
 
