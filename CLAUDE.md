@@ -235,11 +235,15 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    (P, x, y) já digitados na tabela (inverte Raoult modificada → γ
    "experimental" → ajusta o modelo por regressão não-linear). Não se
    aplica ao UNIFAC (preditivo, sem parâmetro ajustável por par).
-   **Requisito de UI vinculado:** a interface precisa indicar, de forma
-   visível, qual das três origens gerou o parâmetro em uso — fornecido
-   pelo usuário, de banco de dados (IPDB/thermo), ou calculado por
-   regressão. Sem essa nota, o usuário não tem como saber se está vendo
-   um dado de confiabilidade validada ou um ajuste a poucos pontos.
+   **Requisito de UI vinculado, padrão escolhido em 2026-09-12 (detalhe
+   na seção 2.8):** selo pequeno, colorido, sempre visível perto do
+   parâmetro/gráfico ("Fornecido" / "Banco de dados" / "Calculado"), com
+   ícone ⓘ grudado que abre o detalhe rico ao passar o mouse/clicar
+   (o que foi assumido, quantos pontos entraram na regressão). Nem
+   rodapé fixo (compete com o gráfico) nem só ícone (a origem não é
+   detalhe opcional — não pode depender de clique pra aparecer). O selo
+   atualiza em tempo real com o parâmetro, pela regra de ouro da seção
+   2.2 do mapeamento.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
