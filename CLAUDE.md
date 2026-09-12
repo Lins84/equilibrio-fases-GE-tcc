@@ -256,74 +256,148 @@ a partir do histórico deste arquivo, do mapeamento e das sessões de
 trabalho. **Seção viva: todo novo commit registrado como "decisão
 tomada" ou equivalente neste arquivo deveria ganhar uma linha aqui.**
 
-Convenção: cada entrada é uma escolha de rumo, escopo ou critério que
-coube ao autor — não ao assistente — fechar. Quando a origem da ideia
-foi uma sugestão do Claude Code, isso é dito explicitamente; a decisão
-em si (aceitar, recusar, ou pedir algo diferente) é sempre do autor.
+Convenção: cada entrada é uma escolha de rumo, escopo, método ou critério
+que coube ao autor — não ao assistente — fechar. Quando a origem da ideia
+foi uma sugestão do Claude Code, isso é dito explicitamente; a decisão em
+si (aceitar, recusar, ou pedir algo diferente) é sempre do autor. Onde
+existe evidência verificável (commit, arquivo, seção do mapeamento), ela
+está citada.
 
-- **(pré-julho/2026) Escopo do TCC e stack** — Flet + `thermo`, três
-  eixos de uso (didático-visual, validação de exercícios, pesquisa
-  acadêmica), usuário final é o orientador, não o autor. Base de todo o
-  resto (seção 1 do mapeamento).
-- **(julho/2026) Não descartar nem usar às cegas o `gemini.py` herdado**
-  — decisão de submetê-lo a auditoria técnica documentada antes de
-  aceitá-lo como parte legítima do projeto, em vez de descartar por
-  origem duvidosa (outra IA, sem supervisão) ou aceitar sem checar
-  (seção 5.1 do mapeamento, "Critério de decisão adotado").
-- **(julho/2026) Abandonar o fluxo do Replit Agent para push**, conduzir
-  o desenvolvimento diretamente aqui no Claude Code.
-- **2026-08-19 — Sem interpolação nos pontos experimentais.** Rejeitadas
-  as três abordagens levantadas (spline, recálculo via NRTL, ambas) pra
-  "suavizar" a curva poligonal do `fletando_grafico.py`. Dado
-  experimental é ponto, modelo é linha; a suavização vem da curva
-  calculada, não de inventar pontos entre os medidos.
-- **2026-08-20 — Modelo de governança do projeto.** O autor é diretor
-  geral e gerente operacional; o Claude Code é operário, executa segundo
-  o que foi planejado. Nenhuma decisão entra no projeto sem ordem de
-  validação do autor. Esta seção nasce diretamente desse modelo.
-- **2026-08-20 — Reorganizar o código em `calculos/`/`interface/`**,
-  fechando um item da Fase 0 do plano que estava aberto desde julho.
-- **2026-09-01 — Buscar orientação do orientador sobre profundidade de
-  entendimento exigida**, e adotar a resposta dele ("entender o básico,
-  priorizar entregar funcionando") como a barra do projeto — substituindo
-  a formulação anterior, mais rígida, de "entender e defender cada
-  linha". Decisão do autor de ir perguntar, e de aplicar a resposta.
-- **2026-09-02 — Corrigir uma imprecisão técnica antes de enviar ao
-  orientador.** Ao revisar o rascunho do e-mail sobre UNIFAC, o autor
-  identificou sozinho que "lista fixa e finita" (referindo-se à tabela de
-  subgrupos) dava a entender um recorte arbitrário do projeto, quando na
-  verdade é a tabela clássica publicada do método. Corrigido antes do
-  envio, não depois — exemplo concreto de revisão crítica humana sobre
-  texto técnico gerado com apoio do Claude Code (commit `d4408e8`).
-- **(entre 08-20 e 09-01) Manter Python + `thermo` na camada de
-  cálculo**, recusando reescrever em outra linguagem — avaliado
-  explicitamente contra a sugestão de usar "a linguagem que o Claude usa
-  normalmente" (que nem existe do jeito que a pergunta supunha).
-- **Manter Flet na camada de UI**, recusando trocar por um stack
-  React/Recharts mesmo diante de um protótipo visualmente atraente
-  (`referencias/margules-1-parametro.jsx`) — decisão por praticidade,
-  não por "beleza".
-- **Recusar migrar para Flutter nativo (Dart)**, mesmo sendo mais maduro
-  que o Flet beta — o custo de quebrar o processo único (UI+cálculo
-  juntos em Python) supera o risco do beta.
-- **Recusar embutir um assistente de IA (Claude) dentro do app**,
-  avaliado e descartado por custo recorrente, novo ponto de falha em
-  aula ao vivo, e escopo fora dos três eixos do projeto.
-- **2026-09-12 — Reformular a pendência do Van Laar.** Em vez de buscar
-  um parâmetro de literatura pra um par específico (dioxano/metanol), o
-  autor identificou que isso não resolve o problema geral — a aplicação
-  precisa funcionar pra qualquer par escolhido pelo usuário, e nenhum
-  banco cobre todo par possível. Decisão: regredir o parâmetro a partir
-  dos próprios dados de entrada quando não houver outra fonte (seção 2.8
-  do mapeamento). Insight do autor, não sugestão do assistente.
-- **2026-09-12 — Exigir nota de origem do parâmetro na UI** — requisito
-  de transparência científica levantado pelo autor: o usuário da
-  aplicação precisa saber se está vendo dado fornecido, de banco, ou
-  calculado, antes de tirar conclusão do gráfico.
-- **2026-09-12 — Aceitar o padrão de UI selo+ícone** (sugestão do Claude
-  Code; a decisão de adotá-lo, em vez de rodapé fixo ou só um ícone
-  flutuante, foi do autor).
-- **2026-09-12 — Criar esta seção**, formalizando o registro cronológico
+### A. Decisões de método e corretude — o núcleo técnico
+
+São as decisões que determinam **se os números que a aplicação produz são
+confiáveis**, e por isso as mais defensáveis perante a banca.
+
+- **(julho/2026) Escrever as equações dos modelos Gᴱ diretamente no
+  código, em vez de chamar as funções prontas da `thermo`.** A
+  alternativa estava explicitamente sobre a mesa e ficou registrada na
+  sessão de 2026-07-28 deste arquivo: *"dá para implementar os modelos
+  TODO como adaptadores finos dessas funções + IPDB, ao invés de
+  reimplementar as fórmulas"*. O autor escolheu o caminho oposto.
+  Verificável em `calculos/gemini.py`: os 7 modelos têm as fórmulas
+  escritas em Python; a `thermo` só aparece em `Chemical` (Psat) e em
+  `nrtl_params_from_ipdb` (parâmetros). Duas consequências pesadas:
+  1. **A validação deixa de ser circular.** Uma implementação
+     independente comparada a uma implementação de referência é um teste
+     real; um invólucro da `thermo` comparado à própria `thermo` não
+     prova nada. Foi essa escolha que tornou possível encontrar os 4 bugs.
+  2. **A física fica visível no código.** Para um TCC de ensino de
+     Termodinâmica, o autor consegue apontar a equação na tela e
+     explicá-la — o que uma chamada de biblioteca esconderia.
+- **(julho/2026) Papéis atribuídos à `thermo`: fonte de dados e oráculo
+  de validação, nunca motor de cálculo.** Corolário da decisão acima, e o
+  que define a arquitetura do `gemini.py`: a biblioteca entrega
+  propriedades (Psat por substância, com a correlação que ela julga
+  melhor) e parâmetros (IPDB/ChemSep); a física dos modelos Gᴱ é código
+  do projeto.
+- **(2026-07-23) Construir o caso de validação antes do modelo que ele
+  vai checar.** O teste de referência do Margules 2P (MEK/Tolueno a
+  323,15 K, a partir da planilha XSEOS) foi commitado em `8cea7b7`
+  (23/07); o `model_margules_2p` só apareceu em `e383f1c` (26/07) — três
+  dias depois. A referência externa existia antes do código, então não
+  havia como o código "definir" o que seria considerado certo.
+- **(2026-07-27) Critério de validação: varrer toda a faixa de
+  composição, não pontos de exemplo.** x1 de 0 a 1 em 101 pontos,
+  incluindo os extremos exatos. **Foi esse critério que achou os bugs**:
+  três dos quatro só se manifestam em x1=0 ou x2=0. Uma conferência em
+  x1=0,5 — que é o que um teste "de exemplo" faria — teria passado nos
+  quatro casos sem acusar nada.
+- **(2026-07-27) Resolver os limites de composição analiticamente, não
+  numericamente.** Wilson, UNIQUAC e UNIFAC têm indeterminação 0/0 nos
+  limites de componente puro. As saídas fáceis seriam empurrar x para
+  perto de zero (usar 1e-9 no lugar de 0) ou deixar passar NaN; o autor
+  optou por calcular o limite analítico de cada caso. Visível em
+  `model_wilson` (`if x1 == 0: return np.exp(1 - L21 - np.log(L12)), 1.0`)
+  e no bloco combinatorial do `model_unifac`. **Nota de correção:** o
+  NRTL é justamente o único que **não** precisou disso — sua fórmula é
+  bem-comportada nos extremos. Os limites tratados foram Van Laar
+  (`8c29dcb`), Wilson e UNIFAC.
+- **(2026-07-27) Tratar erro de dado com o mesmo rigor que erro de
+  fórmula.** Encontrados 41 pares errados de 66 na tabela de interação
+  UNIFAC (`_A`), o autor optou por **reescrever a tabela inteira** a
+  partir da fonte de referência (`thermo.unifac.UFIP`), em vez de
+  corrigir só os pares que afetavam o sistema em teste. Erro de
+  transcrição é invisível para qualquer teste que não exercite aquele par
+  específico — corrigir pontualmente deixaria bombas armadas para
+  qualquer sistema futuro.
+- **(2026-07-28/29) Buscar parâmetros em banco de dados em vez de
+  hardcodar valores de literatura.** Descoberto o `IPDB` (fonte ChemSep)
+  na `thermo`, o autor optou por construir o adaptador
+  `nrtl_params_from_ipdb(cas1, cas2, T_K)` — parâmetros resolvidos por
+  CAS, em tempo de execução — em vez de copiar constantes de artigos para
+  dentro do código. Elimina uma classe inteira de erro de transcrição
+  (a mesma que produziu os 41 pares errados do UNIFAC).
+- **(2026-08-19) Não interpolar pontos experimentais.** Rejeitadas as
+  três abordagens levantadas (spline PCHIP, recálculo via NRTL, ambas)
+  para "suavizar" a curva poligonal. Critério: dado experimental é ponto,
+  modelo é linha — interpolar seria fabricar medida que não existe, e num
+  material didático de VLE isso é exatamente o que não se quer ensinar.
+  A suavização virá da curva calculada. Seção própria neste arquivo.
+- **(2026-09-12) Regredir o parâmetro dos dados de entrada quando não
+  houver outra fonte.** O autor identificou que caçar um valor de
+  literatura para um par específico não resolve o problema geral — a
+  aplicação tem que funcionar para qualquer par que o usuário escolher, e
+  nenhum banco cobre todo par possível. Decisão: inverter a Lei de Raoult
+  modificada nos pontos digitados para obter γ "experimental" e ajustar o
+  modelo por regressão não-linear. Insight do autor, não sugestão do
+  assistente. Reformula a antiga pendência do Van Laar em capacidade
+  geral (seção 2.8 do mapeamento).
+- **(2026-09-12) Exigir que a aplicação declare a origem de cada
+  parâmetro.** Requisito de transparência científica levantado pelo
+  autor: quem usa precisa saber se está vendo valor fornecido, de banco,
+  ou regredido de poucos pontos, **antes** de tirar conclusão do gráfico.
+  Um parâmetro ajustado a 5 pontos digitados e um parâmetro medido e
+  publicado não têm a mesma força, e a interface não pode apagar essa
+  diferença.
+
+### B. Decisões de arquitetura e stack
+
+- **(pré-julho/2026) Escopo e stack do TCC** — Flet + `thermo`, três
+  eixos de uso (didático-visual, validação de exercícios, pesquisa),
+  usuário final é o orientador, não o autor (seção 1 do mapeamento).
+- **(2026-08-20) Separar o código em `calculos/` e `interface/`**,
+  fechando um item da Fase 0 que estava aberto desde julho.
+- **Manter Python + `thermo` na camada de cálculo**, recusando reescrever
+  em outra linguagem — a `thermo` não tem equivalente fora do Python, e
+  trocar descartaria toda a validação já feita.
+- **Manter Flet na camada de UI**, recusando migrar para React/Recharts
+  mesmo diante de um protótipo visualmente mais atraente
+  (`referencias/margules-1-parametro.jsx`) — praticidade sobre estética,
+  em linha com o "entregar funcionando" do orientador.
+- **Recusar Flutter nativo (Dart)**, mesmo sendo mais maduro que o Flet
+  beta: quebraria o processo único (UI e cálculo juntos em Python) e
+  exigiria manter um backend separado rodando durante a aula.
+- **Recusar embutir um assistente de IA dentro do app** — custo
+  recorrente por uso, novo ponto de falha de rede em aula ao vivo, e
+  escopo fora dos três eixos do projeto.
+- **(2026-09-12) Adotar o padrão selo + ícone ⓘ** para a nota de origem
+  do parâmetro (sugestão do Claude Code; a decisão de adotá-la, em vez de
+  rodapé fixo ou só ícone flutuante, foi do autor).
+
+### C. Decisões de processo e prestação de contas
+
+- **(julho/2026) Nem descartar nem usar às cegas o `gemini.py`
+  herdado.** Código gerado por outra IA sem supervisão: em vez de jogar
+  fora pela origem ou aceitar sem checar, o autor decidiu submetê-lo a
+  auditoria técnica documentada como condição para incorporá-lo (seção
+  5.1 do mapeamento). É a decisão-raiz de todo o método de validação da
+  parte A.
+- **(julho/2026) Abandonar o fluxo do Replit Agent para push**, passando
+  a conduzir o desenvolvimento diretamente no Claude Code.
+- **(2026-08-20) Estabelecer o modelo de governança** — autor como
+  diretor geral e gerente operacional, assistente como executor, nenhuma
+  decisão entrando sem ordem de validação. Esta seção nasce desse modelo.
+- **(2026-09-01) Consultar o orientador sobre a profundidade de
+  entendimento exigida** e adotar a resposta ("entender o básico,
+  priorizar entregar funcionando") como barra do projeto, substituindo a
+  formulação anterior, mais rígida, de "entender e defender cada linha".
+- **(2026-09-02) Corrigir uma imprecisão técnica antes do envio ao
+  orientador.** Revisando o rascunho do e-mail sobre UNIFAC, o autor
+  identificou sozinho que "lista fixa e finita" sugeria um recorte
+  arbitrário do projeto, quando é a tabela clássica publicada do método.
+  Corrigido antes de enviar, não depois (`d4408e8`) — revisão crítica
+  humana sobre texto técnico gerado com apoio de IA.
+- **(2026-09-12) Criar esta seção**, formalizando o registro cronológico
   de decisões do autor como prática permanente do projeto.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
