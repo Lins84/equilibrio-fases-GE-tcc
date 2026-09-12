@@ -384,6 +384,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   parte A.
 - **(julho/2026) Abandonar o fluxo do Replit Agent para push**, passando
   a conduzir o desenvolvimento diretamente no Claude Code.
+- **(2026-09-12, registrado) Combinar três ambientes de trabalho por
+  necessidade real de mobilidade, não por preferência técnica.** Claude
+  Code como ferramenta de desenvolvimento; Replit como IDE, usado quando
+  havia internet, por dar acesso tanto pelo celular quanto pelo PC;
+  Termux com Ubuntu adaptado (proot-Ubuntu) para rodar e testar a
+  aplicação localmente — **a única forma de produzir a aplicação fora de
+  casa, sem internet e sem acesso a um PC.** Detalhe e log de testes de
+  instalação na seção 4.1 e 7.2 do mapeamento.
 - **(2026-08-20) Estabelecer o modelo de governança** — autor como
   diretor geral e gerente operacional, assistente como executor, nenhuma
   decisão entrando sem ordem de validação. Esta seção nasce desse modelo.

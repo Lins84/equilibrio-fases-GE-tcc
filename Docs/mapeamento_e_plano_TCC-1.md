@@ -210,6 +210,11 @@ Padrão inspirado no que dashboards financeiros e ferramentas de BI usam para si
 - **Hospedagem do projeto:** Replit (`.replit`, `pyproject.toml`, `uv.lock`), com `uv` como gerenciador.
 - **Migração para desktop:** segue como previsto para a fase mais pesada (suíte de testes, performance) — ainda não realizada, ainda não necessária.
 
+**Por que três ambientes, e não um só (2026-09-12):** a combinação Claude Code + Replit + Termux não foi escolha de gosto técnico — resolveu uma restrição logística real do autor, mobilidade sem acesso garantido a internet e a um PC:
+- **Claude Code** — ferramenta de desenvolvimento (edição, execução, auditoria, documentação), usada em qualquer um dos outros dois ambientes.
+- **Replit (IDE)** — usado quando havia internet disponível, justamente por dar acesso tanto pelo celular quanto pelo PC a partir do mesmo projeto.
+- **Termux com Ubuntu adaptado** (proot-Ubuntu, validado na seção 7.2) — usado para rodar e testar a aplicação localmente no celular. **Foi a única forma de produzir a aplicação fora de casa, sem internet e sem acesso a um PC.**
+
 ### 4.2 Por que Termux funciona para este projeto
 - Flet é usado em modo web (`flet run --web`), sem necessidade de build nativo (que exigiria maturin e companhia — o gargalo real do Flet no Android)
 - `thermo` nunca foi um problema de compilação nesse ambiente
