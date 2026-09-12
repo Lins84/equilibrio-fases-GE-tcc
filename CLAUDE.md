@@ -226,6 +226,20 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
 2. Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
    possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
+3. **Regressão de parâmetros a partir dos dados de entrada** (decidido em
+   2026-09-12, detalhado em `Docs/mapeamento_e_plano_TCC-1.md` seção 2.8).
+   Resolve a antiga pendência do Van Laar sem tabela no `IPDB` — mas de
+   forma geral: como a aplicação precisa funcionar para qualquer par que
+   o usuário escolher, nenhum banco cobre tudo, então quando não houver
+   parâmetro fornecido nem em banco, ele é regredido a partir dos pontos
+   (P, x, y) já digitados na tabela (inverte Raoult modificada → γ
+   "experimental" → ajusta o modelo por regressão não-linear). Não se
+   aplica ao UNIFAC (preditivo, sem parâmetro ajustável por par).
+   **Requisito de UI vinculado:** a interface precisa indicar, de forma
+   visível, qual das três origens gerou o parâmetro em uso — fornecido
+   pelo usuário, de banco de dados (IPDB/thermo), ou calculado por
+   regressão. Sem essa nota, o usuário não tem como saber se está vendo
+   um dado de confiabilidade validada ou um ajuste a poucos pontos.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

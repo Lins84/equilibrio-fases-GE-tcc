@@ -5,7 +5,7 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
-**Última atualização:** 2026-09-01
+**Última atualização:** 2026-09-12
 
 > **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
@@ -108,7 +108,9 @@ Os **7 modelos Gᴱ** estão implementados no `gemini.py` e validados contra as 
 
 Além da validação por modelo, os 7 foram exercitados ponta a ponta via `calculate_vle_isothermal`, gerando diagramas P-x-y sem NaN/Inf, com P > 0 e y1 ∈ [0,1] em toda a faixa (etanol/água a 70 °C e 1,4-dioxano/metanol a 70 °C).
 
-**Parâmetros reais:** disponíveis via `thermo.interaction_parameters.IPDB` (fonte ChemSep) para NRTL, Wilson e UNIQUAC — o adaptador `nrtl_params_from_ipdb` já os consome no NRTL. **Van Laar não tem tabela no IPDB**, então segue pendente de parâmetros reais de literatura.
+**Parâmetros reais:** disponíveis via `thermo.interaction_parameters.IPDB` (fonte ChemSep) para NRTL, Wilson e UNIQUAC — o adaptador `nrtl_params_from_ipdb` já os consome no NRTL. **Van Laar não tem tabela no IPDB.**
+
+**Reformulação da pendência do Van Laar (2026-09-12):** a busca por um valor de literatura específico para o par Dioxano/Metanol foi descartada como solução geral — a aplicação precisa funcionar para **qualquer par que o usuário escolher**, não só os pares de validação, e nenhum banco (IPDB incluso) cobre todo par possível. A saída adotada é a regressão dos parâmetros a partir dos próprios dados P-x-y que o usuário fornece na tabela — ver seção 2.8.
 
 **Pendente:** ampliar a suíte com exercícios de Koretsky e Smith/Van Ness/Abbott (Fase 2), e transformar os scripts avulsos de `testes/` em suíte com runner.
 
@@ -156,6 +158,18 @@ Dentro desses dois limites, é isso que dá ao UNIFAC seu valor pedagógico: ele
 **Pendência de implementação identificada durante essa explicação:** hoje, `model_unifac` **não decompõe a molécula sozinho a partir do nome/CAS** — ao contrário dos outros 6 modelos, que recebem `component1_id`/`component2_id` e deixam o `thermo` resolver tudo, o UNIFAC espera que quem chama a função já forneça os grupos e as quantidades prontos (`groups1`, `groups2`). Isso significa que, quando a integração acontecer (item 1 de "Próximos passos" no `CLAUDE.md`), será preciso decidir como o usuário escolhe a molécula para o UNIFAC na UI — mapear nome → grupos é uma peça própria, ainda não resolvida, em cima dos dois limites de cobertura acima.
 
 **Registro do envio ao orientador (2026-09-01):** esta explicação foi condensada em prosa e enviada por e-mail para `fxfeitosa@ufc.br`, assunto "TCC — UNIFAC: resposta por escrito da nossa conversa", como resposta formal e datada ao tira-dúvidas presencial do mesmo dia. Antes do envio, o autor identificou uma ambiguidade na primeira redação desta seção — "lista fixa e finita" dava a entender que a tabela de subgrupos era um recorte feito para os componentes deste projeto — corrigida no texto acima antes de mandar (ver commit `d4408e8`). O e-mail enviado já reflete a versão corrigida.
+
+### 2.8 De onde vêm os parâmetros dos modelos Gᴱ — três origens possíveis (2026-09-12)
+
+Discussão sobre como resolver a falta de parâmetros de Van Laar no `IPDB` (seção 2.4) levou a uma pergunta mais ampla: a aplicação precisa funcionar para **qualquer par de espécies que o usuário escolher**, não só os pares usados como validação até aqui (etanol/água, dioxano/metanol). Nenhum banco de parâmetros — nem o `IPDB`, nem qualquer outro — cobre todo par possível. A única forma de garantir que a aplicação nunca trave por falta de parâmetro é **calculá-lo a partir dos próprios dados de entrada**, quando nenhuma outra fonte estiver disponível.
+
+Isso define três origens possíveis para o parâmetro de um modelo Gᴱ, em ordem de preferência quando mais de uma estiver disponível:
+
+1. **Fornecido pelo usuário** — digitado diretamente (ex: Eixo 1, exploração livre com sliders; ou Eixo 2, reproduzindo um parâmetro já publicado num exercício de livro-texto).
+2. **Banco de dados** — `IPDB`/ChemSep (via `nrtl_params_from_ipdb`, hoje só para NRTL) ou outra fonte equivalente que venha a ser integrada para Wilson/UNIQUAC.
+3. **Calculado (regredido)** — quando nem 1 nem 2 se aplicam, o parâmetro é obtido por regressão não-linear a partir dos pontos (P, x, y) que o usuário digitou na tabela para aquele par específico, invertendo a Lei de Raoult modificada para obter γ1/γ2 "experimentais" em cada ponto e ajustando o modelo escolhido a esses valores (técnica de "redução de dados de ELV", Smith/Van Ness/Abbott). Não se aplica ao UNIFAC, que não tem parâmetro ajustável por par — ele é preditivo por construção (seção 2.7). Ainda não implementado; fica registrado aqui como a solução adotada para quando a integração acontecer.
+
+**Requisito de UI (2026-09-12):** a interface precisa **indicar explicitamente qual das três origens gerou o parâmetro usado** em cada cálculo — uma nota visível ao lado do gráfico ou dos parâmetros, distinguindo "fornecido por você", "banco de dados (IPDB)" e "calculado a partir dos seus dados". Isso não é só transparência de UX: um parâmetro regredido de poucos pontos digitados tem uma confiabilidade diferente de um parâmetro medido e publicado, e o usuário (professor, aluno ou pesquisador) precisa saber qual dos dois está vendo antes de tirar conclusão do gráfico. Ainda não implementado — pendente da integração (item 1 de "Próximos passos" no `CLAUDE.md`) e da própria regressão (item acima).
 
 ---
 
@@ -241,7 +255,7 @@ O princípio da auditoria documentada, aplicado inicialmente ao código herdado,
 
 **Resolvida a ressalva sobre parâmetros reais** (item 3 acima): a descoberta do banco `thermo.interaction_parameters.IPDB` (fonte ChemSep) permitiu buscar parâmetros de interação binária reais em vez de usar valores de exemplo. O adaptador `nrtl_params_from_ipdb(cas1, cas2, T_K)` já faz isso para o NRTL, e o par 1,4-Dioxano (CAS `123-91-1`) / Metanol (CAS `67-56-1`) tem dados nas tabelas de NRTL, Wilson e UNIQUAC. Não há tabela de Van Laar no IPDB — modelo antigo, pouco presente em bancos modernos —, então a ressalva **permanece em aberto especificamente para o Van Laar**.
 
-**Pendências que seguem abertas:** o entendimento do **essencial** do `gemini.py` pelo autor — a barra deixou de ser "linha a linha" em 2026-09-01, ver seção 5.2 — e a validação do Van Laar com parâmetros reais de literatura.
+**Pendências que seguem abertas:** o entendimento do **essencial** do `gemini.py` pelo autor — a barra deixou de ser "linha a linha" em 2026-09-01, ver seção 5.2 — e a implementação da regressão de parâmetros a partir de dados de entrada (não mais "buscar Van Laar na literatura" — ver seção 2.8, reformulado em 2026-09-12).
 
 ### 5.2 Modelo de trabalho: papéis e cadeia de validação (2026-08-20)
 
