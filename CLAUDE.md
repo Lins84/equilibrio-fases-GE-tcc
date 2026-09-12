@@ -245,6 +245,87 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    atualiza em tempo real com o parâmetro, pela regra de ouro da seção
    2.2 do mapeamento.
 
+## Decisões de engenharia do aluno na produção da aplicação
+
+Criada em 2026-09-12, a pedido do autor: um mapeamento cronológico que
+separa explicitamente **o que foi decisão do autor** do **o que foi
+execução/análise do Claude Code sob a direção dele** — a evidência
+concreta da "cadeia de validação" já descrita em "Como trabalhar neste
+projeto" (topo deste arquivo) e na seção 5.2 do mapeamento. Reconstruída
+a partir do histórico deste arquivo, do mapeamento e das sessões de
+trabalho. **Seção viva: todo novo commit registrado como "decisão
+tomada" ou equivalente neste arquivo deveria ganhar uma linha aqui.**
+
+Convenção: cada entrada é uma escolha de rumo, escopo ou critério que
+coube ao autor — não ao assistente — fechar. Quando a origem da ideia
+foi uma sugestão do Claude Code, isso é dito explicitamente; a decisão
+em si (aceitar, recusar, ou pedir algo diferente) é sempre do autor.
+
+- **(pré-julho/2026) Escopo do TCC e stack** — Flet + `thermo`, três
+  eixos de uso (didático-visual, validação de exercícios, pesquisa
+  acadêmica), usuário final é o orientador, não o autor. Base de todo o
+  resto (seção 1 do mapeamento).
+- **(julho/2026) Não descartar nem usar às cegas o `gemini.py` herdado**
+  — decisão de submetê-lo a auditoria técnica documentada antes de
+  aceitá-lo como parte legítima do projeto, em vez de descartar por
+  origem duvidosa (outra IA, sem supervisão) ou aceitar sem checar
+  (seção 5.1 do mapeamento, "Critério de decisão adotado").
+- **(julho/2026) Abandonar o fluxo do Replit Agent para push**, conduzir
+  o desenvolvimento diretamente aqui no Claude Code.
+- **2026-08-19 — Sem interpolação nos pontos experimentais.** Rejeitadas
+  as três abordagens levantadas (spline, recálculo via NRTL, ambas) pra
+  "suavizar" a curva poligonal do `fletando_grafico.py`. Dado
+  experimental é ponto, modelo é linha; a suavização vem da curva
+  calculada, não de inventar pontos entre os medidos.
+- **2026-08-20 — Modelo de governança do projeto.** O autor é diretor
+  geral e gerente operacional; o Claude Code é operário, executa segundo
+  o que foi planejado. Nenhuma decisão entra no projeto sem ordem de
+  validação do autor. Esta seção nasce diretamente desse modelo.
+- **2026-08-20 — Reorganizar o código em `calculos/`/`interface/`**,
+  fechando um item da Fase 0 do plano que estava aberto desde julho.
+- **2026-09-01 — Buscar orientação do orientador sobre profundidade de
+  entendimento exigida**, e adotar a resposta dele ("entender o básico,
+  priorizar entregar funcionando") como a barra do projeto — substituindo
+  a formulação anterior, mais rígida, de "entender e defender cada
+  linha". Decisão do autor de ir perguntar, e de aplicar a resposta.
+- **2026-09-02 — Corrigir uma imprecisão técnica antes de enviar ao
+  orientador.** Ao revisar o rascunho do e-mail sobre UNIFAC, o autor
+  identificou sozinho que "lista fixa e finita" (referindo-se à tabela de
+  subgrupos) dava a entender um recorte arbitrário do projeto, quando na
+  verdade é a tabela clássica publicada do método. Corrigido antes do
+  envio, não depois — exemplo concreto de revisão crítica humana sobre
+  texto técnico gerado com apoio do Claude Code (commit `d4408e8`).
+- **(entre 08-20 e 09-01) Manter Python + `thermo` na camada de
+  cálculo**, recusando reescrever em outra linguagem — avaliado
+  explicitamente contra a sugestão de usar "a linguagem que o Claude usa
+  normalmente" (que nem existe do jeito que a pergunta supunha).
+- **Manter Flet na camada de UI**, recusando trocar por um stack
+  React/Recharts mesmo diante de um protótipo visualmente atraente
+  (`referencias/margules-1-parametro.jsx`) — decisão por praticidade,
+  não por "beleza".
+- **Recusar migrar para Flutter nativo (Dart)**, mesmo sendo mais maduro
+  que o Flet beta — o custo de quebrar o processo único (UI+cálculo
+  juntos em Python) supera o risco do beta.
+- **Recusar embutir um assistente de IA (Claude) dentro do app**,
+  avaliado e descartado por custo recorrente, novo ponto de falha em
+  aula ao vivo, e escopo fora dos três eixos do projeto.
+- **2026-09-12 — Reformular a pendência do Van Laar.** Em vez de buscar
+  um parâmetro de literatura pra um par específico (dioxano/metanol), o
+  autor identificou que isso não resolve o problema geral — a aplicação
+  precisa funcionar pra qualquer par escolhido pelo usuário, e nenhum
+  banco cobre todo par possível. Decisão: regredir o parâmetro a partir
+  dos próprios dados de entrada quando não houver outra fonte (seção 2.8
+  do mapeamento). Insight do autor, não sugestão do assistente.
+- **2026-09-12 — Exigir nota de origem do parâmetro na UI** — requisito
+  de transparência científica levantado pelo autor: o usuário da
+  aplicação precisa saber se está vendo dado fornecido, de banco, ou
+  calculado, antes de tirar conclusão do gráfico.
+- **2026-09-12 — Aceitar o padrão de UI selo+ícone** (sugestão do Claude
+  Code; a decisão de adotá-lo, em vez de rodapé fixo ou só um ícone
+  flutuante, foi do autor).
+- **2026-09-12 — Criar esta seção**, formalizando o registro cronológico
+  de decisões do autor como prática permanente do projeto.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
