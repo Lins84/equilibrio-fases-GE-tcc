@@ -266,8 +266,26 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    valor exato a definir na implementação), não obtido por regressão.
    Sem essa nota, o usuário pode presumir que os 3 parâmetros do NRTL
    foram ajustados igualmente, quando só τ12/τ21 foram.
-   Segue em aberto: mínimo de pontos exigido, e gatilho automático vs.
-   manual na UI.
+   **Mínimo de pontos, decidido em 2026-09-13: nº de parâmetros do
+   modelo + 1.** Abaixo disso a regressão não tem grau de liberdade
+   nenhum — encaixa a curva exatamente nos pontos digitados (resíduo
+   zero), sem nenhuma evidência de que o modelo descreve o sistema fora
+   deles, e arrisca mau-condicionamento numérico no Barker. Com o piso
+   em parâmetros + 1, sobra o mínimo de folga pra existir algum resíduo
+   a examinar. Mínimos concretos por modelo:
+   | Modelo | Parâmetros livres | Mínimo de pontos |
+   |---|---|---|
+   | Margules 1P | 1 (A) | 2 |
+   | Margules 2P, Van Laar, Wilson, UNIQUAC | 2 | 3 |
+   | NRTL (α12 fixo) | 2 (τ12, τ21) | 3 |
+   | UNIFAC | — (preditivo) | não se aplica |
+
+   **Requisito de UI vinculado:** quando a tabela tiver exatamente o
+   mínimo (grau de liberdade = 1), o selo de origem (já definido acima)
+   ganha uma variante — "Calculado (poucos pontos)" — avisando que o
+   ajuste tem baixa confiança. Abaixo do mínimo, a regressão não roda; a
+   UI precisa dizer isso claramente, não falhar silenciosamente.
+   Segue em aberto: gatilho automático vs. manual na UI.
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -408,6 +426,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   transparência de origem do parâmetro (item acima) se aplica aqui —
   reaproveita o padrão selo+ícone ⓘ para avisar que α foi fixado por
   convenção, não regredido.
+- **(2026-09-13) Mínimo de pontos para a regressão: nº de parâmetros do
+  modelo + 1.** Fechando o assunto que ele mesmo levantou (por que um
+  mínimo é necessário), o autor estabeleceu o piso concreto — abaixo
+  disso a regressão não tem grau de liberdade nenhum, encaixando a curva
+  exatamente nos pontos sem nenhuma evidência de que o modelo descreve o
+  sistema fora deles. No limite exato, o selo de origem ganha uma
+  variante de baixa confiança ("Calculado, poucos pontos"), estendendo o
+  padrão já definido em vez de criar um novo.
 
 ### B. Decisões de arquitetura e stack
 

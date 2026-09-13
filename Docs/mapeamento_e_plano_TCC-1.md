@@ -173,7 +173,18 @@ Isso define três origens possíveis para o parâmetro de um modelo Gᴱ, em ord
 
 **α12 do NRTL, decidido em 2026-09-13: fixado, não ajustado junto com τ12/τ21.** O NRTL tem 3 parâmetros, não 2 (diferente de Van Laar/Margules 2P/Wilson/UNIQUAC); tentar ajustar os três com poucos pontos experimentais tende a mau-condicionamento — mesmo raciocínio já aplicado na escolha do método de Barker. **Requisito de UI vinculado:** o autor exigiu que essa simplificação não fique escondida — reaproveita o padrão selo+ícone ⓘ já definido para a origem do parâmetro, avisando junto ao valor de α que ele foi fixado por convenção (referência comum na literatura, entre 0,2 e 0,47 conforme o tipo de sistema; valor exato a definir na implementação), não obtido por regressão.
 
-**Seguem em aberto:** o mínimo de pontos exigido para permitir a regressão, e se o gatilho na UI é automático ou por ação explícita do usuário.
+**Mínimo de pontos para a regressão, decidido em 2026-09-13: nº de parâmetros do modelo + 1.** Abaixo disso a regressão não tem grau de liberdade nenhum — encaixa a curva exatamente nos pontos digitados (resíduo zero), sem nenhuma evidência de que o modelo descreve o sistema fora deles, e arrisca mau-condicionamento numérico no Barker. Com o piso em parâmetros + 1, sobra o mínimo de folga pra existir algum resíduo a examinar. Mínimos concretos por modelo:
+
+| Modelo | Parâmetros livres | Mínimo de pontos |
+|---|---|---|
+| Margules 1P | 1 (A) | 2 |
+| Margules 2P, Van Laar, Wilson, UNIQUAC | 2 | 3 |
+| NRTL (α12 fixo) | 2 (τ12, τ21) | 3 |
+| UNIFAC | — (preditivo) | não se aplica |
+
+**Requisito de UI vinculado:** quando a tabela tiver exatamente o mínimo (grau de liberdade = 1), o selo de origem ganha uma variante — "Calculado (poucos pontos)" — avisando baixa confiança. Abaixo do mínimo, a regressão não roda; a UI precisa dizer isso claramente, não falhar silenciosamente.
+
+**Segue em aberto:** se o gatilho na UI é automático ou por ação explícita do usuário.
 
 **Requisito de UI (2026-09-12):** a interface precisa **indicar explicitamente qual das três origens gerou o parâmetro usado** em cada cálculo. Isso não é só transparência de UX: um parâmetro regredido de poucos pontos digitados tem uma confiabilidade diferente de um parâmetro medido e publicado, e o usuário (professor, aluno ou pesquisador) precisa saber qual dos dois está vendo antes de tirar conclusão do gráfico.
 
