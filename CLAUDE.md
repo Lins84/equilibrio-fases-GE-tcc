@@ -93,6 +93,34 @@ está pronto e validado, mas **nenhum** dos protótipos de UI chama
 > e fica para o autor decidir quando a integração for liberada. Nada foi
 > pré-resolvido aqui.
 
+> **Nota técnica: compatibilidade com Flet 1.0.0 (2026-09-20).**
+> Verificado contra a documentação oficial de breaking changes da
+> versão 1.0.0 (`flet.dev/docs/updates/breaking-changes/v1-0-0/`),
+> cruzando com toda API usada em `interface/*.py`:
+> 1. **Nada quebra hoje.** `ft.DataTable/DataColumn/DataRow/DataCell`,
+>    `ft.TextField`, `ft.IconButton`, `ft.Icons`, `ft.Colors.BLUE/RED/
+>    ORANGE`, `ft.Container`, `ft.Row`, `ft.MainAxisAlignment`,
+>    `ft.TextAlign`, `ft.KeyboardType`, `ft.run(main, ...)` — nenhum foi
+>    removido em 1.0.0. `fletando.py`/`fletando_grafico.py` também já
+>    usam `ft.Button` em vez do `ElevatedButton` deprecado (comentário
+>    "CORREÇÃO DA DEPRECIAÇÃO" em `fletando.py:92`) — a única remoção
+>    de controle da 1.0.0 já tinha sido antecipada antes dela sair.
+> 2. **Não urgente:** `ft.InputBorder.NONE` (usado em `fletando.py:58`
+>    e `fletando_grafico.py:58`) está deprecado desde a 1.0.0, mas a
+>    remoção só está agendada pra versão 1.3.0 — ainda funciona. Trocar
+>    por `ft.NoInputBorder()` quando for mexer nesse código de qualquer
+>    forma, sem urgência isolada.
+> 3. **Risco real está no `pyproject.toml`, não no código:**
+>    `flet-charts` (usado no `LineChart` de `fletando_grafico.py`) é
+>    pacote separado do `flet` e historicamente exige **versão
+>    exatamente igual** à dele (ex.: `flet-charts==0.80.2` exigia
+>    `flet==0.80.2`). O projeto pina os dois com `>=0.86.2`, sem teto —
+>    um `uv sync` puxando versões novas pode pegar `flet` 1.0.0 com
+>    `flet-charts` ainda pré-1.0 (ou o contrário), o que historicamente
+>    quebra em runtime, não no import. Ajustar o pin é mudança de
+>    dependência (item 1 de "Como trabalhar neste projeto") — fica para
+>    quando o autor autorizar mexer nisso, não pré-resolvido aqui.
+
 ## Estado atual (2026-08-19)
 
 Snapshot; o histórico por sessão vem logo abaixo.
