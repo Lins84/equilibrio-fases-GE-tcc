@@ -448,10 +448,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
 - **Manter Flet na camada de UI**, recusando migrar para React/Recharts
   mesmo diante de um protótipo visualmente mais atraente
   (`referencias/margules-1-parametro.jsx`) — praticidade sobre estética,
-  em linha com o "entregar funcionando" do orientador.
-- **Recusar Flutter nativo (Dart)**, mesmo sendo mais maduro que o Flet
-  beta: quebraria o processo único (UI e cálculo juntos em Python) e
-  exigiria manter um backend separado rodando durante a aula.
+  em linha com o "entregar funcionando" do orientador. Na época da
+  decisão, o Flet ainda era beta — risco aceito conscientemente, não
+  ignorado (ver discussão da época). **Atualização factual (não é
+  decisão do autor, é evento externo): em 2026-09-20 o Flet lançou a
+  versão 1.0**, deixando de ser beta. Não muda a decisão, remove o risco
+  que ela havia aceitado.
+- **Recusar Flutter nativo (Dart)**: quebraria o processo único (UI e
+  cálculo juntos em Python) e exigiria manter um backend separado
+  rodando durante a aula. O motivo original também citava "Flutter é
+  mais maduro que o Flet, que ainda é beta" — essa parte ficou
+  desatualizada com o lançamento do Flet 1.0 (nota acima). A decisão de
+  recusar Flutter continua de pé pelo motivo arquitetural, que nunca
+  dependeu do status beta do Flet.
 - **Recusar embutir um assistente de IA dentro do app** — custo
   recorrente por uso, novo ponto de falha de rede em aula ao vivo, e
   escopo fora dos três eixos do projeto.
