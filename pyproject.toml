@@ -5,6 +5,13 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 requires-python = ">=3.11"
 dependencies = [
+    # ATENÇÃO ao atualizar "flet": "flet-charts" é pacote separado e
+    # historicamente exige a MESMA versão exata do "flet" (ex.:
+    # flet-charts 0.80.2 exigia flet==0.80.2). O ">=" abaixo não garante
+    # esse alinhamento sozinho — se atualizar um, atualize o outro para
+    # a mesma versão exata e confira se "uv.lock" ficou com os dois
+    # iguais antes de commitar. Detalhe em CLAUDE.md, "Nota técnica:
+    # compatibilidade com Flet 1.0.0".
     "flet>=0.86.2",
     "flet-charts>=0.86.2",
     "numpy>=2.3.2",

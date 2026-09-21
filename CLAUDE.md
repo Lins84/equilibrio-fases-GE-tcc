@@ -117,9 +117,25 @@ está pronto e validado, mas **nenhum** dos protótipos de UI chama
 >    `flet==0.80.2`). O projeto pina os dois com `>=0.86.2`, sem teto —
 >    um `uv sync` puxando versões novas pode pegar `flet` 1.0.0 com
 >    `flet-charts` ainda pré-1.0 (ou o contrário), o que historicamente
->    quebra em runtime, não no import. Ajustar o pin é mudança de
->    dependência (item 1 de "Como trabalhar neste projeto") — fica para
->    quando o autor autorizar mexer nisso, não pré-resolvido aqui.
+>    quebra em runtime, não no import.
+>
+>    **Confirmado no `uv.lock` (2026-09-21):** hoje `flet` e
+>    `flet-charts` estão travados em `0.86.2`/`0.86.2` — batendo por
+>    coincidência de quando o lock foi gerado (julho/2026, antes da
+>    1.0.0 existir), não por garantia estrutural. A entrada de
+>    `flet-charts` no lock lista `flet` como dependência **sem nenhuma
+>    restrição de versão anexada** — nada impede os dois de
+>    desalinharem num upgrade futuro que toque só um dos dois.
+>
+>    **Decisão do autor (2026-09-21): não automatizar (sem script, sem
+>    hook, sem CI)** — a atualização do Flet pós-piloto será pontual,
+>    talvez nunca aconteça, e o projeto não tem CI hoje. Em vez disso,
+>    **alerta em comentário no próprio `pyproject.toml`**, junto às
+>    duas linhas de dependência, avisando quem for atualizar (o autor
+>    ou outro mantenedor, já que o repositório é público) que precisa
+>    atualizar os dois pacotes para a mesma versão exata e conferir o
+>    `uv.lock` antes de commitar. Simples, sem infraestrutura nova, e no
+>    lugar onde quem for mexer realmente vai olhar.
 
 ## Estado atual (2026-08-19)
 
@@ -546,6 +562,15 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   humana sobre texto técnico gerado com apoio de IA.
 - **(2026-09-12) Criar esta seção**, formalizando o registro cronológico
   de decisões do autor como prática permanente do projeto.
+- **(2026-09-21) Alertar via comentário no `pyproject.toml`, não
+  automatizar (script/hook/CI), o risco de desalinhamento entre `flet`
+  e `flet-charts`.** Avaliando as opções que o assistente levantou
+  (script manual, git hook, CI), o autor julgou que a atualização do
+  Flet pós-piloto será pontual — talvez nunca aconteça — e o repositório
+  não tem CI hoje, então automação seria esforço desproporcional ao
+  risco real. Preferiu um alerta simples no ponto exato onde um futuro
+  mantenedor (o próprio autor ou outra pessoa, já que o projeto é
+  público) mexeria ao atualizar a dependência.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
