@@ -93,49 +93,40 @@ está pronto e validado, mas **nenhum** dos protótipos de UI chama
 > e fica para o autor decidir quando a integração for liberada. Nada foi
 > pré-resolvido aqui.
 
-> **Nota técnica: compatibilidade com Flet 1.0.0 (2026-09-20).**
-> Verificado contra a documentação oficial de breaking changes da
-> versão 1.0.0 (`flet.dev/docs/updates/breaking-changes/v1-0-0/`),
-> cruzando com toda API usada em `interface/*.py`:
-> 1. **Nada quebra hoje.** `ft.DataTable/DataColumn/DataRow/DataCell`,
->    `ft.TextField`, `ft.IconButton`, `ft.Icons`, `ft.Colors.BLUE/RED/
->    ORANGE`, `ft.Container`, `ft.Row`, `ft.MainAxisAlignment`,
->    `ft.TextAlign`, `ft.KeyboardType`, `ft.run(main, ...)` — nenhum foi
->    removido em 1.0.0. `fletando.py`/`fletando_grafico.py` também já
->    usam `ft.Button` em vez do `ElevatedButton` deprecado (comentário
->    "CORREÇÃO DA DEPRECIAÇÃO" em `fletando.py:92`) — a única remoção
->    de controle da 1.0.0 já tinha sido antecipada antes dela sair.
-> 2. **Não urgente:** `ft.InputBorder.NONE` (usado em `fletando.py:58`
->    e `fletando_grafico.py:58`) está deprecado desde a 1.0.0, mas a
->    remoção só está agendada pra versão 1.3.0 — ainda funciona. Trocar
->    por `ft.NoInputBorder()` quando for mexer nesse código de qualquer
->    forma, sem urgência isolada.
-> 3. **Risco real está no `pyproject.toml`, não no código:**
->    `flet-charts` (usado no `LineChart` de `fletando_grafico.py`) é
->    pacote separado do `flet` e historicamente exige **versão
->    exatamente igual** à dele (ex.: `flet-charts==0.80.2` exigia
->    `flet==0.80.2`). O projeto pina os dois com `>=0.86.2`, sem teto —
->    um `uv sync` puxando versões novas pode pegar `flet` 1.0.0 com
->    `flet-charts` ainda pré-1.0 (ou o contrário), o que historicamente
->    quebra em runtime, não no import.
+> **Atualização para Flet 1.0.0 — concluída e testada de verdade
+> (2026-09-21).** O que era análise teórica (2026-09-20) virou migração
+> real, autorizada e executada pelo autor. Resultado:
 >
->    **Confirmado no `uv.lock` (2026-09-21):** hoje `flet` e
->    `flet-charts` estão travados em `0.86.2`/`0.86.2` — batendo por
->    coincidência de quando o lock foi gerado (julho/2026, antes da
->    1.0.0 existir), não por garantia estrutural. A entrada de
->    `flet-charts` no lock lista `flet` como dependência **sem nenhuma
->    restrição de versão anexada** — nada impede os dois de
->    desalinharem num upgrade futuro que toque só um dos dois.
+> 1. **`pyproject.toml` atualizado** para `flet>=1.0.0` e
+>    `flet-charts>=1.0.0`. `uv lock --upgrade-package flet
+>    --upgrade-package flet-charts` resolveu os dois em `1.0.0`/`1.0.0`
+>    — confirmado no `uv.lock`, sem desalinhamento.
+> 2. **`ft.InputBorder.NONE` → `ft.NoInputBorder()`** corrigido nos dois
+>    lugares (`fletando.py:58`, `fletando_grafico.py:58`) — já que
+>    estávamos mexendo no código de qualquer forma.
+> 3. **Suíte de testes** (`teste_margules_2p_MEK_tolueno.py`,
+>    `teste_parse_ponto_tabela.py`) rodada depois da atualização
+>    completa — ambos passam sem alteração.
+> 4. **App rodado de verdade e testado visualmente** (`flet run
+>    interface/fletando_grafico.py -d --web`, dirigido via Playwright +
+>    Chromium headless): tabela edita, botões ("Adicionar Novo Ponto",
+>    "Gerar Gráfico") funcionam, `LineChart` do `flet_charts` 1.0.0
+>    desenha eixos/escala/legenda corretamente, e a validação de linha
+>    inválida ("1 linha(s) ignorada(s) por dado inválido") disparou como
+>    esperado. Prints em anexo na conversa com o autor.
 >
->    **Decisão do autor (2026-09-21): não automatizar (sem script, sem
->    hook, sem CI)** — a atualização do Flet pós-piloto será pontual,
->    talvez nunca aconteça, e o projeto não tem CI hoje. Em vez disso,
->    **alerta em comentário no próprio `pyproject.toml`**, junto às
->    duas linhas de dependência, avisando quem for atualizar (o autor
->    ou outro mantenedor, já que o repositório é público) que precisa
->    atualizar os dois pacotes para a mesma versão exata e conferir o
->    `uv.lock` antes de commitar. Simples, sem infraestrutura nova, e no
->    lugar onde quem for mexer realmente vai olhar.
+> **Achado novo, não previsto na análise teórica:** `flet run --web`
+> (modo dev) carrega o motor de renderização (CanvasKit/Skia WASM) de
+> `www.gstatic.com` no **navegador**, na primeira carga da página — sem
+> internet nesse momento, a tela trava indefinidamente na splash screen
+> do Flet. `flet build web --no-cdn` embute esses arquivos localmente,
+> mas essa flag **não existe** em `flet run --web`, só no build de
+> produção. Isso importa para o fluxo Termux-sem-internet já registrado
+> na seção 4.1 do mapeamento: testar/demonstrar o app **offline** exige
+> `flet build web --no-cdn` (+ servir os arquivos estáticos gerados),
+> não `flet run --web` direto. Não é regra nova do projeto nem decisão
+> — é um fato técnico descoberto ao rodar de verdade, registrado para
+> quando isso importar.
 
 ## Estado atual (2026-08-19)
 
@@ -571,6 +562,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   risco real. Preferiu um alerta simples no ponto exato onde um futuro
   mantenedor (o próprio autor ou outra pessoa, já que o projeto é
   público) mexeria ao atualizar a dependência.
+- **(2026-09-21) Autorizar a atualização real para Flet 1.0.0 e exigir
+  teste de verdade, não só análise.** Depois de fechar a estratégia de
+  alerta acima, o autor decidiu não deixar a migração só documentada —
+  pediu para atualizar o código e **testar o funcionamento com o novo
+  chart**. Resultado: `flet`/`flet-charts` em `1.0.0`/`1.0.0` sem
+  desalinhamento, `ft.NoInputBorder()` corrigido, suíte de testes
+  passando, e o app rodado de ponta a ponta num navegador de verdade
+  (tabela, botões, `LineChart`) — não apenas leitura de changelog.
+  Nota técnica completa acima, com um achado novo que a análise teórica
+  não previa (CanvasKit via CDN no navegador, sem opção `--no-cdn` em
+  `flet run --web`).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

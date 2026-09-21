@@ -232,6 +232,8 @@ Padrão inspirado no que dashboards financeiros e ferramentas de BI usam para si
 - **Replit (IDE)** — usado quando havia internet disponível, justamente por dar acesso tanto pelo celular quanto pelo PC a partir do mesmo projeto.
 - **Termux com Ubuntu adaptado** (proot-Ubuntu, validado na seção 7.2) — usado para rodar e testar a aplicação localmente no celular. **Foi a única forma de produzir a aplicação fora de casa, sem internet e sem acesso a um PC.**
 
+**Ressalva descoberta na migração para Flet 1.0.0 (2026-09-21):** `flet run --web` (modo desenvolvimento) carrega o motor de renderização (CanvasKit/Skia WASM) de `www.gstatic.com` no **navegador**, na primeira carga da página — sem internet nesse instante, a tela trava na splash screen do Flet indefinidamente. Isso não invalida o fluxo Termux-sem-internet descrito acima (a *produção* do código continua possível sem internet, via Claude Code), mas *testar visualmente* o app rodando exige internet no momento de abrir o navegador, a menos que se use `flet build web --no-cdn` (que embute os arquivos localmente) em vez de `flet run --web`.
+
 ### 4.2 Por que Termux funciona para este projeto
 - Flet é usado em modo web (`flet run --web`), sem necessidade de build nativo (que exigiria maturin e companhia — o gargalo real do Flet no Android)
 - `thermo` nunca foi um problema de compilação nesse ambiente

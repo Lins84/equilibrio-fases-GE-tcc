@@ -12,8 +12,8 @@ dependencies = [
     # a mesma versão exata e confira se "uv.lock" ficou com os dois
     # iguais antes de commitar. Detalhe em CLAUDE.md, "Nota técnica:
     # compatibilidade com Flet 1.0.0".
-    "flet>=0.86.2",
-    "flet-charts>=0.86.2",
+    "flet>=1.0.0",
+    "flet-charts>=1.0.0",
     "numpy>=2.3.2",
     "thermo>=0.4.2",
 ]
