@@ -313,7 +313,16 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    ganha uma variante — "Calculado (poucos pontos)" — avisando que o
    ajuste tem baixa confiança. Abaixo do mínimo, a regressão não roda; a
    UI precisa dizer isso claramente, não falhar silenciosamente.
-   Segue em aberto: gatilho automático vs. manual na UI.
+   **Gatilho na UI, decidido em 2026-09-21: manual, reaproveitando o
+   botão "Gerar Gráfico" que já existe em `fletando_grafico.py`**
+   (`botao_gerar_grafico`, dispara `gerar_grafico(e)`). Não é uma
+   mudança de comportamento — hoje o gráfico só aparece ao clicar nesse
+   botão; a regressão passa a rodar no mesmo clique, produzindo pontos +
+   curva calculada de uma vez. Motivo do autor: consistência — um único
+   gatilho para o gráfico inteiro, em vez de dois comportamentos
+   diferentes coexistindo (regressão automática ao editar célula vs.
+   plotagem manual dos pontos brutos). **Com isso, o item 3 está
+   fechado**: não há mais pendência técnica na regressão de parâmetros.
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -462,6 +471,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   sistema fora deles. No limite exato, o selo de origem ganha uma
   variante de baixa confiança ("Calculado, poucos pontos"), estendendo o
   padrão já definido em vez de criar um novo.
+- **(2026-09-21) Gatilho da regressão: manual, reaproveitando o botão
+  "Gerar Gráfico" já existente.** Última pendência do item 3. O autor
+  notou que o gráfico de `fletando_grafico.py` já é manual hoje (botão
+  `botao_gerar_grafico`, não dispara ao editar a tabela) — em vez de
+  tornar a regressão automática (seguindo a regra de ouro dos sliders) e
+  criar dois comportamentos diferentes no mesmo app, escolheu manter o
+  padrão que já existe: um clique só, produzindo pontos e curva
+  calculada juntos. Fecha o item 3 sem pendência técnica restante.
 
 ### B. Decisões de arquitetura e stack
 
