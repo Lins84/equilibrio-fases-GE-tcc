@@ -144,7 +144,7 @@ O orientador perguntou como o UNIFAC funciona, já que depende da molécula, e s
 
 **A ideia central — grupos, não moléculas inteiras.** Ao contrário de Wilson, NRTL e UNIQUAC (que, neste projeto, usam parâmetros de interação medidos para aquele par específico de moléculas, buscados via `IPDB`/ChemSep — ver seção 2.4), o UNIFAC quebra cada molécula em grupos funcionais padronizados (`CH3`, `CH2`, `OH`, `CH` aromático, `CH3COO`, etc.). Cada grupo tem parâmetros próprios de tamanho/área (`R`, `Q`) e um parâmetro de **interação entre pares de grupos** (`a_mn`), ajustado uma única vez a partir de um volume grande de dados experimentais reais, cobrindo muitas famílias químicas — não um parâmetro por par de moléculas.
 
-O cálculo em `calculos/gemini.py` (`model_unifac`, linhas ~182–273) segue essa divisão clássica do método:
+O cálculo em `calculos/gemini.py` (`model_unifac`, linhas ~182–283) segue essa divisão clássica do método:
 - **Parte combinatorial** — depende só do tamanho/forma da molécula (soma dos `R`/`Q` dos grupos que ela contém). Não precisa de nenhum dado de interação.
 - **Parte residual** — a parte energética, soma as interações grupo-a-grupo usando a tabela `a_mn` (a mesma tabela que teve 41 de 66 pares corrigidos na auditoria de 2026-07-27, seção 5.1).
 
