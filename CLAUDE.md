@@ -70,10 +70,16 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
 
 - `testes/` — scripts avulsos, rodados direto com `python3` **a partir da
   raiz** (não há runner/pytest): `teste_margules_2p_MEK_tolueno.py`
-  (validação numérica contra planilha XSEOS, sem dependências externas) e
+  (validação numérica contra planilha XSEOS, sem dependências externas),
   `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
   `sys.path` para achar o módulo, e exige `flet` instalado — ver ressalva
-  no topo do arquivo).
+  no topo do arquivo) e `teste_dioxano_nrtl.py` (teste manual visual —
+  app Flet próprio que roda `calculate_vle_isothermal` com NRTL e
+  parâmetros reais via `nrtl_params_from_ipdb`/IPDB para dioxano/metanol
+  a 70 °C, e plota o diagrama P-x-y calculado; recuperado em 2026-09-26
+  de um commit que existia só numa cópia do Replit sem sincronia por
+  git, nunca antes enviado ao GitHub — mesmo teste citado na sessão de
+  2026-07-29 acima).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS e dois
