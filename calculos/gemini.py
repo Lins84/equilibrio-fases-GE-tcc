@@ -305,8 +305,18 @@ def model_nrtl(x1, params):
 
 def nrtl_params_from_ipdb(cas1, cas2, T_K):
     """Busca bij/αij na tabela 'ChemSep NRTL' do thermo.interaction_parameters.IPDB
-    e retorna os parâmetros já prontos para model_nrtl (τij = bij / T_K)."""
+    e retorna os parâmetros já prontos para model_nrtl (τij = bij / T_K).
+
+    Levanta ValueError se o par não tiver dado nessa tabela — sem essa
+    checagem, o IPDB devolve silenciosamente bij/αij = 0 para pares
+    ausentes (nenhuma exceção), o que produziria uma curva de aparência
+    plausível mas sem nenhum parâmetro real por trás."""
     from thermo.interaction_parameters import IPDB
+
+    if not IPDB.has_ip_specific('ChemSep NRTL', [cas1, cas2], 'bij'):
+        raise ValueError(
+            f"par ({cas1}, {cas2}) sem parâmetros NRTL na tabela ChemSep do IPDB"
+        )
 
     bij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'bij')
     alphaij = IPDB.get_ip_asymmetric_matrix('ChemSep NRTL', [cas1, cas2], 'alphaij')
@@ -316,6 +326,89 @@ def nrtl_params_from_ipdb(cas1, cas2, T_K):
         'tau21': bij[1][0] / T_K,
         'alpha12': alphaij[0][1],
     }
+
+
+def unifac_groups_from_name(component_id):
+    """Resolve um componente (nome/sinônimo/CAS) para seus grupos UNIFAC
+    clássicos ({subgrupo: nº de ocorrências}), via thermo (banco de
+    fragmentação DDBST). Levanta ValueError se a fragmentação não estiver
+    disponível nesse banco, ou se usar algum subgrupo fora da tabela
+    UNIFAC_SUBGROUPS implementada neste projeto (cobertura parcial — ver
+    seção 2.7 do mapeamento)."""
+    from thermo.unifac import UNIFAC_group_assignment_DDBST
+
+    cas = Chemical(component_id).CAS
+    grupos = UNIFAC_group_assignment_DDBST(cas, 'UNIFAC')
+    if not grupos:
+        raise ValueError(
+            f"fragmentação UNIFAC não disponível para '{component_id}' (CAS {cas})"
+        )
+
+    faltando = sorted(k for k in grupos if k not in UNIFAC_SUBGROUPS)
+    if faltando:
+        raise ValueError(
+            f"'{component_id}' usa subgrupo(s) UNIFAC fora da tabela "
+            f"implementada neste projeto: {faltando}"
+        )
+    return grupos
+
+
+def uniquac_rq_from_groups(groups):
+    """Soma R/Q dos subgrupos UNIFAC (mesma tabela UNIFAC_SUBGROUPS) para
+    obter os parâmetros estruturais r, q de um componente para o UNIQUAC —
+    a decomposição em grupos é a mesma usada no UNIFAC (Abrams/Prausnitz:
+    r_i = Σ ν_k·R_k, q_i = Σ ν_k·Q_k)."""
+    r = sum(nu * UNIFAC_SUBGROUPS[k][1] for k, nu in groups.items())
+    q = sum(nu * UNIFAC_SUBGROUPS[k][2] for k, nu in groups.items())
+    return r, q
+
+
+def uniquac_params_from_ipdb(cas1, cas2):
+    """Busca bij (K) na tabela 'ChemSep UNIQUAC' do IPDB e retorna os
+    parâmetros de interação a12/a21 prontos para model_uniquac (r1/q1/r2/q2
+    vêm de uniquac_rq_from_groups; T_K é injetado por
+    calculate_vle_isothermal). Levanta ValueError se o par não tiver dado
+    nessa tabela (mesmo cuidado de nrtl_params_from_ipdb — o IPDB não
+    avisa sozinho)."""
+    from thermo.interaction_parameters import IPDB
+
+    if not IPDB.has_ip_specific('ChemSep UNIQUAC', [cas1, cas2], 'bij'):
+        raise ValueError(
+            f"par ({cas1}, {cas2}) sem parâmetros UNIQUAC na tabela ChemSep do IPDB"
+        )
+
+    bij = IPDB.get_ip_asymmetric_matrix('ChemSep UNIQUAC', [cas1, cas2], 'bij')
+    return {'a12': bij[0][1], 'a21': bij[1][0]}
+
+
+def montar_parametros_automaticos(model_name, component1_id, component2_id):
+    """Resolve automaticamente os parâmetros de um modelo Gᴱ a partir dos
+    componentes escolhidos, para os modelos cuja origem hoje é banco de
+    dados/preditiva (seção 2.8 do mapeamento) — sem entrada manual na UI:
+
+    - UNIFAC: grupos de cada componente (preditivo, sem IPDB).
+    - UNIQUAC: r/q via grupos UNIFAC + a12/a21 via IPDB.
+
+    Não cobre Margules/Van Laar/Wilson/NRTL — esses seguem com parâmetro
+    fornecido manualmente (sliders) na UI. Levanta ValueError com mensagem
+    clara quando a fonte não cobre o componente/par pedido."""
+    if model_name == "UNIFAC":
+        return {
+            "groups1": unifac_groups_from_name(component1_id),
+            "groups2": unifac_groups_from_name(component2_id),
+        }
+
+    if model_name == "UNIQUAC":
+        r1, q1 = uniquac_rq_from_groups(unifac_groups_from_name(component1_id))
+        r2, q2 = uniquac_rq_from_groups(unifac_groups_from_name(component2_id))
+        cas1 = Chemical(component1_id).CAS
+        cas2 = Chemical(component2_id).CAS
+        return {
+            "r1": r1, "q1": q1, "r2": r2, "q2": q2,
+            **uniquac_params_from_ipdb(cas1, cas2),
+        }
+
+    raise ValueError(f"modelo '{model_name}' não tem resolução automática de parâmetros")
 
 
 def model_wilson(x1, params):

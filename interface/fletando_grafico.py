@@ -4,13 +4,19 @@ import io
 import flet as ft
 import flet_charts as fch
 
-from calculos.gemini import MODELS_GE, calculate_vle_isothermal
+from calculos.gemini import (
+    MODELS_GE,
+    calculate_vle_isothermal,
+    montar_parametros_automaticos,
+)
 
 # Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
 # calculos/gemini.py), rótulo exibido, faixa e valor inicial. Só cobre os
-# modelos cujos parâmetros são números de interação livres; UNIQUAC e UNIFAC
-# dependem de dados estruturais/grupos das moléculas (seção 2.7 do
-# mapeamento) — sem seleção de componentes na UI ainda, não têm slider.
+# modelos cujos parâmetros são números de interação livres, fornecidos
+# manualmente. UNIQUAC e UNIFAC não entram aqui — seus parâmetros são
+# resolvidos automaticamente a partir dos componentes escolhidos, via
+# montar_parametros_automaticos (grupos UNIFAC clássicos + banco IPDB para
+# o UNIQUAC), sem slider manual.
 PARAM_SLIDERS = {
     "Margules (1-P)": [
         {"chave": "A", "rotulo": "A", "min": -2.0, "max": 2.0, "inicial": 0.5},
@@ -255,8 +261,9 @@ def main(page: ft.Page):
     # Ponta a ponta: pontos digitados na tabela (discretos, sem interpolação —
     # decisão de 2026-08-19) + curva calculada por calculate_vle_isothermal
     # com o modelo/parâmetros/componentes/temperatura escolhidos, no mesmo
-    # gráfico. UNIQUAC/UNIFAC ainda não entram no cálculo (seção 2.7 do
-    # mapeamento — dependem de seleção de componentes/grupos não implementada).
+    # gráfico. Para Margules/Van Laar/Wilson/NRTL os parâmetros vêm dos
+    # sliders (parametros_atuais); para UNIQUAC/UNIFAC vêm de
+    # montar_parametros_automaticos, resolvido a partir dos componentes.
     def gerar_grafico(e=None, mensagem_extra=None):
         pontos_validos = []
         linhas_ignoradas = 0
@@ -287,33 +294,34 @@ def main(page: ft.Page):
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]
 
         erro_modelo = None
-        if modelo_selecionado["nome"] not in PARAM_SLIDERS:
-            erro_modelo = "modelo ainda sem seleção de componentes/grupos implementada na UI"
-        else:
-            try:
-                T_C = float(campo_temperatura.value)
-                resultado = calculate_vle_isothermal(
-                    campo_componente1.value.strip(),
-                    campo_componente2.value.strip(),
-                    T_C,
-                    modelo_selecionado["nome"],
-                    parametros_atuais,
-                )
-                liquido_calc = sorted(zip(resultado["x1"], resultado["P_kPa"]))
-                vapor_calc = sorted(zip(resultado["y1"], resultado["P_kPa"]))
-                series.append(fch.LineChartData(
-                    color=ft.Colors.GREEN,
-                    stroke_width=2,
-                    points=[fch.LineChartDataPoint(x, p) for x, p in liquido_calc],
-                ))
-                series.append(fch.LineChartData(
-                    color=ft.Colors.ORANGE,
-                    stroke_width=2,
-                    points=[fch.LineChartDataPoint(y, p) for y, p in vapor_calc],
-                ))
-                valores_P += resultado["P_kPa"]
-            except Exception as exc:
-                erro_modelo = str(exc)
+        try:
+            nome_modelo = modelo_selecionado["nome"]
+            comp1 = campo_componente1.value.strip()
+            comp2 = campo_componente2.value.strip()
+            if nome_modelo in PARAM_SLIDERS:
+                params_modelo = dict(parametros_atuais)
+            else:
+                params_modelo = montar_parametros_automaticos(nome_modelo, comp1, comp2)
+
+            T_C = float(campo_temperatura.value)
+            resultado = calculate_vle_isothermal(
+                comp1, comp2, T_C, nome_modelo, params_modelo,
+            )
+            liquido_calc = sorted(zip(resultado["x1"], resultado["P_kPa"]))
+            vapor_calc = sorted(zip(resultado["y1"], resultado["P_kPa"]))
+            series.append(fch.LineChartData(
+                color=ft.Colors.GREEN,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(x, p) for x, p in liquido_calc],
+            ))
+            series.append(fch.LineChartData(
+                color=ft.Colors.ORANGE,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(y, p) for y, p in vapor_calc],
+            ))
+            valores_P += resultado["P_kPa"]
+        except Exception as exc:
+            erro_modelo = str(exc)
 
         if not series:
             chart.visible = False
@@ -418,10 +426,11 @@ def main(page: ft.Page):
         if not specs:
             sliders_area.controls.append(
                 ft.Text(
-                    "Este modelo depende de dados estruturais das moléculas "
-                    "(UNIQUAC) ou dos seus grupos funcionais (UNIFAC) — "
-                    "requer seleção de componentes, ainda não implementada "
-                    "na interface.",
+                    "Este modelo resolve os parâmetros automaticamente a "
+                    "partir dos componentes escolhidos (grupos UNIFAC "
+                    "clássicos e, para UNIQUAC, o banco de interação "
+                    "binária IPDB/ChemSep) — sem sliders manuais por "
+                    "enquanto.",
                     color=ft.Colors.GREY_600,
                     italic=True,
                 )
