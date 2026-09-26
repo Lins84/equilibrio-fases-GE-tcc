@@ -1,5 +1,6 @@
 import csv
 import io
+import math
 
 import flet as ft
 import flet_charts as fch
@@ -258,6 +259,34 @@ def main(page: ft.Page):
         visible=False,
     )
 
+    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — só a curva
+    # calculada pelo modelo (não dá para obter γ direto dos pontos brutos
+    # da tabela sem inverter a Lei de Raoult, o que é o método indireto de
+    # regressão já descartado na seção 2.8; fica reservado para quando essa
+    # regressão existir).
+    chart_gamma = fch.LineChart(
+        data_series=[],
+        min_x=0,
+        max_x=1,
+        min_y=0,
+        max_y=1,
+        expand=True,
+        left_axis=fch.ChartAxis(label_size=40),
+        bottom_axis=fch.ChartAxis(label_size=32),
+        visible=False,
+    )
+
+    legenda_gamma = ft.Row(
+        controls=[
+            chip_legenda(ft.Colors.GREEN, "ln γ1 — modelo"),
+            chip_legenda(ft.Colors.ORANGE, "ln γ2 — modelo"),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        spacing=20,
+        wrap=True,
+        visible=False,
+    )
+
     # Ponta a ponta: pontos digitados na tabela (discretos, sem interpolação —
     # decisão de 2026-08-19) + curva calculada por calculate_vle_isothermal
     # com o modelo/parâmetros/componentes/temperatura escolhidos, no mesmo
@@ -277,7 +306,10 @@ def main(page: ft.Page):
                 linhas_ignoradas += 1
 
         series = []
+        series_gamma = []
         valores_P = []
+        valores_gamma = []
+        modelo_ok = False
 
         if pontos_validos:
             liquido, vapor = pontos_para_series(pontos_validos)
@@ -320,12 +352,29 @@ def main(page: ft.Page):
                 points=[fch.LineChartDataPoint(y, p) for y, p in vapor_calc],
             ))
             valores_P += resultado["P_kPa"]
+
+            ln_gamma1 = [math.log(g) for g in resultado["gamma1"]]
+            ln_gamma2 = [math.log(g) for g in resultado["gamma2"]]
+            series_gamma.append(fch.LineChartData(
+                color=ft.Colors.GREEN,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(x, g) for x, g in zip(resultado["x1"], ln_gamma1)],
+            ))
+            series_gamma.append(fch.LineChartData(
+                color=ft.Colors.ORANGE,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(x, g) for x, g in zip(resultado["x1"], ln_gamma2)],
+            ))
+            valores_gamma += ln_gamma1 + ln_gamma2
+            modelo_ok = True
         except Exception as exc:
             erro_modelo = str(exc)
 
         if not series:
             chart.visible = False
             legenda.visible = False
+            chart_gamma.visible = False
+            legenda_gamma.visible = False
             motivo = (
                 f" ({erro_modelo})" if erro_modelo else ""
             )
@@ -348,6 +397,20 @@ def main(page: ft.Page):
         chart.max_y = max_y + margem
         chart.visible = True
         legenda.visible = True
+
+        if modelo_ok:
+            chart_gamma.data_series = series_gamma
+            min_g, max_g = min(valores_gamma), max(valores_gamma)
+            if min_g == max_g:
+                min_g, max_g = min_g - 1, max_g + 1
+            margem_g = (max_g - min_g) * 0.1
+            chart_gamma.min_y = min_g - margem_g
+            chart_gamma.max_y = max_g + margem_g
+            chart_gamma.visible = True
+            legenda_gamma.visible = True
+        else:
+            chart_gamma.visible = False
+            legenda_gamma.visible = False
 
         mensagens = []
         if mensagem_extra:
@@ -472,6 +535,8 @@ def main(page: ft.Page):
         mensagem_status,
         legenda,
         ft.Container(content=chart, height=300),
+        legenda_gamma,
+        ft.Container(content=chart_gamma, height=300),
     )
 
     gerar_grafico()

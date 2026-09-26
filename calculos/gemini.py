@@ -452,7 +452,8 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
         model_params (dict): Um dicionário com os parâmetros do modelo (ex: {'A': 1.6}).
 
     Returns:
-        dict: Um dicionário com as listas de resultados: 'P_kPa', 'x1', 'y1'.
+        dict: Um dicionário com as listas de resultados: 'P_kPa', 'x1', 'y1',
+            'gamma1', 'gamma2' (coeficientes de atividade, mesma malha de x1).
     """
     T_K = T_C + 273.15  # Converter para Kelvin
 
@@ -474,12 +475,16 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
 
     P_list_Pa = []
     y1_list = []
+    gamma1_list = []
+    gamma2_list = []
 
     params_com_T = {**model_params, 'T_K': T_K}
 
     for x1 in x1_array:
         # 1. Calcular os coeficientes de atividade para a composição x1
         gamma1, gamma2 = model_function(x1, params_com_T)
+        gamma1_list.append(gamma1)
+        gamma2_list.append(gamma2)
 
         # 2. Calcular a pressão total (Lei de Raoult Modificada)
         P_Pa = x1 * gamma1 * P1_sat_Pa + (1 - x1) * gamma2 * P2_sat_Pa
@@ -493,6 +498,8 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
     return {
         'P_kPa': [p / 1000 for p in P_list_Pa],
         'x1': [float(x) for x in x1_array], # Converte de numpy.float64 para float
-        'y1': [float(y) for y in y1_list]
+        'y1': [float(y) for y in y1_list],
+        'gamma1': [float(g) for g in gamma1_list],
+        'gamma2': [float(g) for g in gamma2_list],
     }
 
