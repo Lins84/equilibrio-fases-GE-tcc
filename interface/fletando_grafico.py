@@ -6,11 +6,24 @@ import flet as ft
 import flet_charts as fch
 
 from calculos.gemini import (
+    MODELOS_COM_BANCO_IPDB,
     MODELS_GE,
+    buscar_parametros_banco,
     calculate_vle_isothermal,
     montar_parametros_automaticos,
     regress_params_barker,
 )
+
+# Selo de origem do parâmetro (seção 2.8 do mapeamento): cor de fundo, cor
+# do texto e rótulo por tipo de origem. "preditivo" cobre o UNIFAC (sem
+# parâmetro de interação ajustável por par — grupos apenas).
+ORIGENS_SELO = {
+    "fornecido": (ft.Colors.BLUE_GREY_100, ft.Colors.BLUE_GREY_900, "Fornecido"),
+    "banco": (ft.Colors.GREEN_100, ft.Colors.GREEN_900, "Banco de dados"),
+    "calculado": (ft.Colors.ORANGE_100, ft.Colors.ORANGE_900, "Calculado"),
+    "calculado_poucos_pontos": (ft.Colors.RED_100, ft.Colors.RED_900, "Calculado (poucos pontos)"),
+    "preditivo": (ft.Colors.PURPLE_100, ft.Colors.PURPLE_900, "Preditivo"),
+}
 
 # Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
 # calculos/gemini.py), rótulo exibido, faixa e valor inicial. Só cobre os
@@ -491,14 +504,65 @@ def main(page: ft.Page):
     parametros_atuais = {}
     sliders_area = ft.Column(spacing=2)
     # Guarda (slider, texto_valor, rótulo) por chave de parâmetro do modelo
-    # atual, para o botão de regressão poder atualizar os sliders depois de
-    # calcular — reconstruído a cada troca de modelo, junto com os sliders.
+    # atual, para o botão de regressão/busca no banco poder atualizar os
+    # sliders depois de calcular — reconstruído a cada troca de modelo,
+    # junto com os sliders.
     sliders_por_chave = {}
+
+    # 6a. Selo de origem do parâmetro (seção 2.8 do mapeamento) — pequeno,
+    # colorido, sempre visível junto dos sliders, com ícone ⓘ que mostra o
+    # detalhe (o que foi assumido, de onde veio) via tooltip. Cobre o
+    # conjunto de parâmetros livres do modelo atual como um todo: busca no
+    # banco e regressão atualizam todos de uma vez, e mexer em qualquer
+    # slider manualmente já invalida a origem "banco"/"calculado" anterior.
+    texto_selo_origem = ft.Text("", size=12, weight=ft.FontWeight.BOLD)
+    chip_selo_origem = ft.Container(
+        content=texto_selo_origem,
+        padding=ft.Padding(8, 2, 8, 2),
+        border_radius=10,
+    )
+    icone_selo_origem = ft.Icon(ft.Icons.INFO_OUTLINE, size=16, tooltip="")
+    selo_origem = ft.Row(
+        controls=[chip_selo_origem, icone_selo_origem],
+        spacing=4,
+        visible=False,
+    )
+
+    def atualizar_selo_origem(tipo, detalhe):
+        bg, fg, rotulo = ORIGENS_SELO[tipo]
+        chip_selo_origem.bgcolor = bg
+        texto_selo_origem.value = rotulo
+        texto_selo_origem.color = fg
+        icone_selo_origem.tooltip = detalhe
+        selo_origem.visible = True
+
+    # Nota fixa do NRTL (requisito de UI da seção 2.8): α12 só é regredido
+    # nunca — quando não vem do banco IPDB (que traz valor medido real),
+    # fica fixado por convenção. Verdadeira nos dois casos, sem precisar
+    # rastrear a origem de α12 separadamente do restante do selo.
+    nota_alpha_fixo = ft.Row(
+        controls=[
+            ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=ft.Colors.GREY_600),
+            ft.Text(
+                "α12: quando não vier do banco IPDB, fica fixado por "
+                "convenção (não é ajustado pela regressão de Barker) — "
+                "valor de referência típico entre 0,2 e 0,47.",
+                size=11,
+                color=ft.Colors.GREY_600,
+                italic=True,
+            ),
+        ],
+        spacing=4,
+        visible=False,
+    )
 
     def construir_sliders(nome_modelo):
         sliders_area.controls.clear()
         parametros_atuais.clear()
         sliders_por_chave.clear()
+
+        botao_buscar_banco.visible = nome_modelo in MODELOS_COM_BANCO_IPDB
+        nota_alpha_fixo.visible = (nome_modelo == "NRTL")
 
         specs = PARAM_SLIDERS.get(nome_modelo)
         if not specs:
@@ -513,6 +577,20 @@ def main(page: ft.Page):
                     italic=True,
                 )
             )
+            if nome_modelo == "UNIFAC":
+                atualizar_selo_origem(
+                    "preditivo",
+                    "UNIFAC é preditivo: os parâmetros vêm só dos grupos "
+                    "estruturais de cada componente, sem parâmetro de "
+                    "interação ajustável por par.",
+                )
+            else:  # UNIQUAC
+                atualizar_selo_origem(
+                    "banco",
+                    "r/q estruturais via grupos UNIFAC; a12/a21 do banco "
+                    "IPDB/ChemSep (tabela 'ChemSep UNIQUAC') para o par "
+                    "de componentes escolhido.",
+                )
             return
 
         for spec in specs:
@@ -525,6 +603,12 @@ def main(page: ft.Page):
 
             def on_change_end(e, spec=spec):
                 parametros_atuais[spec["chave"]] = e.control.value
+                if spec["chave"] != "alpha12":
+                    atualizar_selo_origem(
+                        "fornecido",
+                        f"{spec['rotulo']} ajustado manualmente pelo "
+                        "usuário via slider.",
+                    )
                 gerar_grafico()
 
             slider = ft.Slider(
@@ -538,9 +622,63 @@ def main(page: ft.Page):
             sliders_area.controls.append(ft.Row([valor_texto, slider]))
             sliders_por_chave[spec["chave"]] = (slider, valor_texto, spec["rotulo"])
 
+        atualizar_selo_origem(
+            "fornecido",
+            f"Valor inicial padrão do app para {nome_modelo}; ajustável "
+            "manualmente pelos sliders, pela busca no banco IPDB (quando "
+            "disponível) ou pela regressão de Barker a partir da tabela.",
+        )
+
+    # 6b. Busca de parâmetros reais no banco IPDB/ChemSep (item 2 de
+    # "Próximos passos" do CLAUDE.md) — alternativa à digitação manual,
+    # disponível só para os modelos com tabela lá (NRTL, Wilson;
+    # MODELOS_COM_BANCO_IPDB). Visibilidade do botão é ajustada dentro de
+    # construir_sliders a cada troca de modelo.
+    def buscar_do_banco(e=None):
+        nome_modelo = modelo_selecionado["nome"]
+        comp1 = campo_componente1.value.strip()
+        comp2 = campo_componente2.value.strip()
+        try:
+            T_C = float(campo_temperatura.value)
+            params = buscar_parametros_banco(nome_modelo, comp1, comp2, T_C + 273.15)
+        except Exception as exc:
+            mensagem_status.value = f"Busca no banco não realizada: {exc}."
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
+
+        for chave, valor in params.items():
+            if chave not in sliders_por_chave:
+                continue
+            slider, valor_texto, rotulo = sliders_por_chave[chave]
+            slider.value = valor
+            valor_texto.value = f"{rotulo} = {valor:.3g}"
+            parametros_atuais[chave] = valor
+
+        atualizar_selo_origem(
+            "banco",
+            f"IPDB/ChemSep, tabela 'ChemSep {nome_modelo}', par "
+            f"{comp1}/{comp2} a {T_C:.1f} °C.",
+        )
+        gerar_grafico(
+            mensagem_extra=(
+                f"Parâmetros de {nome_modelo} obtidos do banco IPDB/ChemSep "
+                f"para {comp1}/{comp2}."
+            )
+        )
+
+    botao_buscar_banco = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.STORAGE), ft.Text("Buscar do Banco (IPDB)")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=buscar_do_banco,
+    )
+
     construir_sliders(modelo_selecionado["nome"])
 
-    # 6b. Regressão de parâmetros pelo método de Barker (seção 2.8 do
+    # 6c. Regressão de parâmetros pelo método de Barker (seção 2.8 do
     # mapeamento) — calcula os parâmetros livres do modelo escolhido a
     # partir dos pontos digitados na tabela, e atualiza os sliders com o
     # resultado (o próprio gerar_grafico já redesenha os gráficos em
@@ -594,9 +732,17 @@ def main(page: ft.Page):
             valor_texto.value = f"{rotulo} = {valor:.3g}"
             parametros_atuais[chave] = valor
 
+        poucos_pontos = resultado["graus_liberdade"] == 1
         aviso_gl = (
             " — poucos pontos (grau de liberdade mínimo), confiança baixa"
-            if resultado["graus_liberdade"] == 1 else ""
+            if poucos_pontos else ""
+        )
+        atualizar_selo_origem(
+            "calculado_poucos_pontos" if poucos_pontos else "calculado",
+            f"Regressão de Barker a partir de {resultado['n_pontos']} "
+            f"ponto(s) da tabela (grau de liberdade = "
+            f"{resultado['graus_liberdade']}), resíduo RMS = "
+            f"{resultado['residual_rms']:.4g}.",
         )
         gerar_grafico(
             mensagem_extra=(
@@ -619,7 +765,9 @@ def main(page: ft.Page):
         dropdown_modelo,
         linha_sistema,
         sliders_area,
-        botao_regressao,
+        selo_origem,
+        nota_alpha_fixo,
+        ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
         dt,
         linha_botoes_tabela,
         botao_gerar_grafico,

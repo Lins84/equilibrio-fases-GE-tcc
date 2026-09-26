@@ -328,6 +328,55 @@ def nrtl_params_from_ipdb(cas1, cas2, T_K):
     }
 
 
+def wilson_params_from_ipdb(cas1, cas2, T_K):
+    """Busca aij/bij na tabela 'ChemSep Wilson' do IPDB e retorna Λ12/Λ21
+    prontos para model_wilson. Nessa tabela, ln(Λij) = aij + bij/T_K
+    diretamente (o termo aij já embute ln(Vj/Vi); ver docstring de
+    thermo.wilson.Wilson) — sem precisar buscar volume molar à parte.
+    Mesmo cuidado de nrtl_params_from_ipdb: levanta ValueError se o par
+    não tiver dado nessa tabela, em vez de deixar o IPDB devolver 0
+    silenciosamente."""
+    from thermo.interaction_parameters import IPDB
+
+    if not IPDB.has_ip_specific('ChemSep Wilson', [cas1, cas2], 'bij'):
+        raise ValueError(
+            f"par ({cas1}, {cas2}) sem parâmetros Wilson na tabela ChemSep do IPDB"
+        )
+
+    aij = IPDB.get_ip_asymmetric_matrix('ChemSep Wilson', [cas1, cas2], 'aij')
+    bij = IPDB.get_ip_asymmetric_matrix('ChemSep Wilson', [cas1, cas2], 'bij')
+
+    return {
+        'L12': np.exp(aij[0][1] + bij[0][1] / T_K),
+        'L21': np.exp(aij[1][0] + bij[1][0] / T_K),
+    }
+
+
+# Modelos com tabela de parâmetros de interação binária real no IPDB/ChemSep
+# (item 2 de "Próximos passos" do CLAUDE.md — dar ao usuário a opção de
+# buscar em vez de digitar manualmente). Margules e Van Laar ficam de fora:
+# não há tabela deles no IPDB (Van Laar é modelo antigo, pouco usado em
+# bancos modernos; Margules nem chega a ser um modelo de banco de dados).
+MODELOS_COM_BANCO_IPDB = {"NRTL", "Wilson"}
+
+
+def buscar_parametros_banco(model_name, component1_id, component2_id, T_K):
+    """Resolve os componentes (nome/sinônimo/CAS) para CAS via thermo.Chemical
+    e busca os parâmetros de interação binária real no banco IPDB/ChemSep,
+    para os modelos que têm tabela lá (MODELOS_COM_BANCO_IPDB). Levanta
+    ValueError para modelo sem tabela no IPDB, ou par ausente na tabela do
+    modelo pedido (repassado de nrtl_params_from_ipdb/wilson_params_from_ipdb)."""
+    if model_name not in MODELOS_COM_BANCO_IPDB:
+        raise ValueError(f"modelo '{model_name}' não tem tabela de parâmetros no banco IPDB")
+
+    cas1 = Chemical(component1_id).CAS
+    cas2 = Chemical(component2_id).CAS
+
+    if model_name == "NRTL":
+        return nrtl_params_from_ipdb(cas1, cas2, T_K)
+    return wilson_params_from_ipdb(cas1, cas2, T_K)
+
+
 def unifac_groups_from_name(component_id):
     """Resolve um componente (nome/sinônimo/CAS) para seus grupos UNIFAC
     clássicos ({subgrupo: nº de ocorrências}), via thermo (banco de

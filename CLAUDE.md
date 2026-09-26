@@ -46,19 +46,23 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
 
 **Cálculo — `calculos/`:**
 
-- `calculos/gemini.py` (~670 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
+- `calculos/gemini.py` (~720 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
   (`model_margules_1p`, `model_margules_2p`, `model_van_laar`,
   `model_wilson`, `model_nrtl`, `model_uniquac`, `model_unifac`),
   registrados em `MODELS_GE`; `calculate_vle_isothermal`, que gera os
   diagramas P-x-y a partir da Lei de Raoult modificada (devolve também
   `gamma1`/`gamma2` para o gráfico de ln γ vs x1); adaptadores de
   parâmetro via banco IPDB/ChemSep (`nrtl_params_from_ipdb`,
-  `uniquac_params_from_ipdb`) e via grupos UNIFAC/DDBST
-  (`unifac_groups_from_name`, `uniquac_rq_from_groups`,
-  `montar_parametros_automaticos` — usado por UNIQUAC/UNIFAC na UI, sem
-  slider manual); e `regress_params_barker` (2026-09-27), que ajusta os
-  parâmetros livres de um modelo a partir dos pontos (P, x1, y1)
-  digitados, por mínimos quadrados não-lineares diretos sobre P e y
+  `wilson_params_from_ipdb` — 2026-09-27 — e `uniquac_params_from_ipdb`)
+  e via grupos UNIFAC/DDBST (`unifac_groups_from_name`,
+  `uniquac_rq_from_groups`, `montar_parametros_automaticos` — usado por
+  UNIQUAC/UNIFAC na UI, sem slider manual); `buscar_parametros_banco`
+  (2026-09-27), que resolve nome/sinônimo/CAS via `thermo.Chemical` e
+  despacha para o adaptador IPDB certo, para os modelos com tabela lá
+  (`MODELOS_COM_BANCO_IPDB = {"NRTL", "Wilson"}` — Margules e Van Laar
+  não têm tabela no IPDB); e `regress_params_barker` (2026-09-27), que
+  ajusta os parâmetros livres de um modelo a partir dos pontos (P, x1,
+  y1) digitados, por mínimos quadrados não-lineares diretos sobre P e y
   (método de Barker, seção 2.8 do mapeamento — `scipy.optimize`, já
   instalado indiretamente via `thermo`). Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
@@ -94,7 +98,12 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   parâmetros conhecidos — Margules 1P, NRTL com α12 fixo, UNIQUAC com
   r/q via grupos UNIFAC — e confere que a regressão os recupera; cobre
   também os três erros esperados da seção 2.8: poucos pontos, parâmetro
-  fixo obrigatório faltando, e UNIFAC sem regressão).
+  fixo obrigatório faltando, e UNIFAC sem regressão) e
+  `teste_banco_ipdb.py` (2026-09-27 — valida `wilson_params_from_ipdb`
+  contra a referência da própria docstring de `thermo.wilson.Wilson`
+  para etanol/água a 70 °C, e `buscar_parametros_banco` para NRTL e
+  Wilson via nome/sinônimo em vez de CAS, além dos erros esperados:
+  modelo sem tabela no IPDB e par ausente na tabela).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS e dois
@@ -244,9 +253,22 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    são protótipos anteriores). Esse é o próximo item de maior valor: sem
    essa integração o núcleo de cálculo não é utilizável pelo usuário final.
    **Aguardando o "vamos integrar" do autor.**
-2. Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
+2. ~~Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
-   possa escolher buscar parâmetros reais em vez de digitá-los manualmente.
+   possa escolher buscar parâmetros reais em vez de digitá-los
+   manualmente.~~ **Feito em 2026-09-27** (autorizado pelo autor: "vamos
+   expor as opções pro usuário escolher"). Adicionado
+   `wilson_params_from_ipdb` (novo — a tabela `'ChemSep Wilson'` do IPDB
+   guarda Λ12/Λ21 já prontos via `ln(Λij) = aij + bij/T`, sem precisar de
+   volume molar à parte) e `buscar_parametros_banco(model_name,
+   component1_id, component2_id, T_K)`, que resolve nome/sinônimo/CAS via
+   `thermo.Chemical` e despacha para NRTL ou Wilson
+   (`MODELOS_COM_BANCO_IPDB`). Na UI (`fletando_grafico.py`), botão
+   "Buscar do Banco (IPDB)" aparece só para NRTL/Wilson, ao lado do botão
+   de regressão — o usuário escolhe entre digitar manualmente, buscar no
+   banco ou regredir dos pontos da tabela. UNIQUAC continua resolvendo
+   a12/a21 automaticamente (sem esse botão — já é banco por padrão);
+   Margules/Van Laar não têm tabela no IPDB, então não ganham o botão.
 3. **Regressão de parâmetros a partir dos dados de entrada** (decidido em
    2026-09-12, detalhado em `Docs/mapeamento_e_plano_TCC-1.md` seção 2.8).
    Resolve a antiga pendência do Van Laar sem tabela no `IPDB` — mas de
@@ -257,14 +279,25 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    "experimental" → ajusta o modelo por regressão não-linear). Não se
    aplica ao UNIFAC (preditivo, sem parâmetro ajustável por par).
    **Requisito de UI vinculado, padrão escolhido em 2026-09-12 (detalhe
-   na seção 2.8):** selo pequeno, colorido, sempre visível perto do
+   na seção 2.8), implementado em 2026-09-27** ("implemente agora o selo
+   de origem"): selo pequeno, colorido, sempre visível perto do
    parâmetro/gráfico ("Fornecido" / "Banco de dados" / "Calculado"), com
    ícone ⓘ grudado que abre o detalhe rico ao passar o mouse/clicar
    (o que foi assumido, quantos pontos entraram na regressão). Nem
    rodapé fixo (compete com o gráfico) nem só ícone (a origem não é
    detalhe opcional — não pode depender de clique pra aparecer). O selo
    atualiza em tempo real com o parâmetro, pela regra de ouro da seção
-   2.2 do mapeamento.
+   2.2 do mapeamento. Em `fletando_grafico.py`: `ORIGENS_SELO` (cor +
+   rótulo por tipo) e `atualizar_selo_origem(tipo, detalhe)`; cobre os
+   quatro modelos com slider manual (Margules 1P/2P, Van Laar, Wilson,
+   NRTL — volta para "Fornecido" assim que qualquer slider é arrastado
+   manualmente, mesmo depois de um valor vir do banco ou da regressão) e
+   também UNIQUAC ("Banco de dados", fixo — a12/a21 sempre vêm do IPDB)
+   e UNIFAC ("Preditivo", fixo — sem parâmetro de interação ajustável).
+   Validado na UI rodando: Margules 1P (Fornecido), NRTL/Wilson após
+   "Buscar do Banco" (Banco de dados, com τ12/τ21/α12 ou Λ12/Λ21 reais),
+   reversão para Fornecido ao arrastar um slider manualmente, e UNIQUAC/
+   UNIFAC nos seus selos fixos.
    **Método de redução escolhido em 2026-09-13: Barker (direto).** O
    modelo é ajustado contra o resíduo de P e y diretamente, não contra γ
    "experimental" calculado ponto a ponto (método indireto, descartado).
@@ -280,13 +313,18 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    estatístico.
    **α12 do NRTL, decidido em 2026-09-13: fixado, não ajustado.** Evita o
    mau-condicionamento de regredir 3 parâmetros com poucos pontos.
-   **Requisito de UI vinculado:** nota explicativa junto ao valor de α,
-   no mesmo padrão selo+ícone ⓘ já definido para a origem do parâmetro —
-   avisando que aquele α foi fixado por convenção (valor de referência
-   comum na literatura, algo entre 0,2 e 0,47 conforme o tipo de sistema;
-   valor exato a definir na implementação), não obtido por regressão.
-   Sem essa nota, o usuário pode presumir que os 3 parâmetros do NRTL
-   foram ajustados igualmente, quando só τ12/τ21 foram.
+   **Requisito de UI vinculado, implementado em 2026-09-27:** nota
+   explicativa junto ao valor de α, no mesmo padrão selo+ícone ⓘ já
+   definido para a origem do parâmetro — avisando que aquele α foi
+   fixado por convenção (valor de referência comum na literatura, algo
+   entre 0,2 e 0,47 conforme o tipo de sistema), não obtido por
+   regressão. Sem essa nota, o usuário pode presumir que os 3 parâmetros
+   do NRTL foram ajustados igualmente, quando só τ12/τ21 foram. Como
+   α12 real e medido também pode vir do banco IPDB (item 2 acima) — caso
+   em que não é convenção, é dado —, a nota ficou redigida para ser
+   verdadeira nos dois casos ("quando não vier do banco, fica fixado por
+   convenção"), em vez de rastrear a origem de α12 separadamente do
+   resto do selo.
    **Mínimo de pontos, decidido em 2026-09-13: nº de parâmetros do
    modelo + 1.** Abaixo disso a regressão não tem grau de liberdade
    nenhum — encaixa a curva exatamente nos pontos digitados (resíduo
@@ -301,12 +339,19 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    | NRTL (α12 fixo) | 2 (τ12, τ21) | 3 |
    | UNIFAC | — (preditivo) | não se aplica |
 
-   **Requisito de UI vinculado:** quando a tabela tiver exatamente o
-   mínimo (grau de liberdade = 1), o selo de origem (já definido acima)
-   ganha uma variante — "Calculado (poucos pontos)" — avisando que o
-   ajuste tem baixa confiança. Abaixo do mínimo, a regressão não roda; a
-   UI precisa dizer isso claramente, não falhar silenciosamente.
-   Segue em aberto: gatilho automático vs. manual na UI.
+   **Requisito de UI vinculado, implementado em 2026-09-27:** quando a
+   tabela tiver exatamente o mínimo (grau de liberdade = 1), o selo de
+   origem (já definido acima) ganha uma variante — "Calculado (poucos
+   pontos)" — avisando que o ajuste tem baixa confiança. Abaixo do
+   mínimo, a regressão não roda; a UI mostra a mensagem de erro (mínimo
+   de pontos, modelo, quantos foram digitados) em vez de falhar
+   silenciosamente — validado na UI rodando (Van Laar com 0 pontos
+   válidos, mensagem correta).
+   **Gatilho da regressão, decidido em 2026-09-27: manual** ("deixa
+   manual") — fecha a pendência em aberto desde 2026-09-13. Botão
+   "Calcular por Regressão (Barker)" ao lado do botão de busca no banco;
+   o usuário decide quando rodar, em vez de recalcular a cada tecla
+   digitada na tabela.
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -455,6 +500,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   sistema fora deles. No limite exato, o selo de origem ganha uma
   variante de baixa confiança ("Calculado, poucos pontos"), estendendo o
   padrão já definido em vez de criar um novo.
+- **(2026-09-27) Implementar agora o selo de origem, sem mais adiar.**
+  Depois de liberar só o motor de cálculo + botão de regressão em
+  2026-09-13/-2026-09-26 ("sem selo por agora"), o autor decidiu fechar
+  essa pendência: "implemente agora o selo de origem". Cobre os quatro
+  modelos com slider manual, mais UNIQUAC/UNIFAC com selo fixo.
+- **(2026-09-27) Expor a busca no banco IPDB como opção ao usuário,
+  para NRTL e Wilson.** Fechando o item 2 do roadmap (em aberto desde
+  julho/2026): "em 2) vamos expor as opções pro usuário escolher".
+  Adicionado `wilson_params_from_ipdb` (novo adaptador, mesma lógica de
+  `nrtl_params_from_ipdb`) e um botão na UI que busca no banco em vez de
+  exigir digitação manual — sem substituir o manual, só oferecendo a
+  alternativa.
+- **(2026-09-27) Gatilho da regressão de Barker: manual.** Fechando a
+  pendência deixada em aberto em 2026-09-13 ("segue em aberto: gatilho
+  automático vs. manual"): "3) deixa manual". Confirma a implementação
+  já em botão dedicado (não recalcula a cada tecla digitada na tabela).
 
 ### B. Decisões de arquitetura e stack
 
