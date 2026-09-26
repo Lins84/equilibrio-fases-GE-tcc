@@ -3,6 +3,34 @@ import flet_charts as fch
 
 from calculos.gemini import MODELS_GE
 
+# Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
+# calculos/gemini.py), rótulo exibido, faixa e valor inicial. Só cobre os
+# modelos cujos parâmetros são números de interação livres; UNIQUAC e UNIFAC
+# dependem de dados estruturais/grupos das moléculas (seção 2.7 do
+# mapeamento) — sem seleção de componentes na UI ainda, não têm slider.
+PARAM_SLIDERS = {
+    "Margules (1-P)": [
+        {"chave": "A", "rotulo": "A", "min": -2.0, "max": 2.0, "inicial": 0.5},
+    ],
+    "Margules (2-P)": [
+        {"chave": "A12", "rotulo": "A12", "min": -2.0, "max": 2.0, "inicial": 0.6},
+        {"chave": "A21", "rotulo": "A21", "min": -2.0, "max": 2.0, "inicial": 0.3},
+    ],
+    "Van Laar": [
+        {"chave": "A12", "rotulo": "A12", "min": -2.0, "max": 2.0, "inicial": 0.6},
+        {"chave": "A21", "rotulo": "A21", "min": -2.0, "max": 2.0, "inicial": 0.4},
+    ],
+    "Wilson": [
+        {"chave": "L12", "rotulo": "Λ12", "min": 0.01, "max": 3.0, "inicial": 0.8},
+        {"chave": "L21", "rotulo": "Λ21", "min": 0.01, "max": 3.0, "inicial": 0.6},
+    ],
+    "NRTL": [
+        {"chave": "tau12", "rotulo": "τ12", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "tau21", "rotulo": "τ21", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "alpha12", "rotulo": "α12", "min": 0.2, "max": 0.47, "inicial": 0.3},
+    ],
+}
+
 
 def parse_ponto(p_str: str, x_str: str, y_str: str) -> tuple[float, float, float]:
     """Converte as 3 strings de uma linha da tabela em (P, x1, y1) float.
@@ -210,6 +238,8 @@ def main(page: ft.Page):
 
     def selecionar_modelo(e):
         modelo_selecionado["nome"] = e.control.value
+        construir_sliders(modelo_selecionado["nome"])
+        page.update()
 
     dropdown_modelo = ft.Dropdown(
         label="Modelo Gᴱ",
@@ -219,9 +249,57 @@ def main(page: ft.Page):
         width=220,
     )
 
+    # 6. Sliders dos parâmetros do modelo escolhido — guardam os valores
+    # atuais em parametros_atuais; ainda não disparam nenhum recálculo
+    # (isso é o próximo passo, junto com calculate_vle_isothermal).
+    parametros_atuais = {}
+    sliders_area = ft.Column(spacing=2)
+
+    def construir_sliders(nome_modelo):
+        sliders_area.controls.clear()
+        parametros_atuais.clear()
+
+        specs = PARAM_SLIDERS.get(nome_modelo)
+        if not specs:
+            sliders_area.controls.append(
+                ft.Text(
+                    "Este modelo depende de dados estruturais das moléculas "
+                    "(UNIQUAC) ou dos seus grupos funcionais (UNIFAC) — "
+                    "requer seleção de componentes, ainda não implementada "
+                    "na interface.",
+                    color=ft.Colors.GREY_600,
+                    italic=True,
+                )
+            )
+            return
+
+        for spec in specs:
+            parametros_atuais[spec["chave"]] = spec["inicial"]
+            valor_texto = ft.Text(f"{spec['rotulo']} = {spec['inicial']:.3g}", width=110)
+
+            def on_change(e, spec=spec, valor_texto=valor_texto):
+                valor_texto.value = f"{spec['rotulo']} = {e.control.value:.3g}"
+                page.update()
+
+            def on_change_end(e, spec=spec):
+                parametros_atuais[spec["chave"]] = e.control.value
+
+            slider = ft.Slider(
+                min=spec["min"],
+                max=spec["max"],
+                value=spec["inicial"],
+                on_change=on_change,
+                on_change_end=on_change_end,
+                expand=True,
+            )
+            sliders_area.controls.append(ft.Row([valor_texto, slider]))
+
+    construir_sliders(modelo_selecionado["nome"])
+
     # Adiciona a tabela, os botões, o gráfico e as mensagens à página
     page.add(
         dropdown_modelo,
+        sliders_area,
         dt,
         botao_adicionar,
         botao_gerar_grafico,
