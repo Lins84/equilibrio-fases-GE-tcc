@@ -1,6 +1,8 @@
 import flet as ft
 import flet_charts as fch
 
+from calculos.gemini import MODELS_GE
+
 
 def parse_ponto(p_str: str, x_str: str, y_str: str) -> tuple[float, float, float]:
     """Converte as 3 strings de uma linha da tabela em (P, x1, y1) float.
@@ -202,8 +204,24 @@ def main(page: ft.Page):
         on_click=gerar_grafico,
     )
 
+    # 5. Dropdown de seleção do modelo Gᴱ — guarda apenas a escolha atual;
+    # ainda não alimenta nenhum cálculo (isso vem no próximo passo).
+    modelo_selecionado = {"nome": next(iter(MODELS_GE))}
+
+    def selecionar_modelo(e):
+        modelo_selecionado["nome"] = e.control.value
+
+    dropdown_modelo = ft.Dropdown(
+        label="Modelo Gᴱ",
+        value=modelo_selecionado["nome"],
+        options=[ft.dropdown.Option(nome) for nome in MODELS_GE],
+        on_select=selecionar_modelo,
+        width=220,
+    )
+
     # Adiciona a tabela, os botões, o gráfico e as mensagens à página
     page.add(
+        dropdown_modelo,
         dt,
         botao_adicionar,
         botao_gerar_grafico,
