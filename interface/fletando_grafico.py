@@ -238,7 +238,11 @@ def main(page: ft.Page):
         max_y=1,
         expand=True,
         left_axis=fch.ChartAxis(label_size=40),
-        bottom_axis=fch.ChartAxis(label_size=32),
+        # label_spacing fixa o intervalo entre marcações (0.1 em 0..1 = 11
+        # rótulos). Sem isso, o eixo calculava um intervalo tão miúdo que
+        # os rótulos apareciam repetidos e o gráfico pedia mais largura do
+        # que cabia na tela (obrigando a diminuir o zoom do navegador).
+        bottom_axis=fch.ChartAxis(label_size=32, label_spacing=0.1),
         visible=False,
     )
 
@@ -277,7 +281,7 @@ def main(page: ft.Page):
         max_y=1,
         expand=True,
         left_axis=fch.ChartAxis(label_size=40),
-        bottom_axis=fch.ChartAxis(label_size=32),
+        bottom_axis=fch.ChartAxis(label_size=32, label_spacing=0.1),
         visible=False,
     )
 
