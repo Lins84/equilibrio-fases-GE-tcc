@@ -46,12 +46,22 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
 
 **Cálculo — `calculos/`:**
 
-- `calculos/gemini.py` (~405 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
+- `calculos/gemini.py` (~670 linhas) — núcleo de cálculo. Os 7 modelos Gᴱ
   (`model_margules_1p`, `model_margules_2p`, `model_van_laar`,
   `model_wilson`, `model_nrtl`, `model_uniquac`, `model_unifac`),
-  registrados em `MODELS_GE`; o adaptador `nrtl_params_from_ipdb`; e
-  `calculate_vle_isothermal`, que gera os diagramas P-x-y a partir da Lei
-  de Raoult modificada. Todos os modelos validados contra o `thermo`.
+  registrados em `MODELS_GE`; `calculate_vle_isothermal`, que gera os
+  diagramas P-x-y a partir da Lei de Raoult modificada (devolve também
+  `gamma1`/`gamma2` para o gráfico de ln γ vs x1); adaptadores de
+  parâmetro via banco IPDB/ChemSep (`nrtl_params_from_ipdb`,
+  `uniquac_params_from_ipdb`) e via grupos UNIFAC/DDBST
+  (`unifac_groups_from_name`, `uniquac_rq_from_groups`,
+  `montar_parametros_automaticos` — usado por UNIQUAC/UNIFAC na UI, sem
+  slider manual); e `regress_params_barker` (2026-09-27), que ajusta os
+  parâmetros livres de um modelo a partir dos pontos (P, x1, y1)
+  digitados, por mínimos quadrados não-lineares diretos sobre P e y
+  (método de Barker, seção 2.8 do mapeamento — `scipy.optimize`, já
+  instalado indiretamente via `thermo`). Todos os modelos e adaptadores
+  validados contra o `thermo`/dados sintéticos.
 
 **UI — `interface/` (protótipos Flet, em ordem de evolução):**
 
@@ -79,7 +89,12 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   a 70 °C, e plota o diagrama P-x-y calculado; recuperado em 2026-09-26
   de um commit que existia só numa cópia do Replit sem sincronia por
   git, nunca antes enviado ao GitHub — mesmo teste citado na sessão de
-  2026-07-29 acima).
+  2026-07-29 acima) e `teste_regressao_barker.py` (valida
+  `regress_params_barker`: gera dados sintéticos sem ruído a partir de
+  parâmetros conhecidos — Margules 1P, NRTL com α12 fixo, UNIQUAC com
+  r/q via grupos UNIFAC — e confere que a regressão os recupera; cobre
+  também os três erros esperados da seção 2.8: poucos pontos, parâmetro
+  fixo obrigatório faltando, e UNIFAC sem regressão).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS e dois

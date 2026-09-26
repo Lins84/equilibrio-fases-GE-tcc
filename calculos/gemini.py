@@ -503,3 +503,171 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
         'gamma2': [float(g) for g in gamma2_list],
     }
 
+
+# --- Regressão de parâmetros — método de Barker (direto) ---
+# Decisão de 2026-09-13 (seção 2.8 do mapeamento): quando não há parâmetro
+# fornecido pelo usuário nem em banco de dados, o modelo é ajustado por
+# regressão não-linear contra o resíduo de P e y diretamente (não contra
+# γ "experimental" invertido da Lei de Raoult — método indireto, descartado).
+# Não se aplica ao UNIFAC (preditivo, sem parâmetro ajustável por par).
+
+# Para cada modelo: parâmetros livres (ajustados pela regressão, nessa
+# ordem), chute inicial, limites (min, max) por parâmetro, e quais chaves
+# extra têm que vir prontas em params_fixos (não são ajustadas):
+# - NRTL: alpha12 fixado por convenção (mau-condicionamento com 3
+#   parâmetros e poucos pontos — mesma decisão do α12 fixo).
+# - UNIQUAC: r1/q1/r2/q2 são estruturais (vêm dos grupos UNIFAC da
+#   molécula via uniquac_rq_from_groups, não são ajustáveis por regressão).
+REGRESSAO_MODELOS = {
+    "Margules (1-P)": {
+        "livres": ["A"],
+        "chute_inicial": [0.5],
+        "limites": ([-5.0], [5.0]),
+        "params_fixos_obrigatorios": [],
+    },
+    "Margules (2-P)": {
+        "livres": ["A12", "A21"],
+        "chute_inicial": [0.5, 0.3],
+        "limites": ([-5.0, -5.0], [5.0, 5.0]),
+        "params_fixos_obrigatorios": [],
+    },
+    "Van Laar": {
+        "livres": ["A12", "A21"],
+        "chute_inicial": [0.5, 0.3],
+        "limites": ([-5.0, -5.0], [5.0, 5.0]),
+        "params_fixos_obrigatorios": [],
+    },
+    "Wilson": {
+        "livres": ["L12", "L21"],
+        "chute_inicial": [0.8, 0.6],
+        "limites": ([1e-4, 1e-4], [10.0, 10.0]),
+        "params_fixos_obrigatorios": [],
+    },
+    "NRTL": {
+        "livres": ["tau12", "tau21"],
+        "chute_inicial": [0.3, 0.3],
+        "limites": ([-5.0, -5.0], [5.0, 5.0]),
+        "params_fixos_obrigatorios": ["alpha12"],
+    },
+    "UNIQUAC": {
+        "livres": ["a12", "a21"],
+        "chute_inicial": [0.0, 0.0],
+        "limites": ([-3000.0, -3000.0], [3000.0, 3000.0]),
+        "params_fixos_obrigatorios": ["r1", "q1", "r2", "q2"],
+    },
+}
+
+
+def regress_params_barker(
+    model_name, component1_id, component2_id, T_C, pontos, params_fixos=None,
+):
+    """Ajusta os parâmetros livres de um modelo Gᴱ pelo método de Barker
+    (direto): minimiza o resíduo de P e y calculados contra os pontos
+    experimentais (P, x1, y1) digitados, via mínimos quadrados não-lineares
+    (scipy.optimize.least_squares) — sem inverter a Lei de Raoult para
+    obter γ "experimental" (método indireto, descartado na seção 2.8 do
+    mapeamento).
+
+    Args:
+        model_name: chave de MODELS_GE/REGRESSAO_MODELOS.
+        component1_id, component2_id: nome/sinônimo/CAS dos componentes
+            (para obter Psat via thermo.Chemical, igual a
+            calculate_vle_isothermal).
+        T_C: temperatura do sistema em Celsius.
+        pontos: lista de tuplas (P_kPa, x1, y1) experimentais.
+        params_fixos: dict com os parâmetros que NÃO entram no ajuste
+            (ex.: {'alpha12': 0.3} para NRTL; {'r1':..., 'q1':..., 'r2':...,
+            'q2':...} para UNIQUAC — ver params_fixos_obrigatorios em
+            REGRESSAO_MODELOS). Obrigatório quando o modelo exigir.
+
+    Returns:
+        dict: {
+            'params': dict completo (livres ajustados + fixos, pronto para
+                calculate_vle_isothermal),
+            'n_pontos': nº de pontos usados,
+            'graus_liberdade': n_pontos - nº de parâmetros livres,
+            'residual_rms': raiz do erro quadrático médio do resíduo
+                combinado (ΔP relativo e Δy absoluto, adimensional),
+            'sucesso': bool — se o otimizador convergiu.
+        }
+
+    Levanta ValueError se o modelo não tiver regressão implementada
+    (UNIFAC — preditivo, seção 2.7), se faltar algum params_fixos
+    obrigatório, ou se houver menos pontos que o mínimo exigido (nº de
+    parâmetros livres + 1 — seção 2.8: abaixo disso a regressão não tem
+    grau de liberdade nenhum)."""
+    from scipy.optimize import least_squares
+
+    spec = REGRESSAO_MODELOS.get(model_name)
+    if not spec:
+        raise ValueError(
+            f"modelo '{model_name}' não tem regressão de parâmetros implementada"
+        )
+
+    minimo_pontos = len(spec["livres"]) + 1
+    if len(pontos) < minimo_pontos:
+        raise ValueError(
+            f"mínimo de {minimo_pontos} ponto(s) para regredir {model_name} "
+            f"({len(spec['livres'])} parâmetro(s) livre(s) + 1) — foram "
+            f"digitados {len(pontos)}"
+        )
+
+    params_fixos = dict(params_fixos or {})
+    faltando = [k for k in spec["params_fixos_obrigatorios"] if k not in params_fixos]
+    if faltando:
+        raise ValueError(
+            f"modelo '{model_name}' exige em params_fixos: {faltando}"
+        )
+
+    T_K = T_C + 273.15
+    comp1 = Chemical(component1_id, T=T_K)
+    comp2 = Chemical(component2_id, T=T_K)
+    P1_sat_Pa = comp1.Psat
+    P2_sat_Pa = comp2.Psat
+
+    model_function = MODELS_GE[model_name]
+    nomes_livres = spec["livres"]
+
+    P_exp = np.array([p for p, x, y in pontos], dtype=float) * 1000.0  # kPa -> Pa
+    x1_exp = np.array([x for p, x, y in pontos], dtype=float)
+    y_exp = np.array([y for p, x, y in pontos], dtype=float)
+
+    def calcular_P_y(valores_livres):
+        params = {**params_fixos, **dict(zip(nomes_livres, valores_livres)), "T_K": T_K}
+        P_calc = np.empty_like(x1_exp)
+        y_calc = np.empty_like(x1_exp)
+        for i, x1 in enumerate(x1_exp):
+            gamma1, gamma2 = model_function(x1, params)
+            P = x1 * gamma1 * P1_sat_Pa + (1 - x1) * gamma2 * P2_sat_Pa
+            P_calc[i] = P
+            y_calc[i] = (x1 * gamma1 * P1_sat_Pa) / P
+        return P_calc, y_calc
+
+    def residuos(valores_livres):
+        P_calc, y_calc = calcular_P_y(valores_livres)
+        # ΔP relativo (adimensional) e Δy absoluto (já em [0,1]) — a mesma
+        # escala evita que P (em Pa, ordem de 1e4-1e5) domine o resíduo
+        # sozinho frente a y.
+        residuo_P = (P_calc - P_exp) / P_exp
+        residuo_y = y_calc - y_exp
+        return np.concatenate([residuo_P, residuo_y])
+
+    resultado = least_squares(
+        residuos,
+        x0=spec["chute_inicial"],
+        bounds=spec["limites"],
+    )
+
+    params_finais = {
+        **params_fixos,
+        **dict(zip(nomes_livres, resultado.x)),
+    }
+
+    return {
+        "params": params_finais,
+        "n_pontos": len(pontos),
+        "graus_liberdade": len(pontos) - len(nomes_livres),
+        "residual_rms": float(np.sqrt(np.mean(resultado.fun**2))),
+        "sucesso": bool(resultado.success),
+    }
+
