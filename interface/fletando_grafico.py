@@ -249,6 +249,23 @@ def main(page: ft.Page):
         width=220,
     )
 
+    # 5b. Seletores de componente (nome/sinônimo/CAS — resolvidos pelo
+    # thermo.Chemical dentro de calculate_vle_isothermal) e temperatura do
+    # sistema. Ainda não alimentam nenhum cálculo (isso vem no próximo
+    # passo, junto com a chamada a calculate_vle_isothermal).
+    campo_componente1 = ft.TextField(label="Componente 1", value="ethanol", width=180)
+    campo_componente2 = ft.TextField(label="Componente 2", value="water", width=180)
+    campo_temperatura = ft.TextField(
+        label="Temperatura (°C)",
+        value="70",
+        width=150,
+        keyboard_type=ft.KeyboardType.NUMBER,
+    )
+    linha_sistema = ft.Row(
+        controls=[campo_componente1, campo_componente2, campo_temperatura],
+        spacing=12,
+    )
+
     # 6. Sliders dos parâmetros do modelo escolhido — guardam os valores
     # atuais em parametros_atuais; ainda não disparam nenhum recálculo
     # (isso é o próximo passo, junto com calculate_vle_isothermal).
@@ -299,6 +316,7 @@ def main(page: ft.Page):
     # Adiciona a tabela, os botões, o gráfico e as mensagens à página
     page.add(
         dropdown_modelo,
+        linha_sistema,
         sliders_area,
         dt,
         botao_adicionar,
