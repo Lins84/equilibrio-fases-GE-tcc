@@ -95,6 +95,11 @@ def main(page: ft.Page):
     # Configuração básica da página
     page.title = "Fletando - Gráfico Dinâmico"
     page.padding = 20
+    # Sem isso, conteúdo mais alto que a janela fica simplesmente
+    # inacessível — sem scroll nem aviso, só dá pra ver diminuindo o zoom
+    # do navegador até tudo caber de uma vez. Passou despercebido com um
+    # gráfico só; com o segundo gráfico (ln γ vs x1) ficou grave.
+    page.scroll = ft.ScrollMode.AUTO
 
     # Variável de largura para manter tudo alinhado
     largura_coluna = 60
