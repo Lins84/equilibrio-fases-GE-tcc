@@ -1,3 +1,6 @@
+import csv
+import io
+
 import flet as ft
 import flet_charts as fch
 
@@ -50,6 +53,36 @@ def pontos_para_series(
     return liquido, vapor
 
 
+def importar_pontos_csv(
+    texto_csv: str,
+) -> tuple[list[tuple[float, float, float]], int]:
+    """Lê um CSV com colunas P, x, y (cabeçalho, nomes case-insensitive,
+    em qualquer ordem) e retorna (pontos válidos, nº de linhas ignoradas).
+    Levanta ValueError se o cabeçalho não tiver as três colunas esperadas."""
+    leitor = csv.DictReader(io.StringIO(texto_csv))
+    if not leitor.fieldnames:
+        raise ValueError("arquivo CSV vazio ou sem linha de cabeçalho")
+
+    coluna_de = {(nome or "").strip().lower(): nome for nome in leitor.fieldnames}
+    faltando = [c for c in ("p", "x", "y") if c not in coluna_de]
+    if faltando:
+        raise ValueError(
+            "cabeçalho do CSV precisa ter as colunas P, x, y "
+            f"(faltando: {', '.join(faltando).upper()})"
+        )
+
+    pontos = []
+    ignoradas = 0
+    for linha in leitor:
+        try:
+            pontos.append(parse_ponto(
+                linha[coluna_de["p"]], linha[coluna_de["x"]], linha[coluna_de["y"]]
+            ))
+        except (ValueError, TypeError):
+            ignoradas += 1
+    return pontos, ignoradas
+
+
 # Função principal que constrói a interface
 def main(page: ft.Page):
     # Configuração básica da página
@@ -76,12 +109,15 @@ def main(page: ft.Page):
         rows=[],  # Inicia sem linhas
     )
 
-    # 2. Função geradora de linhas
-    def adicionar_linha(e):
+    # 2. Função geradora de linhas — `valores`, se informado, é (P, x, y) já
+    # validado (usado pela importação de CSV) para pré-preencher a linha.
+    def adicionar_linha(e=None, valores=None):
+        textos_iniciais = [str(v) for v in valores] if valores else ["", "", ""]
+
         # Função para criar as caixas de texto padronizadas
-        def criar_campo():
+        def criar_campo(valor_inicial):
             return ft.TextField(
-                value="",
+                value=valor_inicial,
                 width=largura_coluna,
                 text_align=ft.TextAlign.CENTER,
                 keyboard_type=ft.KeyboardType.NUMBER,
@@ -106,9 +142,9 @@ def main(page: ft.Page):
 
         # Preenche a linha com as células de texto e o botão de exclusão
         nova_linha.cells = [
-            ft.DataCell(criar_campo()),
-            ft.DataCell(criar_campo()),
-            ft.DataCell(criar_campo()),
+            ft.DataCell(criar_campo(textos_iniciais[0])),
+            ft.DataCell(criar_campo(textos_iniciais[1])),
+            ft.DataCell(criar_campo(textos_iniciais[2])),
             ft.DataCell(botao_excluir),
         ]
 
@@ -129,6 +165,54 @@ def main(page: ft.Page):
         ),
         on_click=adicionar_linha,
     )
+
+    # 3b. Importação via CSV (colunas P, x, y) — substitui os pontos da
+    # tabela pelos do arquivo. Ficam editáveis depois de importados, como
+    # os digitados manualmente (decisão em aberto na seção 2.2 do
+    # mapeamento; assim ficou mais simples, sem um segundo modo travado).
+    seletor_arquivo = ft.FilePicker()
+    page.services.append(seletor_arquivo)
+
+    async def importar_csv(e):
+        arquivos = await seletor_arquivo.pick_files(
+            dialog_title="Selecionar CSV (colunas P, x, y)",
+            allowed_extensions=["csv"],
+            with_data=True,
+        )
+        if not arquivos:
+            return  # usuário cancelou a seleção
+
+        try:
+            texto = arquivos[0].bytes.decode("utf-8")
+            pontos, ignoradas_csv = importar_pontos_csv(texto)
+        except (ValueError, UnicodeDecodeError) as exc:
+            mensagem_status.value = f"Falha ao importar CSV: {exc}."
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
+
+        if not pontos:
+            mensagem_status.value = "Nenhum ponto válido encontrado no CSV."
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
+
+        dt.rows.clear()
+        for ponto in pontos:
+            adicionar_linha(valores=ponto)
+
+        aviso = f" {ignoradas_csv} linha(s) do CSV ignorada(s) por dado inválido." if ignoradas_csv else ""
+        gerar_grafico(mensagem_extra=f"{len(pontos)} ponto(s) importado(s) do CSV.{aviso}")
+
+    botao_importar_csv = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.UPLOAD_FILE), ft.Text("Importar CSV")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=importar_csv,
+    )
+    linha_botoes_tabela = ft.Row(controls=[botao_adicionar, botao_importar_csv])
 
     # 4. Gráfico P-x-y a partir dos dados brutos da tabela (Etapa 2 — sem
     # nenhum cálculo de modelo; só visualiza o que o usuário digitou).
@@ -173,7 +257,7 @@ def main(page: ft.Page):
     # com o modelo/parâmetros/componentes/temperatura escolhidos, no mesmo
     # gráfico. UNIQUAC/UNIFAC ainda não entram no cálculo (seção 2.7 do
     # mapeamento — dependem de seleção de componentes/grupos não implementada).
-    def gerar_grafico(e=None):
+    def gerar_grafico(e=None, mensagem_extra=None):
         pontos_validos = []
         linhas_ignoradas = 0
         for linha in dt.rows:
@@ -237,9 +321,11 @@ def main(page: ft.Page):
             motivo = (
                 f" ({erro_modelo})" if erro_modelo else ""
             )
+            prefixo = f"{mensagem_extra} " if mensagem_extra else ""
             mensagem_status.value = (
-                "Adicione ao menos um ponto válido na tabela, ou corrija os "
-                f"campos de componente/temperatura{motivo}, para gerar o gráfico."
+                f"{prefixo}Adicione ao menos um ponto válido na tabela, ou "
+                f"corrija os campos de componente/temperatura{motivo}, para "
+                "gerar o gráfico."
             )
             mensagem_status.color = ft.Colors.RED
             page.update()
@@ -256,6 +342,8 @@ def main(page: ft.Page):
         legenda.visible = True
 
         mensagens = []
+        if mensagem_extra:
+            mensagens.append(mensagem_extra)
         if linhas_ignoradas:
             mensagens.append(f"{linhas_ignoradas} linha(s) da tabela ignorada(s) por dado inválido.")
         if erro_modelo:
@@ -370,7 +458,7 @@ def main(page: ft.Page):
         linha_sistema,
         sliders_area,
         dt,
-        botao_adicionar,
+        linha_botoes_tabela,
         botao_gerar_grafico,
         mensagem_status,
         legenda,
