@@ -9,6 +9,7 @@ from calculos.gemini import (
     MODELS_GE,
     calculate_vle_isothermal,
     montar_parametros_automaticos,
+    regress_params_barker,
 )
 
 # Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
@@ -489,10 +490,15 @@ def main(page: ft.Page):
     # recalcula a curva via gerar_grafico.
     parametros_atuais = {}
     sliders_area = ft.Column(spacing=2)
+    # Guarda (slider, texto_valor, rótulo) por chave de parâmetro do modelo
+    # atual, para o botão de regressão poder atualizar os sliders depois de
+    # calcular — reconstruído a cada troca de modelo, junto com os sliders.
+    sliders_por_chave = {}
 
     def construir_sliders(nome_modelo):
         sliders_area.controls.clear()
         parametros_atuais.clear()
+        sliders_por_chave.clear()
 
         specs = PARAM_SLIDERS.get(nome_modelo)
         if not specs:
@@ -530,14 +536,90 @@ def main(page: ft.Page):
                 expand=True,
             )
             sliders_area.controls.append(ft.Row([valor_texto, slider]))
+            sliders_por_chave[spec["chave"]] = (slider, valor_texto, spec["rotulo"])
 
     construir_sliders(modelo_selecionado["nome"])
+
+    # 6b. Regressão de parâmetros pelo método de Barker (seção 2.8 do
+    # mapeamento) — calcula os parâmetros livres do modelo escolhido a
+    # partir dos pontos digitados na tabela, e atualiza os sliders com o
+    # resultado (o próprio gerar_grafico já redesenha os gráficos em
+    # seguida). Só cobre os modelos com slider manual (não UNIQUAC/UNIFAC
+    # — UNIQUAC já resolve automaticamente via IPDB quando o par está no
+    # banco; misturar isso com regressão fica para uma decisão futura).
+    def calcular_por_regressao(e=None):
+        nome_modelo = modelo_selecionado["nome"]
+        if nome_modelo not in PARAM_SLIDERS:
+            mensagem_status.value = (
+                "Regressão por Barker só está disponível, por enquanto, "
+                "para os modelos com slider manual (não UNIQUAC/UNIFAC)."
+            )
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
+
+        pontos_validos = []
+        for linha in dt.rows:
+            p_field, x_field, y_field = (linha.cells[i].content for i in range(3))
+            try:
+                pontos_validos.append(
+                    parse_ponto(p_field.value, x_field.value, y_field.value)
+                )
+            except ValueError:
+                pass
+
+        params_fixos = {}
+        if nome_modelo == "NRTL":
+            params_fixos["alpha12"] = parametros_atuais.get("alpha12", 0.3)
+
+        try:
+            comp1 = campo_componente1.value.strip()
+            comp2 = campo_componente2.value.strip()
+            T_C = float(campo_temperatura.value)
+            resultado = regress_params_barker(
+                nome_modelo, comp1, comp2, T_C, pontos_validos,
+                params_fixos=params_fixos,
+            )
+        except Exception as exc:
+            mensagem_status.value = f"Regressão não realizada: {exc}."
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
+
+        for chave, valor in resultado["params"].items():
+            if chave not in sliders_por_chave:
+                continue
+            slider, valor_texto, rotulo = sliders_por_chave[chave]
+            slider.value = valor
+            valor_texto.value = f"{rotulo} = {valor:.3g}"
+            parametros_atuais[chave] = valor
+
+        aviso_gl = (
+            " — poucos pontos (grau de liberdade mínimo), confiança baixa"
+            if resultado["graus_liberdade"] == 1 else ""
+        )
+        gerar_grafico(
+            mensagem_extra=(
+                f"Parâmetros calculados por regressão (Barker) a partir de "
+                f"{resultado['n_pontos']} ponto(s) da tabela{aviso_gl}."
+            )
+        )
+
+    botao_regressao = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.FUNCTIONS), ft.Text("Calcular por Regressão (Barker)")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=calcular_por_regressao,
+    )
 
     # Adiciona a tabela, os botões, o gráfico e as mensagens à página
     page.add(
         dropdown_modelo,
         linha_sistema,
         sliders_area,
+        botao_regressao,
         dt,
         linha_botoes_tabela,
         botao_gerar_grafico,
