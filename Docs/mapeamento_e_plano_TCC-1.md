@@ -5,7 +5,7 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
-**Última atualização:** 2026-09-13
+**Última atualização:** 2026-09-21
 
 > **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
@@ -184,7 +184,7 @@ Isso define três origens possíveis para o parâmetro de um modelo Gᴱ, em ord
 
 **Requisito de UI vinculado:** quando a tabela tiver exatamente o mínimo (grau de liberdade = 1), o selo de origem ganha uma variante — "Calculado (poucos pontos)" — avisando baixa confiança. Abaixo do mínimo, a regressão não roda; a UI precisa dizer isso claramente, não falhar silenciosamente.
 
-**Segue em aberto:** se o gatilho na UI é automático ou por ação explícita do usuário.
+**Gatilho na UI, decidido em 2026-09-21: manual, reaproveitando o botão "Gerar Gráfico" já existente em `fletando_grafico.py`** (`botao_gerar_grafico`, dispara `gerar_grafico(e)`). Não é mudança de comportamento — hoje o gráfico só aparece ao clicar nesse botão; a regressão passa a rodar no mesmo clique, produzindo pontos e curva calculada de uma vez. O autor notou que tornar a regressão automática (seguindo a regra de ouro dos sliders, seção 2.2) criaria dois comportamentos diferentes coexistindo no mesmo app — preferiu manter o padrão único já existente. **Com isso, não há mais pendência técnica na regressão de parâmetros.**
 
 **Requisito de UI (2026-09-12):** a interface precisa **indicar explicitamente qual das três origens gerou o parâmetro usado** em cada cálculo. Isso não é só transparência de UX: um parâmetro regredido de poucos pontos digitados tem uma confiabilidade diferente de um parâmetro medido e publicado, e o usuário (professor, aluno ou pesquisador) precisa saber qual dos dois está vendo antes de tirar conclusão do gráfico.
 
@@ -231,6 +231,8 @@ Padrão inspirado no que dashboards financeiros e ferramentas de BI usam para si
 - **Claude Code** — ferramenta de desenvolvimento (edição, execução, auditoria, documentação), usada em qualquer um dos outros dois ambientes.
 - **Replit (IDE)** — usado quando havia internet disponível, justamente por dar acesso tanto pelo celular quanto pelo PC a partir do mesmo projeto.
 - **Termux com Ubuntu adaptado** (proot-Ubuntu, validado na seção 7.2) — usado para rodar e testar a aplicação localmente no celular. **Foi a única forma de produzir a aplicação fora de casa, sem internet e sem acesso a um PC.**
+
+**Ressalva descoberta na migração para Flet 1.0.0 (2026-09-21):** `flet run --web` (modo desenvolvimento) carrega o motor de renderização (CanvasKit/Skia WASM) de `www.gstatic.com` no **navegador**, na primeira carga da página — sem internet nesse instante, a tela trava na splash screen do Flet indefinidamente. Isso não invalida o fluxo Termux-sem-internet descrito acima (a *produção* do código continua possível sem internet, via Claude Code), mas *testar visualmente* o app rodando exige internet no momento de abrir o navegador, a menos que se use `flet build web --no-cdn` (que embute os arquivos localmente) em vez de `flet run --web`.
 
 ### 4.2 Por que Termux funciona para este projeto
 - Flet é usado em modo web (`flet run --web`), sem necessidade de build nativo (que exigiria maturin e companhia — o gargalo real do Flet no Android)

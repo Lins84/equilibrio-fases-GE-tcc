@@ -123,6 +123,41 @@ está pronto e validado, mas **nenhum** dos protótipos de UI chama
 > e fica para o autor decidir quando a integração for liberada. Nada foi
 > pré-resolvido aqui.
 
+> **Atualização para Flet 1.0.0 — concluída e testada de verdade
+> (2026-09-21).** O que era análise teórica (2026-09-20) virou migração
+> real, autorizada e executada pelo autor. Resultado:
+>
+> 1. **`pyproject.toml` atualizado** para `flet>=1.0.0` e
+>    `flet-charts>=1.0.0`. `uv lock --upgrade-package flet
+>    --upgrade-package flet-charts` resolveu os dois em `1.0.0`/`1.0.0`
+>    — confirmado no `uv.lock`, sem desalinhamento.
+> 2. **`ft.InputBorder.NONE` → `ft.NoInputBorder()`** corrigido nos dois
+>    lugares (`fletando.py:58`, `fletando_grafico.py:58`) — já que
+>    estávamos mexendo no código de qualquer forma.
+> 3. **Suíte de testes** (`teste_margules_2p_MEK_tolueno.py`,
+>    `teste_parse_ponto_tabela.py`) rodada depois da atualização
+>    completa — ambos passam sem alteração.
+> 4. **App rodado de verdade e testado visualmente** (`flet run
+>    interface/fletando_grafico.py -d --web`, dirigido via Playwright +
+>    Chromium headless): tabela edita, botões ("Adicionar Novo Ponto",
+>    "Gerar Gráfico") funcionam, `LineChart` do `flet_charts` 1.0.0
+>    desenha eixos/escala/legenda corretamente, e a validação de linha
+>    inválida ("1 linha(s) ignorada(s) por dado inválido") disparou como
+>    esperado. Prints em anexo na conversa com o autor.
+>
+> **Achado novo, não previsto na análise teórica:** `flet run --web`
+> (modo dev) carrega o motor de renderização (CanvasKit/Skia WASM) de
+> `www.gstatic.com` no **navegador**, na primeira carga da página — sem
+> internet nesse momento, a tela trava indefinidamente na splash screen
+> do Flet. `flet build web --no-cdn` embute esses arquivos localmente,
+> mas essa flag **não existe** em `flet run --web`, só no build de
+> produção. Isso importa para o fluxo Termux-sem-internet já registrado
+> na seção 4.1 do mapeamento: testar/demonstrar o app **offline** exige
+> `flet build web --no-cdn` (+ servir os arquivos estáticos gerados),
+> não `flet run --web` direto. Não é regra nova do projeto nem decisão
+> — é um fato técnico descoberto ao rodar de verdade, registrado para
+> quando isso importar.
+
 ## Estado atual (2026-08-19)
 
 Snapshot; o histórico por sessão vem logo abaixo.
@@ -347,11 +382,23 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    de pontos, modelo, quantos foram digitados) em vez de falhar
    silenciosamente — validado na UI rodando (Van Laar com 0 pontos
    válidos, mensagem correta).
-   **Gatilho da regressão, decidido em 2026-09-27: manual** ("deixa
-   manual") — fecha a pendência em aberto desde 2026-09-13. Botão
-   "Calcular por Regressão (Barker)" ao lado do botão de busca no banco;
-   o usuário decide quando rodar, em vez de recalcular a cada tecla
-   digitada na tabela.
+   **Gatilho da regressão — duas decisões em paralelo, reconciliadas em
+   2026-09-27 na integração dos branches:** em 2026-09-21, numa sessão
+   que só tinha a tabela/gráfico básico (`fletando_grafico.py` ainda na
+   "Etapa 2", sem regressão implementada), o autor decidiu manter manual
+   reaproveitando o botão "Gerar Gráfico" já existente
+   (`botao_gerar_grafico`/`gerar_grafico`), pra não coexistirem dois
+   comportamentos diferentes no mesmo app. Em paralelo, em outra sessão
+   que já tinha construído e testado ponta a ponta o motor de regressão
+   (`regress_params_barker`) e a UI (sliders, banco IPDB, selo), o autor
+   confirmou manual de novo em 2026-09-27, mas com o desenho já
+   implementado: botão dedicado "Calcular por Regressão (Barker)",
+   separado de "Gerar Gráfico". Na integração dos dois branches, ficou o
+   desenho de 2026-09-27 — é o que existe como código real, testado
+   (aqui e no Termux) —, e o de 2026-09-21 registra a intenção original,
+   nunca chegou a ser implementada antes de a outra sessão construir a
+   versão que já existe. **O item 3 está fechado** com o botão
+   dedicado.
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -500,6 +547,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   sistema fora deles. No limite exato, o selo de origem ganha uma
   variante de baixa confiança ("Calculado, poucos pontos"), estendendo o
   padrão já definido em vez de criar um novo.
+- **(2026-09-21) Gatilho da regressão: manual, reaproveitando o botão
+  "Gerar Gráfico" já existente.** Decisão tomada numa sessão em que
+  `fletando_grafico.py` ainda estava na "Etapa 2" (sem regressão
+  implementada): em vez de tornar a regressão automática e criar dois
+  comportamentos diferentes no mesmo app, o autor preferiu manter o
+  padrão que já existia — um clique só, produzindo pontos e curva
+  calculada juntos. **Superada em 2026-09-27** (ver entrada abaixo): a
+  regressão acabou sendo construída em paralelo, em outro branch, antes
+  de essa intenção virar código — quando os dois branches foram
+  integrados, o desenho que já existia implementado e testado (botão
+  dedicado) foi o que ficou.
 - **(2026-09-27) Implementar agora o selo de origem, sem mais adiar.**
   Depois de liberar só o motor de cálculo + botão de regressão em
   2026-09-13/-2026-09-26 ("sem selo por agora"), o autor decidiu fechar
@@ -512,10 +570,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   `nrtl_params_from_ipdb`) e um botão na UI que busca no banco em vez de
   exigir digitação manual — sem substituir o manual, só oferecendo a
   alternativa.
-- **(2026-09-27) Gatilho da regressão de Barker: manual.** Fechando a
-  pendência deixada em aberto em 2026-09-13 ("segue em aberto: gatilho
-  automático vs. manual"): "3) deixa manual". Confirma a implementação
-  já em botão dedicado (não recalcula a cada tecla digitada na tabela).
+- **(2026-09-27) Gatilho da regressão de Barker: manual, botão
+  dedicado.** Fechando a pendência deixada em aberto em 2026-09-13
+  ("segue em aberto: gatilho automático vs. manual"): "3) deixa
+  manual". Construído (nesta sessão, em paralelo à decisão de
+  2026-09-21 acima) como botão dedicado "Calcular por Regressão
+  (Barker)", separado do "Gerar Gráfico" — esse foi o desenho que
+  prevaleceu na integração dos dois branches.
+- **(2026-09-27) Integrar o branch da migração para Flet 1.0.0 (main)
+  com o branch da regressão de Barker/selo de origem
+  (`claude/opusplan-model-8nreog`).** Os dois avançaram em paralelo sem
+  se comunicar — descoberto quando o autor foi checar, numa conversa
+  separada, se a migração (que ele lembrava de ter autorizado) estava
+  registrada. Autorizado o merge (`git merge origin/main`); único
+  conflito de conteúdo foi nesta seção do CLAUDE.md (as duas entradas
+  de "gatilho da regressão" acima), resolvido preservando as duas como
+  registro histórico e marcando qual desenho de fato foi implementado.
 
 ### B. Decisões de arquitetura e stack
 
@@ -530,10 +600,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
 - **Manter Flet na camada de UI**, recusando migrar para React/Recharts
   mesmo diante de um protótipo visualmente mais atraente
   (`referencias/margules-1-parametro.jsx`) — praticidade sobre estética,
-  em linha com o "entregar funcionando" do orientador.
-- **Recusar Flutter nativo (Dart)**, mesmo sendo mais maduro que o Flet
-  beta: quebraria o processo único (UI e cálculo juntos em Python) e
-  exigiria manter um backend separado rodando durante a aula.
+  em linha com o "entregar funcionando" do orientador. Na época da
+  decisão, o Flet ainda era beta — risco aceito conscientemente, não
+  ignorado (ver discussão da época). **Atualização factual (não é
+  decisão do autor, é evento externo): em 2026-09-20 o Flet lançou a
+  versão 1.0**, deixando de ser beta. Não muda a decisão, remove o risco
+  que ela havia aceitado.
+- **Recusar Flutter nativo (Dart)**: quebraria o processo único (UI e
+  cálculo juntos em Python) e exigiria manter um backend separado
+  rodando durante a aula. O motivo original também citava "Flutter é
+  mais maduro que o Flet, que ainda é beta" — essa parte ficou
+  desatualizada com o lançamento do Flet 1.0 (nota acima). A decisão de
+  recusar Flutter continua de pé pelo motivo arquitetural, que nunca
+  dependeu do status beta do Flet.
 - **Recusar embutir um assistente de IA dentro do app** — custo
   recorrente por uso, novo ponto de falha de rede em aula ao vivo, e
   escopo fora dos três eixos do projeto.
@@ -574,6 +653,26 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   humana sobre texto técnico gerado com apoio de IA.
 - **(2026-09-12) Criar esta seção**, formalizando o registro cronológico
   de decisões do autor como prática permanente do projeto.
+- **(2026-09-21) Alertar via comentário no `pyproject.toml`, não
+  automatizar (script/hook/CI), o risco de desalinhamento entre `flet`
+  e `flet-charts`.** Avaliando as opções que o assistente levantou
+  (script manual, git hook, CI), o autor julgou que a atualização do
+  Flet pós-piloto será pontual — talvez nunca aconteça — e o repositório
+  não tem CI hoje, então automação seria esforço desproporcional ao
+  risco real. Preferiu um alerta simples no ponto exato onde um futuro
+  mantenedor (o próprio autor ou outra pessoa, já que o projeto é
+  público) mexeria ao atualizar a dependência.
+- **(2026-09-21) Autorizar a atualização real para Flet 1.0.0 e exigir
+  teste de verdade, não só análise.** Depois de fechar a estratégia de
+  alerta acima, o autor decidiu não deixar a migração só documentada —
+  pediu para atualizar o código e **testar o funcionamento com o novo
+  chart**. Resultado: `flet`/`flet-charts` em `1.0.0`/`1.0.0` sem
+  desalinhamento, `ft.NoInputBorder()` corrigido, suíte de testes
+  passando, e o app rodado de ponta a ponta num navegador de verdade
+  (tabela, botões, `LineChart`) — não apenas leitura de changelog.
+  Nota técnica completa acima, com um achado novo que a análise teórica
+  não previa (CanvasKit via CDN no navegador, sem opção `--no-cdn` em
+  `flet run --web`).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

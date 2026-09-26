@@ -55,7 +55,7 @@ def main(page: ft.Page):
                 width=largura_coluna,
                 text_align=ft.TextAlign.CENTER,
                 keyboard_type=ft.KeyboardType.NUMBER,
-                border=ft.InputBorder.NONE,
+                border=ft.NoInputBorder(),
             )
 
         # Prepara a nova linha
