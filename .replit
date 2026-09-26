@@ -55,7 +55,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "flet run interface/fletando_grafico.py -d --web --port 5000 --host 0.0.0.0"
+args = "uv run python3 interface/fletando_grafico.py"
 waitForPort = 5000
 
 [userenv]
