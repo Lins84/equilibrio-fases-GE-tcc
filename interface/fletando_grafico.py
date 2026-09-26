@@ -1,7 +1,7 @@
 import flet as ft
 import flet_charts as fch
 
-from calculos.gemini import MODELS_GE
+from calculos.gemini import MODELS_GE, calculate_vle_isothermal
 
 # Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
 # calculos/gemini.py), rótulo exibido, faixa e valor inicial. Só cobre os
@@ -146,29 +146,34 @@ def main(page: ft.Page):
         visible=False,
     )
 
+    def chip_legenda(cor, texto):
+        return ft.Row(
+            controls=[
+                ft.Container(width=12, height=12, bgcolor=cor, border_radius=6),
+                ft.Text(texto),
+            ],
+            tight=True,
+        )
+
     legenda = ft.Row(
         controls=[
-            ft.Row(
-                controls=[
-                    ft.Container(width=12, height=12, bgcolor=ft.Colors.BLUE, border_radius=6),
-                    ft.Text("líquido (x)"),
-                ],
-                tight=True,
-            ),
-            ft.Row(
-                controls=[
-                    ft.Container(width=12, height=12, bgcolor=ft.Colors.RED, border_radius=6),
-                    ft.Text("vapor (y)"),
-                ],
-                tight=True,
-            ),
+            chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)"),
+            chip_legenda(ft.Colors.RED, "vapor — tabela (y)"),
+            chip_legenda(ft.Colors.GREEN, "líquido — modelo"),
+            chip_legenda(ft.Colors.ORANGE, "vapor — modelo"),
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         spacing=20,
+        wrap=True,
         visible=False,
     )
 
-    def gerar_grafico(e):
+    # Ponta a ponta: pontos digitados na tabela (discretos, sem interpolação —
+    # decisão de 2026-08-19) + curva calculada por calculate_vle_isothermal
+    # com o modelo/parâmetros/componentes/temperatura escolhidos, no mesmo
+    # gráfico. UNIQUAC/UNIFAC ainda não entram no cálculo (seção 2.7 do
+    # mapeamento — dependem de seleção de componentes/grupos não implementada).
+    def gerar_grafico(e=None):
         pontos_validos = []
         linhas_ignoradas = 0
         for linha in dt.rows:
@@ -180,32 +185,67 @@ def main(page: ft.Page):
             except ValueError:
                 linhas_ignoradas += 1
 
-        if not pontos_validos:
+        series = []
+        valores_P = []
+
+        if pontos_validos:
+            liquido, vapor = pontos_para_series(pontos_validos)
+            series.append(fch.LineChartData(
+                color=ft.Colors.BLUE,
+                stroke_width=3,
+                points=[fch.LineChartDataPoint(x, p) for x, p in liquido],
+            ))
+            series.append(fch.LineChartData(
+                color=ft.Colors.RED,
+                stroke_width=3,
+                points=[fch.LineChartDataPoint(x, p) for x, p in vapor],
+            ))
+            valores_P += [p for _, p in liquido] + [p for _, p in vapor]
+
+        erro_modelo = None
+        if modelo_selecionado["nome"] not in PARAM_SLIDERS:
+            erro_modelo = "modelo ainda sem seleção de componentes/grupos implementada na UI"
+        else:
+            try:
+                T_C = float(campo_temperatura.value)
+                resultado = calculate_vle_isothermal(
+                    campo_componente1.value.strip(),
+                    campo_componente2.value.strip(),
+                    T_C,
+                    modelo_selecionado["nome"],
+                    parametros_atuais,
+                )
+                liquido_calc = sorted(zip(resultado["x1"], resultado["P_kPa"]))
+                vapor_calc = sorted(zip(resultado["y1"], resultado["P_kPa"]))
+                series.append(fch.LineChartData(
+                    color=ft.Colors.GREEN,
+                    stroke_width=2,
+                    points=[fch.LineChartDataPoint(x, p) for x, p in liquido_calc],
+                ))
+                series.append(fch.LineChartData(
+                    color=ft.Colors.ORANGE,
+                    stroke_width=2,
+                    points=[fch.LineChartDataPoint(y, p) for y, p in vapor_calc],
+                ))
+                valores_P += resultado["P_kPa"]
+            except Exception as exc:
+                erro_modelo = str(exc)
+
+        if not series:
             chart.visible = False
             legenda.visible = False
+            motivo = (
+                f" ({erro_modelo})" if erro_modelo else ""
+            )
             mensagem_status.value = (
-                "Adicione ao menos um ponto válido (P, x, y preenchidos "
-                "com números) para gerar o gráfico."
+                "Adicione ao menos um ponto válido na tabela, ou corrija os "
+                f"campos de componente/temperatura{motivo}, para gerar o gráfico."
             )
             mensagem_status.color = ft.Colors.RED
             page.update()
             return
 
-        liquido, vapor = pontos_para_series(pontos_validos)
-        chart.data_series = [
-            fch.LineChartData(
-                color=ft.Colors.BLUE,
-                stroke_width=3,
-                points=[fch.LineChartDataPoint(x, p) for x, p in liquido],
-            ),
-            fch.LineChartData(
-                color=ft.Colors.RED,
-                stroke_width=3,
-                points=[fch.LineChartDataPoint(x, p) for x, p in vapor],
-            ),
-        ]
-
-        valores_P = [p for _, p in liquido] + [p for _, p in vapor]
+        chart.data_series = series
         min_y, max_y = min(valores_P), max(valores_P)
         if min_y == max_y:
             min_y, max_y = min_y - 1, max_y + 1
@@ -215,11 +255,13 @@ def main(page: ft.Page):
         chart.visible = True
         legenda.visible = True
 
+        mensagens = []
         if linhas_ignoradas:
-            mensagem_status.value = f"{linhas_ignoradas} linha(s) ignorada(s) por dado inválido."
-            mensagem_status.color = ft.Colors.ORANGE
-        else:
-            mensagem_status.value = ""
+            mensagens.append(f"{linhas_ignoradas} linha(s) da tabela ignorada(s) por dado inválido.")
+        if erro_modelo:
+            mensagens.append(f"Curva do modelo não calculada: {erro_modelo}.")
+        mensagem_status.value = " ".join(mensagens)
+        mensagem_status.color = ft.Colors.ORANGE if mensagens else ""
 
         page.update()
 
@@ -232,14 +274,14 @@ def main(page: ft.Page):
         on_click=gerar_grafico,
     )
 
-    # 5. Dropdown de seleção do modelo Gᴱ — guarda apenas a escolha atual;
-    # ainda não alimenta nenhum cálculo (isso vem no próximo passo).
+    # 5. Dropdown de seleção do modelo Gᴱ — troca o modelo e já recalcula
+    # a curva (gerar_grafico) com os parâmetros do novo modelo.
     modelo_selecionado = {"nome": next(iter(MODELS_GE))}
 
     def selecionar_modelo(e):
         modelo_selecionado["nome"] = e.control.value
         construir_sliders(modelo_selecionado["nome"])
-        page.update()
+        gerar_grafico()
 
     dropdown_modelo = ft.Dropdown(
         label="Modelo Gᴱ",
@@ -251,15 +293,23 @@ def main(page: ft.Page):
 
     # 5b. Seletores de componente (nome/sinônimo/CAS — resolvidos pelo
     # thermo.Chemical dentro de calculate_vle_isothermal) e temperatura do
-    # sistema. Ainda não alimentam nenhum cálculo (isso vem no próximo
-    # passo, junto com a chamada a calculate_vle_isothermal).
-    campo_componente1 = ft.TextField(label="Componente 1", value="ethanol", width=180)
-    campo_componente2 = ft.TextField(label="Componente 2", value="water", width=180)
+    # sistema. Recalculam a curva ao sair do campo (on_blur/on_submit) —
+    # não a cada tecla, para não repetir Chemical() com nome incompleto.
+    campo_componente1 = ft.TextField(
+        label="Componente 1", value="ethanol", width=180,
+        on_blur=gerar_grafico, on_submit=gerar_grafico,
+    )
+    campo_componente2 = ft.TextField(
+        label="Componente 2", value="water", width=180,
+        on_blur=gerar_grafico, on_submit=gerar_grafico,
+    )
     campo_temperatura = ft.TextField(
         label="Temperatura (°C)",
         value="70",
         width=150,
         keyboard_type=ft.KeyboardType.NUMBER,
+        on_blur=gerar_grafico,
+        on_submit=gerar_grafico,
     )
     linha_sistema = ft.Row(
         controls=[campo_componente1, campo_componente2, campo_temperatura],
@@ -267,8 +317,8 @@ def main(page: ft.Page):
     )
 
     # 6. Sliders dos parâmetros do modelo escolhido — guardam os valores
-    # atuais em parametros_atuais; ainda não disparam nenhum recálculo
-    # (isso é o próximo passo, junto com calculate_vle_isothermal).
+    # atuais em parametros_atuais; soltar o slider (on_change_end) já
+    # recalcula a curva via gerar_grafico.
     parametros_atuais = {}
     sliders_area = ft.Column(spacing=2)
 
@@ -300,6 +350,7 @@ def main(page: ft.Page):
 
             def on_change_end(e, spec=spec):
                 parametros_atuais[spec["chave"]] = e.control.value
+                gerar_grafico()
 
             slider = ft.Slider(
                 min=spec["min"],
@@ -325,6 +376,8 @@ def main(page: ft.Page):
         legenda,
         ft.Container(content=chart, height=300),
     )
+
+    gerar_grafico()
 
 
 # Execução no Replit
