@@ -279,6 +279,13 @@ def main(page: ft.Page):
     chip_liquido_comparativo.visible = False
     chip_vapor_comparativo.visible = False
 
+    # Mesma ideia, para o gráfico de ln γ (4b) — γ1/γ2 do modelo avaliados
+    # exatamente nos x1 da tabela, junto com "Comparar".
+    chip_gamma1_comparativo = chip_legenda(ft.Colors.PURPLE, "ln γ1 — comparativo")
+    chip_gamma2_comparativo = chip_legenda(ft.Colors.CYAN, "ln γ2 — comparativo")
+    chip_gamma1_comparativo.visible = False
+    chip_gamma2_comparativo.visible = False
+
     legenda = ft.Row(
         controls=[
             chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)"),
@@ -294,11 +301,13 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — só a curva
-    # calculada pelo modelo (não dá para obter γ direto dos pontos brutos
-    # da tabela sem inverter a Lei de Raoult, o que é o método indireto de
-    # regressão já descartado na seção 2.8; fica reservado para quando essa
-    # regressão existir).
+    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — a curva do
+    # modelo na malha genérica de 101 pontos, mais (via "Comparar", igual ao
+    # gráfico 1) o próprio modelo avaliado exatamente nos x1 da tabela. Não
+    # tem γ "experimental": γ1/γ2 sempre vêm da fórmula do modelo Gᴱ, nunca
+    # de inverter a Lei de Raoult a partir de P/y medidos (método indireto
+    # de regressão descartado na seção 2.8) — a diferença entre as duas
+    # curvas aqui é só a malha de x1 usada, não a origem do γ.
     chart_gamma = fch.LineChart(
         data_series=[],
         min_x=0,
@@ -315,6 +324,8 @@ def main(page: ft.Page):
         controls=[
             chip_legenda(ft.Colors.GREEN, "ln γ1 — modelo"),
             chip_legenda(ft.Colors.ORANGE, "ln γ2 — modelo"),
+            chip_gamma1_comparativo,
+            chip_gamma2_comparativo,
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         spacing=20,
@@ -348,6 +359,8 @@ def main(page: ft.Page):
         botao_comparar.disabled = not pontos_validos
         chip_liquido_comparativo.visible = False
         chip_vapor_comparativo.visible = False
+        chip_gamma1_comparativo.visible = False
+        chip_gamma2_comparativo.visible = False
 
         series = []
         series_gamma = []
@@ -537,6 +550,25 @@ def main(page: ft.Page):
         chip_liquido_comparativo.visible = True
         chip_vapor_comparativo.visible = True
 
+        ln_gamma1_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma1"])))
+        ln_gamma2_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma2"])))
+        chart_gamma.data_series = chart_gamma.data_series + [
+            fch.LineChartData(
+                color=ft.Colors.PURPLE,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(x, g) for x, g in ln_gamma1_comp],
+            ),
+            fch.LineChartData(
+                color=ft.Colors.CYAN,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(x, g) for x, g in ln_gamma2_comp],
+            ),
+        ]
+        chip_gamma1_comparativo.visible = True
+        chip_gamma2_comparativo.visible = True
+        chart_gamma.visible = True
+        legenda_gamma.visible = True
+
         mensagem_status.value = (
             f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela "
             "— cálculo do erro ainda não implementado, aguardando "
@@ -565,7 +597,11 @@ def main(page: ft.Page):
         gerar_grafico()
 
     dropdown_modelo = ft.Dropdown(
-        label="Modelo Gᴱ",
+        # "Gᴱ" (small capital E) some fontes/navegadores não têm o glifo —
+        # visto em sessão real no Samsung Browser (2026-09-27): o rótulo
+        # aparecia cortado como só "Modelo G". Texto simples renderiza
+        # em qualquer fonte.
+        label="Modelo GE",
         value=modelo_selecionado["nome"],
         options=[ft.dropdown.Option(nome) for nome in MODELS_GE],
         on_select=selecionar_modelo,
@@ -862,6 +898,12 @@ def main(page: ft.Page):
 
     # Adiciona a tabela, os botões, o gráfico e as mensagens à página
     page.add(
+        # Espaço reservado antes do 1º controle: o rótulo flutuante de
+        # dropdown_modelo colava na borda superior da tela e cortava pela
+        # metade em landscape no celular (visto em sessão real,
+        # 2026-09-27) — aumentar page.padding não teve nenhum efeito
+        # visível, então em vez de padding é espaço de layout de verdade.
+        ft.Container(height=24),
         dropdown_modelo,
         linha_sistema,
         sliders_area,
