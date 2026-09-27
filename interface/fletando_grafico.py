@@ -661,6 +661,7 @@ def main(page: ft.Page):
         sliders_por_chave.clear()
 
         botao_buscar_banco.visible = nome_modelo in MODELOS_COM_BANCO_IPDB
+        botao_regressao.visible = nome_modelo in PARAM_SLIDERS
         nota_alpha_fixo.visible = (nome_modelo == "NRTL")
 
         specs = PARAM_SLIDERS.get(nome_modelo)
@@ -775,8 +776,6 @@ def main(page: ft.Page):
         on_click=buscar_do_banco,
     )
 
-    construir_sliders(modelo_selecionado["nome"])
-
     # 6c. Regressão de parâmetros pelo método de Barker (seção 2.8 do
     # mapeamento) — calcula os parâmetros livres do modelo escolhido a
     # partir dos pontos digitados na tabela, e atualiza os sliders com o
@@ -858,6 +857,8 @@ def main(page: ft.Page):
         ),
         on_click=calcular_por_regressao,
     )
+
+    construir_sliders(modelo_selecionado["nome"])
 
     # Adiciona a tabela, os botões, o gráfico e as mensagens à página
     page.add(
