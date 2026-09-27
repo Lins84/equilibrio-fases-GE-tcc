@@ -269,12 +269,24 @@ def main(page: ft.Page):
             tight=True,
         )
 
+    # Chips da comparação calculado-vs-experimental (item 4 do roadmap) —
+    # controles próprios (não construídos por chip_legenda direto na lista)
+    # porque precisam ligar/desligar sozinhos: só aparecem depois de
+    # "Comparar" ser clicado, e são escondidos de novo sempre que
+    # gerar_grafico() reconstrói o gráfico do zero (modelo/tabela mudou).
+    chip_liquido_comparativo = chip_legenda(ft.Colors.PURPLE, "líquido — comparativo")
+    chip_vapor_comparativo = chip_legenda(ft.Colors.CYAN, "vapor — comparativo")
+    chip_liquido_comparativo.visible = False
+    chip_vapor_comparativo.visible = False
+
     legenda = ft.Row(
         controls=[
             chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)"),
             chip_legenda(ft.Colors.RED, "vapor — tabela (y)"),
             chip_legenda(ft.Colors.GREEN, "líquido — modelo"),
             chip_legenda(ft.Colors.ORANGE, "vapor — modelo"),
+            chip_liquido_comparativo,
+            chip_vapor_comparativo,
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         spacing=20,
@@ -327,6 +339,15 @@ def main(page: ft.Page):
                 )
             except ValueError:
                 linhas_ignoradas += 1
+
+        # "Comparar" só faz sentido havendo dado experimental de verdade na
+        # tabela para comparar contra — desabilitado sem isso (item 4 do
+        # roadmap). Reconstruir o gráfico do zero também descarta qualquer
+        # comparação calculada antes, pra não sobrar uma curva comparativa
+        # desatualizada em relação ao modelo/tabela atual.
+        botao_comparar.disabled = not pontos_validos
+        chip_liquido_comparativo.visible = False
+        chip_vapor_comparativo.visible = False
 
         series = []
         series_gamma = []
@@ -454,6 +475,84 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=gerar_grafico,
+    )
+
+    # 4c. Comparação calculado-vs-experimental (item 4 do roadmap) — só a
+    # parte visual por enquanto (autorizado em 2026-09-27: "implementar o
+    # botão para visualizar... e depois adicionar a parte do erro"). Avalia
+    # o modelo exatamente nos x1 da tabela (não na malha genérica de 101
+    # pontos usada por gerar_grafico), pra sobrepor calculado e experimental
+    # no mesmo gráfico. O número de erro em si (métrica ainda não definida
+    # — depende de orientação do Dr. Filipe) fica para depois.
+    def calcular_comparativo(e=None):
+        pontos_validos = []
+        for linha in dt.rows:
+            p_field, x_field, y_field = (linha.cells[i].content for i in range(3))
+            try:
+                pontos_validos.append(
+                    parse_ponto(p_field.value, x_field.value, y_field.value)
+                )
+            except ValueError:
+                pass
+
+        if not pontos_validos:
+            return  # botão deveria estar desabilitado; guarda defensiva
+
+        x1_lista = sorted({x1 for _, x1, _ in pontos_validos})
+
+        try:
+            nome_modelo = modelo_selecionado["nome"]
+            comp1 = campo_componente1.value.strip()
+            comp2 = campo_componente2.value.strip()
+            if nome_modelo in PARAM_SLIDERS:
+                params_modelo = dict(parametros_atuais)
+            else:
+                params_modelo = montar_parametros_automaticos(nome_modelo, comp1, comp2)
+
+            T_C = float(campo_temperatura.value)
+            resultado = calculate_vle_isothermal(
+                comp1, comp2, T_C, nome_modelo, params_modelo, x1_values=x1_lista,
+            )
+        except Exception as exc:
+            mensagem_status.value = f"Comparação não calculada: {exc}."
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
+
+        liquido_comp = sorted(zip(resultado["x1"], resultado["P_kPa"]))
+        vapor_comp = sorted(zip(resultado["y1"], resultado["P_kPa"]))
+
+        chart.data_series = chart.data_series + [
+            fch.LineChartData(
+                color=ft.Colors.PURPLE,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(x, p) for x, p in liquido_comp],
+            ),
+            fch.LineChartData(
+                color=ft.Colors.CYAN,
+                stroke_width=2,
+                points=[fch.LineChartDataPoint(y, p) for y, p in vapor_comp],
+            ),
+        ]
+        chip_liquido_comparativo.visible = True
+        chip_vapor_comparativo.visible = True
+
+        mensagem_status.value = (
+            f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela "
+            "— cálculo do erro ainda não implementado, aguardando "
+            "definição da métrica com o orientador."
+        )
+        mensagem_status.color = ft.Colors.ORANGE
+        page.update()
+
+    botao_comparar = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.COMPARE_ARROWS), ft.Text("Comparar")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=calcular_comparativo,
+        disabled=True,
     )
 
     # 5. Dropdown de seleção do modelo Gᴱ — troca o modelo e já recalcula
@@ -770,7 +869,7 @@ def main(page: ft.Page):
         ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
         dt,
         linha_botoes_tabela,
-        botao_gerar_grafico,
+        ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
         mensagem_status,
         legenda,
         ft.Container(content=chart, height=300),

@@ -489,7 +489,7 @@ MODELS_GE = {
 
 # --- Calculadora Principal de Equilíbrio ---
 
-def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, model_params):
+def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, model_params, x1_values=None):
     """
     Calcula os diagramas Pxy e yx para um sistema binário a uma dada temperatura.
 
@@ -499,6 +499,11 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
         T_C (float): Temperatura em Celsius.
         model_name (str): O nome do modelo Gᴱ a ser usado (chave do dicionário MODELS_GE).
         model_params (dict): Um dicionário com os parâmetros do modelo (ex: {'A': 1.6}).
+        x1_values (list[float], opcional): composições de líquido específicas
+            a calcular, em vez da malha genérica de 101 pontos — usado pela
+            comparação calculado-vs-experimental (item 4 do roadmap), que
+            precisa do modelo avaliado exatamente nos x1 digitados na
+            tabela, não numa malha que não coincide com eles.
 
     Returns:
         dict: Um dicionário com as listas de resultados: 'P_kPa', 'x1', 'y1',
@@ -520,7 +525,7 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
         raise ValueError("Modelo Gᴱ não reconhecido.")
 
     # Geração dos pontos de composição do líquido
-    x1_array = np.linspace(0, 1, 101)
+    x1_array = np.linspace(0, 1, 101) if x1_values is None else np.array(x1_values)
 
     P_list_Pa = []
     y1_list = []

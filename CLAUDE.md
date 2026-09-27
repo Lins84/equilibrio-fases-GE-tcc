@@ -422,16 +422,34 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    clicável assim que houver — mesmo padrão visual de estado
    habilitado/desabilitado que qualquer botão desabilitado já usa no
    Flet, sem componente novo.
-   **Bloqueado por dependência externa, não por falta de pedido do
-   autor:** o que exatamente comparar e com que métrica (diferença
-   absoluta, relativa, um resíduo agregado como o `residual_rms` que
-   `regress_params_barker` já calcula, ou outra) depende de orientação
-   do Dr. Filipe — o autor foi explícito que não é decisão dele sozinho
-   aqui. Posicionamento fino/estilo visual do botão e da exibição do
-   erro ficam para a fase de estética. **Não implementar nada disto até
-   a orientação do Dr. Filipe chegar** — nem o botão em si, já que sua
-   única função é abrir a comparação cuja métrica ainda não está
-   definida.
+   **Parte visual implementada e testada em 2026-09-27** — o autor
+   liberou explicitamente a parte visual adiantada, deixando só o
+   número do erro para depois ("já podemos implementar o botão para
+   visualizar... e depois adicionar a parte do erro"). Em
+   `calculos/gemini.py`: `calculate_vle_isothermal` ganhou o parâmetro
+   opcional `x1_values` (default `None` → comportamento antigo
+   inalterado; passado → usa esses x1 em vez da malha de 101 pontos).
+   Em `fletando_grafico.py`: botão "Comparar" (`calcular_comparativo`),
+   habilitado/desabilitado dentro de `gerar_grafico` conforme haja ou
+   não ponto experimental válido na tabela; ao clicar, adiciona duas
+   séries novas ao gráfico P-x-y existente — "líquido — comparativo"
+   (roxo) e "vapor — comparativo" (ciano) — calculadas nos x1 exatos da
+   tabela, com chips de legenda próprios que só aparecem depois do
+   clique. `gerar_grafico` limpa essas séries/chips sempre que
+   reconstrói o gráfico do zero, pra não sobrar comparação desatualizada
+   em relação a modelo/tabela/componentes novos. Mensagem de status após
+   o clique já avisa que o erro em si ainda não foi calculado. Validado:
+   suíte de testes completa + UI rodando de verdade (botão apagado sem
+   dado experimental, aceso e funcional com 1 ponto digitado, série
+   comparativa e legenda aparecendo corretamente).
+   **Segue bloqueado, só a métrica do erro:** o que exatamente comparar
+   e com que fórmula (diferença absoluta, relativa, um resíduo agregado
+   como o `residual_rms` que `regress_params_barker` já calcula, ou
+   outra) depende de orientação do Dr. Filipe — o autor foi explícito
+   que não é decisão dele sozinho aqui. Posicionamento fino/estilo
+   visual do botão e da exibição do erro ficam para a fase de estética.
+   **Não implementar o cálculo/exibição do erro até a orientação do
+   Dr. Filipe chegar.**
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -619,6 +637,15 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   conflito de conteúdo foi nesta seção do CLAUDE.md (as duas entradas
   de "gatilho da regressão" acima), resolvido preservando as duas como
   registro histórico e marcando qual desenho de fato foi implementado.
+- **(2026-09-27) Comparação calculado-vs-experimental: um botão só, não
+  dois "modos".** Depois de cogitar (em conversa) dois modos
+  single/comparativo com tabelas separadas, o autor simplificou:
+  um único botão "Comparar", que só faz sentido — e só fica clicável —
+  quando há dado experimental de verdade na tabela. Ideia dele, não
+  sugestão do assistente. Na sequência, autorizou implementar a parte
+  visual (botão + curva comparativa nos x1 exatos da tabela) desde já,
+  deixando o cálculo do erro para depois da orientação do Dr. Filipe
+  sobre a métrica — separando o que dependia dele do que não dependia.
 
 ### B. Decisões de arquitetura e stack
 
