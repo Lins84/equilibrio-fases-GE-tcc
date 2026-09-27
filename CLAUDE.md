@@ -106,8 +106,12 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   modelo sem tabela no IPDB e par ausente na tabela).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
-- `referencias/` — material de referência: print da planilha XSEOS e dois
-  `.jsx` de Margules 1P/2P.
+- `referencias/` — material de referência: print da planilha XSEOS, dois
+  `.jsx` de Margules 1P/2P, e `esboco_manuscrito_autor.jpg` (2026-09-27 —
+  o rascunho original do autor que embasou a seção 2.2 do mapeamento;
+  mostra também um elemento perto do gráfico P-x-y, anotado "P"/"y exp"
+  com um quadro "Salva" ao lado, ainda não implementado — ver pendência
+  em "Próximos passos").
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
   gerenciado com `uv`.
 
@@ -399,6 +403,18 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    nunca chegou a ser implementada antes de a outra sessão construir a
    versão que já existe. **O item 3 está fechado** com o botão
    dedicado.
+4. **Caixa de erro calculado-vs-experimental** (levantado pelo autor em
+   2026-09-27, a partir do rascunho original — `referencias/
+   esboco_manuscrito_autor.jpg`, que já indicava um elemento perto do
+   gráfico P-x-y, anotado "P"/"y exp"). Faltava no mapeamento porque o
+   esboço nunca tinha sido digitalizado/registrado antes. **Bloqueado
+   por dependência externa, não por falta de pedido do autor:** o que
+   exatamente comparar e com que métrica (diferença absoluta, relativa,
+   um resíduo agregado como o `residual_rms` que `regress_params_barker`
+   já calcula, ou outra) depende de orientação do Dr. Filipe — o autor
+   foi explícito que não é decisão dele sozinho aqui. Posicionamento na
+   tela fica para a fase de estética, junto do resto do visual. **Não
+   implementar nada desta caixa até essa orientação chegar.**
 
 ## Atualizações futuras (pós-projeto piloto)
 
