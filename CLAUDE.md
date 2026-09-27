@@ -467,6 +467,21 @@ continuar sendo mantido.
   três parâmetros do NRTL simultaneamente (ou expor a escolha ao usuário)
   vira uma opção viável a reconsiderar.
 
+- **Modo isobárico (diagrama T-x-y).** Hoje o app só calcula no modo
+  isotérmico (`calculate_vle_isothermal`: T fixo, P varia por ponto) —
+  não existe função equivalente para P fixo com T variando ponto a
+  ponto. Motivado por um dataset real trazido em sessão de trabalho
+  (2026-09-27): etanol/água a 101,325 kPa, 14 pontos, T de 100 °C a
+  78,15 °C — o clássico VLE isobárico do azeótropo etanol-água a 1 atm.
+  Pra comparar o modelo contra esse tipo de dado seria preciso uma
+  `calculate_vle_isobaric(comp1, comp2, P_kPa, modelo, params,
+  x1_values)` que resolve T por busca de raiz (ex.: `scipy.optimize.
+  brentq`) tal que `x1·γ1(T)·Psat1(T) + x2·γ2(T)·Psat2(T) = P`, mais um
+  segundo tipo de gráfico/tabela na UI (T-x-y ao lado do P-x-y
+  existente) — não é ajuste pequeno, é um segundo modo de diagrama.
+  Adiado para depois da entrega do piloto; **não implementar sem pedido
+  explícito do autor**.
+
 ## Decisões de engenharia do aluno na produção da aplicação
 
 Criada em 2026-09-12, a pedido do autor: um mapeamento cronológico que
