@@ -403,18 +403,35 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    nunca chegou a ser implementada antes de a outra sessão construir a
    versão que já existe. **O item 3 está fechado** com o botão
    dedicado.
-4. **Caixa de erro calculado-vs-experimental** (levantado pelo autor em
+4. **Comparação calculado-vs-experimental** (levantado pelo autor em
    2026-09-27, a partir do rascunho original — `referencias/
    esboco_manuscrito_autor.jpg`, que já indicava um elemento perto do
    gráfico P-x-y, anotado "P"/"y exp"). Faltava no mapeamento porque o
-   esboço nunca tinha sido digitalizado/registrado antes. **Bloqueado
-   por dependência externa, não por falta de pedido do autor:** o que
-   exatamente comparar e com que métrica (diferença absoluta, relativa,
-   um resíduo agregado como o `residual_rms` que `regress_params_barker`
-   já calcula, ou outra) depende de orientação do Dr. Filipe — o autor
-   foi explícito que não é decisão dele sozinho aqui. Posicionamento na
-   tela fica para a fase de estética, junto do resto do visual. **Não
-   implementar nada desta caixa até essa orientação chegar.**
+   esboço nunca tinha sido digitalizado/registrado antes.
+   **Desenho de UI, decidido em 2026-09-27 (evoluiu ao longo da
+   conversa — descartadas as ideias intermediárias de dois "modos"
+   single/comparativo e de tabelas separadas):** um único botão
+   "Comparar", no mesmo padrão dos botões já existentes (Buscar do
+   Banco, Calcular por Regressão). Ao clicar, avalia o modelo
+   exatamente nos x1 da tabela (não na malha genérica de 101 pontos
+   usada para desenhar a curva do "Gerar Gráfico"), plota essa curva
+   "calculado nos pontos experimentais" junto da já existente, em cor
+   diferente, e calcula o erro. **Habilitação do botão:** apagado/não
+   clicável quando não há dado experimental de verdade na tabela
+   (digitado ou importado via CSV) para comparar contra; aceso/
+   clicável assim que houver — mesmo padrão visual de estado
+   habilitado/desabilitado que qualquer botão desabilitado já usa no
+   Flet, sem componente novo.
+   **Bloqueado por dependência externa, não por falta de pedido do
+   autor:** o que exatamente comparar e com que métrica (diferença
+   absoluta, relativa, um resíduo agregado como o `residual_rms` que
+   `regress_params_barker` já calcula, ou outra) depende de orientação
+   do Dr. Filipe — o autor foi explícito que não é decisão dele sozinho
+   aqui. Posicionamento fino/estilo visual do botão e da exibição do
+   erro ficam para a fase de estética. **Não implementar nada disto até
+   a orientação do Dr. Filipe chegar** — nem o botão em si, já que sua
+   única função é abrir a comparação cuja métrica ainda não está
+   definida.
 
 ## Atualizações futuras (pós-projeto piloto)
 
