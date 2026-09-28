@@ -5,7 +5,7 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
-**Última atualização:** 2026-09-21
+**Última atualização:** 2026-09-28
 
 > **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
@@ -198,21 +198,21 @@ Padrão inspirado no que dashboards financeiros e ferramentas de BI usam para si
 
 ---
 
-## 3. Estado Atual do Código (2026-08-20)
+## 3. Estado Atual do Código (2026-09-28)
 
-**Camada de cálculo — pronta.** `calculos/gemini.py` (~405 linhas): os 7 modelos Gᴱ registrados em `MODELS_GE`, todos validados (seção 2.4), o adaptador `nrtl_params_from_ipdb` para parâmetros reais via IPDB, e `calculate_vle_isothermal`, que monta o diagrama P-x-y pela Lei de Raoult modificada.
+**Camada de cálculo — pronta.** `calculos/gemini.py` (~730 linhas): os 7 modelos Gᴱ registrados em `MODELS_GE`, todos validados (seção 2.4); `calculate_vle_isothermal`, que monta o diagrama P-x-y pela Lei de Raoult modificada (com parâmetro opcional `x1_values`, usado pela comparação calculado-vs-experimental); adaptadores de parâmetro via banco IPDB/ChemSep (`nrtl_params_from_ipdb`, `wilson_params_from_ipdb`, `uniquac_params_from_ipdb`, unificados em `buscar_parametros_banco`) e via grupos UNIFAC/DDBST (`unifac_groups_from_name`, `montar_parametros_automaticos`); e `regress_params_barker`, que ajusta os parâmetros livres de um modelo pelo método de Barker a partir dos pontos (P, x1, y1) digitados.
 
-**Camada de interface — protótipos, em ordem de evolução:**
+**Camada de interface — integrada, não mais protótipo desconectado:**
 
-- `interface/main.py` — o mais antigo: gráfico estático de exemplo (matplotlib) exibido como `ft.Image`.
+- `interface/main.py` — o mais antigo: gráfico estático de exemplo (matplotlib) exibido como `ft.Image`. Mantido só como registro histórico da Etapa 0.
 - `interface/fletando.py` — tabela dinâmica P/x/y com adicionar/remover linha (`ft.DataTable`). Concluiu a Etapa 1.
-- `interface/fletando_grafico.py` — **a linha viva**: a tabela acima mais um `flet_charts.LineChart` que plota o P-x-y a partir dos dados digitados, com validação de entrada e mensagem de erro. Corresponde à **Etapa 2** do plano (simulação gráfica com os dados da tabela).
+- `interface/fletando_grafico.py` (~1030 linhas) — **a linha viva, hoje a aplicação completa**: tabela editável (manual ou importação de CSV) + dropdown de seleção de modelo (os 7 de `MODELS_GE`) + sliders dos parâmetros livres (Margules 1P/2P, Van Laar, Wilson, NRTL) + dois gráficos sincronizados (P-x-y e ln γ vs x1), todos alimentados por `calculate_vle_isothermal`. Cobre as **Etapas 1 a 4** do plano original (tabela → gráfico → sliders → seleção de modelo) e vai além delas: busca de parâmetros reais no banco IPDB (botão dedicado, NRTL/Wilson), regressão de Barker (botão dedicado, item 3 de "Próximos passos" do `CLAUDE.md`), selo de origem do parâmetro (Fornecido/Banco/Calculado/Preditivo, com ícone ⓘ que abre diálogo ao toque — ajustado para mobile em 2026-09-28), e comparação calculado-vs-experimental com métrica de erro (ΔP%/Δy, RMS, item 4 do roadmap).
 
-**Ainda não implementado da Etapa 2 em diante:** importação via CSV, sliders de parâmetros (`on_change_end`), dropdown de seleção de modelo, e o gráfico de ln γ vs x1 (o segundo gráfico previsto na seção 2.2).
+**Integração cálculo↔UI — feita (2026-09-26).** A antiga "lacuna central" (nenhum protótipo chamava `calculate_vle_isothermal`) está fechada: `gerar_grafico` em `fletando_grafico.py` chama o motor de cálculo a cada interação (troca de modelo, slider solto, novo componente/temperatura), sobrepondo a curva calculada aos pontos digitados na tabela.
 
-**Lacuna central — as duas camadas seguem desconectadas.** Nenhum protótipo de interface chama `calculate_vle_isothermal`: o `fletando_grafico.py` só redesenha os números que o usuário digitou, sem cálculo de modelo. É o próximo item de maior valor do projeto — sem ele, o núcleo validado não chega ao usuário final. **A integração aguarda ordem explícita do autor** (seção 5.2); não é iniciada por conta própria.
+**Leitura para a banca:** com isso, a meta da **Fase 1 — Núcleo funcional** (seção 6) — "aplicação funcionalmente completa, mesmo que visualmente crua, até outubro" — está cumprida, dentro do prazo. O que resta em aberto é a **Fase 2 — Validação e robustez** (suíte de testes contra Koretsky/Smith-Van Ness, tratamento de erro de input para sala de aula, decisão de empacotamento) e a passada de estética decidida em 2026-09-28 (ver "Decisões de engenharia do aluno" no `CLAUDE.md`) — nenhuma delas é pré-requisito para a outra.
 
-**Apoio:** `testes/` com dois scripts avulsos rodados à mão com `python3`, sem runner nem CI (`teste_margules_2p_MEK_tolueno.py`, validação numérica contra a planilha XSEOS; `teste_parse_ponto_tabela.py`, lógica pura da tabela, sem dependência de `flet`). `referencias/` com a imagem da planilha XSEOS e os dois protótipos `.jsx` da seção 2.5.
+**Apoio:** `testes/` com cinco scripts avulsos rodados à mão com `python3` a partir da raiz, ainda sem runner nem CI — `teste_margules_2p_MEK_tolueno.py` (validação contra a planilha XSEOS), `teste_parse_ponto_tabela.py` (lógica pura da tabela), `teste_dioxano_nrtl.py` (teste manual visual do NRTL com parâmetros reais via IPDB), `teste_regressao_barker.py` (valida `regress_params_barker` com dados sintéticos) e `teste_banco_ipdb.py` (valida os adaptadores de banco IPDB). `referencias/` com a imagem da planilha XSEOS, os dois protótipos `.jsx` da seção 2.5, o esboço manuscrito do autor e um dataset real (etanol/água a 50 °C).
 
 ---
 

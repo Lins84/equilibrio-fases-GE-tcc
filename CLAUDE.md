@@ -481,8 +481,11 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    só fica visível porque os dois números são reportados separados, não
    combinados num só.
    Posicionamento fino/estilo visual do botão e da exibição do erro
-   seguem para a fase de estética (ainda não iniciada — autor confirmou
-   em 2026-09-27 que as diretrizes serão definidas depois).
+   ganharam ícone ⓘ com explicação (2026-09-27, ajustado para diálogo ao
+   toque em 2026-09-28 — ver "Decisões de engenharia do aluno"). O
+   restante do acabamento visual segue para a fase de estética, cujo
+   escopo foi ampliado em 2026-09-28 para a interface inteira, não só
+   este item (ver mesma seção).
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -793,6 +796,40 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Nota técnica completa acima, com um achado novo que a análise teórica
   não previa (CanvasKit via CDN no navegador, sem opção `--no-cdn` em
   `flet run --web`).
+- **(2026-09-28) Trocar tooltip por hover por diálogo ao toque no ícone
+  ⓘ.** Testando no celular, o autor percebeu que o `tooltip` nativo do
+  Flet (selo de origem do parâmetro, seção 2.8, e o novo ΔP/Δy — ver
+  entrada abaixo) depende de hover ou long-press, gesto pouco discoberto
+  num dispositivo sem mouse, que é justamente o ambiente de uso real do
+  projeto. Entre as opções levantadas (diálogo ao toque vs. texto
+  expansível inline), o autor escolheu diálogo — funciona de forma
+  idêntica em qualquer dispositivo, sem depender de hover. Aplicado nos
+  dois lugares que usavam tooltip: o selo de origem (já existente) e o
+  resultado de ΔP/Δy (novo, ver item 4 abaixo).
+- **(2026-09-27) Adicionar ícone ⓘ com explicação de ΔP/Δy na
+  comparação calculado-vs-experimental.** Pedido do autor, fechando o
+  último detalhe de UX do item 4 de "Próximos passos": o resultado
+  numérico (`ΔP = X% (RMS)` / `Δy = Y (RMS)`) ganhou um texto sempre
+  visível mais um ícone que explica o que cada Δ significa (ver decisão
+  acima sobre diálogo vs. tooltip).
+- **(2026-09-28) Escopo da "fase de estética": app inteiro, não só o
+  item 4.** A entrada de 2026-09-27 sobre o item 4 ("posicionamento
+  fino/estilo visual... seguem para a fase de estética") tratava o
+  acabamento visual como algo restrito ao botão "Comparar" e à exibição
+  do erro. Ao encerrar a etapa de fazer tudo funcionar, o autor decidiu
+  que a passada de estética vale para a interface inteira (tabela,
+  sliders, gráficos, botões), não só esse item — mudança de escopo em
+  relação ao que estava registrado antes.
+- **(2026-09-28) Sincronizar `Docs/mapeamento_e_plano_TCC-1.md` seção 3
+  com o código real antes de iniciar a estética.** Verificação de
+  conformidade pedida pelo autor revelou que a seção "Estado Atual do
+  Código" do mapeamento estava parada em 2026-08-20 e descrevia como
+  "não implementado" (CSV, sliders, dropdown, integração com
+  `calculate_vle_isothermal`) coisas que já estavam prontas há semanas,
+  registradas só no `CLAUDE.md`. O autor autorizou a atualização da
+  seção 3 para refletir o estado real antes de seguir para qualquer
+  trabalho novo — evita que o documento de prestação de contas para a
+  banca fique incoerente com o código.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
