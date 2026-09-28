@@ -810,7 +810,12 @@ def main(page: ft.Page):
             if chave not in sliders_por_chave:
                 continue
             slider, valor_texto, rotulo = sliders_por_chave[chave]
-            slider.value = valor
+            # O banco (IPDB/ChemSep) pode devolver um valor fora do range de
+            # exploração do slider (min/max são só um recorte manual para
+            # arrastar, não um limite físico do parâmetro) — o Flet rejeita
+            # slider.value fora de [min, max]. Só a posição visual é limitada;
+            # o cálculo do gráfico usa o valor real, sem truncar.
+            slider.value = max(slider.min, min(slider.max, valor))
             valor_texto.value = f"{rotulo} = {valor:.3g}"
             parametros_atuais[chave] = valor
 
@@ -885,7 +890,12 @@ def main(page: ft.Page):
             if chave not in sliders_por_chave:
                 continue
             slider, valor_texto, rotulo = sliders_por_chave[chave]
-            slider.value = valor
+            # A regressão de Barker não tem por que respeitar o range de
+            # exploração do slider (min/max é só um recorte manual de UI,
+            # não um limite físico do parâmetro) — o Flet rejeita
+            # slider.value fora de [min, max]. Só a posição visual é
+            # limitada; o cálculo do gráfico usa o valor regredido real.
+            slider.value = max(slider.min, min(slider.max, valor))
             valor_texto.value = f"{rotulo} = {valor:.3g}"
             parametros_atuais[chave] = valor
 
