@@ -569,12 +569,35 @@ def main(page: ft.Page):
         chart_gamma.visible = True
         legenda_gamma.visible = True
 
+        # Erro do ajuste: ΔP relativo (%) e Δy absoluto (fração molar),
+        # cada um como RMS — mesma convenção de `regress_params_barker`
+        # (resíduo ΔP relativo + Δy absoluto), mas reportados separados,
+        # não combinados num resíduo só, porque cada um testa uma parte
+        # diferente da física (P testa o desvio da idealidade como um
+        # todo; y é mais sensível a erro em componente individual) e é
+        # assim que ajuste de modelo Gᴱ é reportado na literatura (ex.:
+        # compilações DECHEMA/Gmehling). ΔP em relativo é seguro (P nunca
+        # passa perto de zero); Δy tem que ser absoluto, não relativo —
+        # relativo em y sofreria a mesma amplificação de ruído perto das
+        # bordas de composição (x1→0/1) que já descartou o método
+        # indireto na seção 2.8. Autorizado pelo autor em 2026-09-27,
+        # sem aguardar orientação do Dr. Filipe — decisão registrada e
+        # justificada em CLAUDE.md.
+        calc_por_x1 = dict(zip(resultado["x1"], zip(resultado["P_kPa"], resultado["y1"])))
+        soma_dp_rel2 = 0.0
+        soma_dy_abs2 = 0.0
+        for p_exp, x1, y_exp in pontos_validos:
+            P_calc, y_calc = calc_por_x1[x1]
+            soma_dp_rel2 += ((P_calc - p_exp) / p_exp) ** 2
+            soma_dy_abs2 += (y_calc - y_exp) ** 2
+        dp_rms_pct = math.sqrt(soma_dp_rel2 / len(pontos_validos)) * 100
+        dy_rms = math.sqrt(soma_dy_abs2 / len(pontos_validos))
+
         mensagem_status.value = (
-            f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela "
-            "— cálculo do erro ainda não implementado, aguardando "
-            "definição da métrica com o orientador."
+            f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela. "
+            f"ΔP = {dp_rms_pct:.2f}% (RMS) · Δy = {dy_rms:.4f} (RMS)."
         )
-        mensagem_status.color = ft.Colors.ORANGE
+        mensagem_status.color = ""
         page.update()
 
     botao_comparar = ft.Button(

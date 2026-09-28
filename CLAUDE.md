@@ -450,14 +450,39 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    suíte de testes completa + UI rodando de verdade (botão apagado sem
    dado experimental, aceso e funcional com 1 ponto digitado, série
    comparativa e legenda aparecendo corretamente).
-   **Segue bloqueado, só a métrica do erro:** o que exatamente comparar
-   e com que fórmula (diferença absoluta, relativa, um resíduo agregado
-   como o `residual_rms` que `regress_params_barker` já calcula, ou
-   outra) depende de orientação do Dr. Filipe — o autor foi explícito
-   que não é decisão dele sozinho aqui. Posicionamento fino/estilo
-   visual do botão e da exibição do erro ficam para a fase de estética.
-   **Não implementar o cálculo/exibição do erro até a orientação do
-   Dr. Filipe chegar.**
+   **Métrica do erro implementada em 2026-09-27** — revertendo a
+   decisão anterior de não decidir isso sozinho: o autor pediu
+   explicitamente para implementar a sugestão do Claude Code em vez de
+   aguardar a orientação do Dr. Filipe ("implemente sua sugestão e
+   guarde esses argumentos pra justificar"). Dois números separados
+   (não um resíduo combinado), mostrados em `mensagem_status` depois de
+   "Comparar":
+   - **ΔP relativo (%), RMS** —
+     `sqrt(mean(((P_calc−P_exp)/P_exp)²)) × 100`. Relativo é seguro
+     aqui porque P nunca passa perto de zero.
+   - **Δy absoluto (fração molar), RMS** —
+     `sqrt(mean((y_calc−y_exp)²))`. Tem que ser absoluto, não
+     relativo: y passa por 0/1 nas bordas de composição, e erro
+     relativo em y sofreria a mesma amplificação de ruído perto das
+     bordas que já descartou o método indireto de regressão (seção
+     2.8).
+   **Por que separado em vez de um resíduo combinado** como o
+   `residual_rms` de `regress_params_barker`: é assim que ajuste de
+   modelo Gᴱ é reportado na literatura de termodinâmica (ex.:
+   compilações DECHEMA/Gmehling) — cada grandeza testa uma parte
+   diferente da física (P testa o desvio da idealidade como um todo; y
+   é mais sensível a erro em componente individual). Um resíduo
+   combinado esconde esse tipo de nuance — confirmado ao validar com o
+   dataset real etanol/água a 50°C
+   (`referencias/etanol_agua_50C_isotermico.csv`): NRTL com parâmetros-
+   chute deu ΔP=29,4%/Δy=0,065; os mesmos parâmetros ajustados por
+   Barker deram ΔP=6,2%/Δy=0,106 — Barker melhora P mas piora um pouco
+   y, porque otimiza o resíduo combinado, não y sozinho. Esse trade-off
+   só fica visível porque os dois números são reportados separados, não
+   combinados num só.
+   Posicionamento fino/estilo visual do botão e da exibição do erro
+   seguem para a fase de estética (ainda não iniciada — autor confirmou
+   em 2026-09-27 que as diretrizes serão definidas depois).
 
 ## Atualizações futuras (pós-projeto piloto)
 
@@ -669,6 +694,18 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   visual (botão + curva comparativa nos x1 exatos da tabela) desde já,
   deixando o cálculo do erro para depois da orientação do Dr. Filipe
   sobre a métrica — separando o que dependia dele do que não dependia.
+- **(2026-09-27) Métrica do erro: implementar a sugestão do Claude Code
+  agora, sem esperar o Dr. Filipe.** Diferente das outras entradas desta
+  seção, a fórmula em si (ΔP relativo % + Δy absoluto, separados, RMS —
+  ver "Próximos passos", item 4) foi sugestão do assistente, pedida
+  explicitamente pelo autor ("me diga qual faz mais sentido... a luz
+  dessa parte da disciplina de termodinâmica"); a **decisão** de seguir
+  com ela em vez de aguardar o orientador, e de registrar o porquê no
+  `CLAUDE.md`, foi do autor ("implemente sua sugestão e guarde esses
+  argumentos pra justificar"). Reverte a postura de 2026-09-27 (entrada
+  acima) de não decidir isso sozinho — se o Dr. Filipe pedir outra
+  métrica depois, é revisão, não reescrita do zero (a estrutura de dois
+  números separados por ponto continua igual, só a fórmula mudaria).
 
 ### B. Decisões de arquitetura e stack
 
