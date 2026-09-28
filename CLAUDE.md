@@ -820,6 +820,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   que a passada de estética vale para a interface inteira (tabela,
   sliders, gráficos, botões), não só esse item — mudança de escopo em
   relação ao que estava registrado antes.
+  **Primeira rodada implementada e validada no mesmo dia** (commit
+  `2795aea`): tema claro fixo (independente do modo escuro do
+  sistema/navegador, por contraste em projeção — seção 1.4), escala
+  única de espaçamento, agrupamento em cards por seção, e — depois de
+  duas iterações que só espremiam o padding sem resolver — os dois
+  gráficos passaram a ficar lado a lado no desktop em vez de
+  empilhados, resolvendo de vez a necessidade de reduzir o zoom do
+  navegador pra caber tudo na tela.
 - **(2026-09-28) Sincronizar `Docs/mapeamento_e_plano_TCC-1.md` seção 3
   com o código real antes de iniciar a estética.** Verificação de
   conformidade pedida pelo autor revelou que a seção "Estado Atual do
