@@ -118,6 +118,30 @@ def main(page: ft.Page):
     # Variável de largura para manter tudo alinhado
     largura_coluna = 60
 
+    # Ícone ⓘ tocável (não só hover) — o `tooltip` nativo do Flet depende de
+    # hover ou long-press, e o usuário final deste app usa celular (sem
+    # mouse); um toque simples no ícone não abria nada de forma confiável.
+    # Em vez de tooltip, o ícone abre um diálogo com a explicação — mesmo
+    # gesto (toque) em qualquer dispositivo. `obter_texto` é uma função sem
+    # argumentos (não uma string fixa) para cobrir os casos em que a
+    # explicação muda em tempo real (ex.: origem do parâmetro).
+    def icone_info(obter_texto, titulo="Sobre este valor"):
+        def abrir(e):
+            page.show_dialog(
+                ft.AlertDialog(
+                    title=ft.Text(titulo),
+                    content=ft.Text(obter_texto()),
+                    actions=[ft.TextButton("Ok", on_click=lambda e: page.pop_dialog())],
+                )
+            )
+
+        return ft.IconButton(
+            icon=ft.Icons.INFO_OUTLINE,
+            icon_size=16,
+            padding=0,
+            on_click=abrir,
+        )
+
     # 1. Criação da Tabela Vazia
     dt = ft.DataTable(
         columns=[
@@ -286,6 +310,37 @@ def main(page: ft.Page):
     chip_gamma1_comparativo.visible = False
     chip_gamma2_comparativo.visible = False
 
+    # Resultado numérico da comparação (ΔP/Δy, seção "Próximos passos" item
+    # 4 do CLAUDE.md) — mesmo padrão selo+ícone ⓘ já usado para a origem do
+    # parâmetro: valor sempre visível, explicação do que cada Δ significa
+    # só aparece ao tocar no ícone (diálogo — ver icone_info), sem poluir a
+    # tela com texto fixo.
+    texto_dp_comparativo = ft.Text("", size=13, weight=ft.FontWeight.BOLD)
+    icone_dp_comparativo = icone_info(
+        lambda: (
+            "ΔP (RMS): erro relativo médio entre a pressão calculada pelo "
+            "modelo e a pressão experimental digitada, ponto a ponto."
+        ),
+        titulo="O que é ΔP?",
+    )
+    texto_dy_comparativo = ft.Text("", size=13, weight=ft.FontWeight.BOLD)
+    icone_dy_comparativo = icone_info(
+        lambda: (
+            "Δy (RMS): erro absoluto médio entre a fração molar de vapor "
+            "(y) calculada pelo modelo e a experimental digitada, ponto a "
+            "ponto."
+        ),
+        titulo="O que é Δy?",
+    )
+    linha_erro_comparativo = ft.Row(
+        controls=[
+            ft.Row([texto_dp_comparativo, icone_dp_comparativo], spacing=4, tight=True),
+            ft.Row([texto_dy_comparativo, icone_dy_comparativo], spacing=4, tight=True),
+        ],
+        spacing=20,
+        visible=False,
+    )
+
     legenda = ft.Row(
         controls=[
             chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)"),
@@ -361,6 +416,7 @@ def main(page: ft.Page):
         chip_vapor_comparativo.visible = False
         chip_gamma1_comparativo.visible = False
         chip_gamma2_comparativo.visible = False
+        linha_erro_comparativo.visible = False
 
         series = []
         series_gamma = []
@@ -593,10 +649,11 @@ def main(page: ft.Page):
         dp_rms_pct = math.sqrt(soma_dp_rel2 / len(pontos_validos)) * 100
         dy_rms = math.sqrt(soma_dy_abs2 / len(pontos_validos))
 
-        mensagem_status.value = (
-            f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela. "
-            f"ΔP = {dp_rms_pct:.2f}% (RMS) · Δy = {dy_rms:.4f} (RMS)."
-        )
+        texto_dp_comparativo.value = f"ΔP = {dp_rms_pct:.2f}% (RMS)"
+        texto_dy_comparativo.value = f"Δy = {dy_rms:.4f} (RMS)"
+        linha_erro_comparativo.visible = True
+
+        mensagem_status.value = f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela."
         mensagem_status.color = ""
         page.update()
 
@@ -669,17 +726,24 @@ def main(page: ft.Page):
 
     # 6a. Selo de origem do parâmetro (seção 2.8 do mapeamento) — pequeno,
     # colorido, sempre visível junto dos sliders, com ícone ⓘ que mostra o
-    # detalhe (o que foi assumido, de onde veio) via tooltip. Cobre o
-    # conjunto de parâmetros livres do modelo atual como um todo: busca no
-    # banco e regressão atualizam todos de uma vez, e mexer em qualquer
-    # slider manualmente já invalida a origem "banco"/"calculado" anterior.
+    # detalhe (o que foi assumido, de onde veio) num diálogo ao toque (ver
+    # icone_info). Cobre o conjunto de parâmetros livres do modelo atual
+    # como um todo: busca no banco e regressão atualizam todos de uma vez,
+    # e mexer em qualquer slider manualmente já invalida a origem
+    # "banco"/"calculado" anterior.
     texto_selo_origem = ft.Text("", size=12, weight=ft.FontWeight.BOLD)
     chip_selo_origem = ft.Container(
         content=texto_selo_origem,
         padding=ft.Padding(8, 2, 8, 2),
         border_radius=10,
     )
-    icone_selo_origem = ft.Icon(ft.Icons.INFO_OUTLINE, size=16, tooltip="")
+    # Estado mutável lido por icone_selo_origem no momento do toque — não dá
+    # para fechar o texto no clique do ícone como nas explicações fixas
+    # (ΔP/Δy) porque este detalhe muda em tempo real (atualizar_selo_origem).
+    detalhe_selo_origem = {"texto": ""}
+    icone_selo_origem = icone_info(
+        lambda: detalhe_selo_origem["texto"], titulo="Origem deste parâmetro"
+    )
     selo_origem = ft.Row(
         controls=[chip_selo_origem, icone_selo_origem],
         spacing=4,
@@ -691,7 +755,7 @@ def main(page: ft.Page):
         chip_selo_origem.bgcolor = bg
         texto_selo_origem.value = rotulo
         texto_selo_origem.color = fg
-        icone_selo_origem.tooltip = detalhe
+        detalhe_selo_origem["texto"] = detalhe
         selo_origem.visible = True
 
     # Nota fixa do NRTL (requisito de UI da seção 2.8): α12 só é regredido
@@ -947,6 +1011,7 @@ def main(page: ft.Page):
         linha_botoes_tabela,
         ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
         mensagem_status,
+        linha_erro_comparativo,
         legenda,
         ft.Container(content=chart, height=300),
         legenda_gamma,
