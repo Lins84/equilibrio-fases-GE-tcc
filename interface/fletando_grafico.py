@@ -104,16 +104,37 @@ def importar_pontos_csv(
     return pontos, ignoradas
 
 
+# Escala de espaçamento única para o app inteiro (2026-09-28, passada de
+# estética) — evita valores soltos espalhados sem critério; cada uso abaixo
+# escolhe um destes três. 4/8/12 (espremido pra caber no zoom) ficou feio e
+# mal espaçado (relatado pelo autor) — a causa real do desktop não caber em
+# 100% de zoom era os dois gráficos empilhados ocupando espaço vertical
+# demais, não o padding dos cards. Resolvido colocando os gráficos lado a
+# lado no desktop (ver construir_grafico_p_xy/gamma), o que permite devolver
+# um espaçamento confortável de novo.
+ESPACO_PEQUENO = 6
+ESPACO_MEDIO = 12
+ESPACO_GRANDE = 20
+
+
 # Função principal que constrói a interface
 def main(page: ft.Page):
     # Configuração básica da página
     page.title = "Fletando - Gráfico Dinâmico"
-    page.padding = 20
+    page.padding = ESPACO_GRANDE
     # Sem isso, conteúdo mais alto que a janela fica simplesmente
     # inacessível — sem scroll nem aviso, só dá pra ver diminuindo o zoom
     # do navegador até tudo caber de uma vez. Passou despercebido com um
     # gráfico só; com o segundo gráfico (ln γ vs x1) ficou grave.
     page.scroll = ft.ScrollMode.AUTO
+    # Tema claro fixo, não o padrão do sistema/navegador (2026-09-28) — o
+    # usuário final é o orientador, projetando em sala de aula (seção 1.4
+    # do mapeamento: "fontes grandes, alto contraste"); um app que muda de
+    # claro pra escuro sozinho conforme o SO de quem abre é imprevisível
+    # nesse cenário, e o tema escuro anterior (herdado do navegador) saiu
+    # visivelmente mais escuro/baixo contraste num teste real em monitor.
+    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme = ft.Theme(color_scheme_seed=ft.Colors.BLUE_700)
 
     # Variável de largura para manter tudo alinhado
     largura_coluna = 60
@@ -140,6 +161,27 @@ def main(page: ft.Page):
             icon_size=16,
             padding=0,
             on_click=abrir,
+        )
+
+    # Agrupamento visual em cards (2026-09-28, passada de estética) — antes,
+    # tudo (sistema, sliders, tabela, botões, gráficos) ficava solto em
+    # sequência, sem hierarquia visual entre seções que fazem coisas
+    # diferentes. Cada card leva um título curto — mesma ideia de
+    # "dashboards financeiros" já citada como inspiração do selo de origem
+    # (seção 2.8 do mapeamento), aplicada agora ao layout inteiro.
+    def cartao(titulo, *controles, expand=False):
+        return ft.Card(
+            content=ft.Container(
+                content=ft.Column(
+                    controls=[
+                        ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD),
+                        *controles,
+                    ],
+                    spacing=ESPACO_PEQUENO,
+                ),
+                padding=ESPACO_MEDIO,
+            ),
+            expand=expand,
         )
 
     # 1. Criação da Tabela Vazia
@@ -1026,31 +1068,43 @@ def main(page: ft.Page):
     def construir_coluna_controles():
         return ft.Column(
             controls=[
-                dropdown_modelo,
-                linha_sistema,
-                sliders_area,
-                selo_origem,
-                nota_alpha_fixo,
-                ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
-                dt,
-                linha_botoes_tabela,
-                ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
-                mensagem_status,
-                linha_erro_comparativo,
+                cartao("Sistema", dropdown_modelo, linha_sistema),
+                cartao(
+                    "Parâmetros do modelo",
+                    sliders_area,
+                    selo_origem,
+                    nota_alpha_fixo,
+                    ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
+                ),
+                cartao(
+                    "Dados experimentais",
+                    dt,
+                    linha_botoes_tabela,
+                    ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
+                    mensagem_status,
+                    linha_erro_comparativo,
+                ),
             ],
-            spacing=10,
+            spacing=ESPACO_MEDIO,
         )
 
-    def construir_coluna_graficos(altura_grafico):
-        return ft.Column(
-            controls=[
-                legenda,
-                ft.Container(content=chart, height=altura_grafico),
-                legenda_gamma,
-                ft.Container(content=chart_gamma, height=altura_grafico),
-            ],
-            spacing=10,
-            expand=True,
+    # Um card por gráfico (não mais um "Resultados" combinado) — no desktop
+    # ficam lado a lado (ver montar_layout), cada um com `expand=True` pra
+    # dividir a largura disponível ao meio.
+    def construir_grafico_p_xy(altura, expand=False):
+        return cartao(
+            "Diagrama P-x-y",
+            legenda,
+            ft.Container(content=chart, height=altura),
+            expand=expand,
+        )
+
+    def construir_grafico_gamma(altura, expand=False):
+        return cartao(
+            "Coeficientes de atividade (ln γ)",
+            legenda_gamma,
+            ft.Container(content=chart_gamma, height=altura),
+            expand=expand,
         )
 
     # Guarda o modo atual ("mobile"/"desktop") para só reconstruir o layout
@@ -1078,21 +1132,36 @@ def main(page: ft.Page):
         espaco_topo = ft.Container(height=24)
 
         if modo == "desktop":
+            # Gráficos lado a lado, não mais empilhados (autor relatou,
+            # 2026-09-28: empilhados exigiam reduzir o zoom do navegador a
+            # 75-90% pra caber tudo sem rolar, e espremer o padding dos
+            # cards pra compensar só deixou tudo feio). Lado a lado usa a
+            # largura do desktop em vez de brigar por altura, e permite
+            # devolver um espaçamento confortável (ESPACO_* acima).
             conteudo = ft.Row(
                 controls=[
                     ft.Container(content=construir_coluna_controles(), width=420),
-                    construir_coluna_graficos(altura_grafico=400),
+                    ft.Row(
+                        controls=[
+                            construir_grafico_p_xy(altura=320, expand=True),
+                            construir_grafico_gamma(altura=320, expand=True),
+                        ],
+                        spacing=ESPACO_GRANDE,
+                        expand=True,
+                        vertical_alignment=ft.CrossAxisAlignment.START,
+                    ),
                 ],
-                spacing=24,
+                spacing=ESPACO_GRANDE,
                 vertical_alignment=ft.CrossAxisAlignment.START,
             )
         else:
             conteudo = ft.Column(
                 controls=[
                     construir_coluna_controles(),
-                    construir_coluna_graficos(altura_grafico=300),
+                    construir_grafico_p_xy(altura=300),
+                    construir_grafico_gamma(altura=300),
                 ],
-                spacing=10,
+                spacing=ESPACO_MEDIO,
             )
 
         page.controls = [espaco_topo, conteudo]
