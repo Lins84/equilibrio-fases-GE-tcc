@@ -287,11 +287,19 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
 > integração (item 1), mesmo sendo o de maior valor. Combinado em
 > 2026-08-20.
 
-1. Integrar `gemini.py` (cálculo, já validado — todos os 7 modelos Gᴱ) com
-   a UI (hoje `fletando_grafico.py` é a linha viva; `fletando.py`/`main.py`
-   são protótipos anteriores). Esse é o próximo item de maior valor: sem
-   essa integração o núcleo de cálculo não é utilizável pelo usuário final.
-   **Aguardando o "vamos integrar" do autor.**
+1. ~~Integrar `gemini.py` (cálculo, já validado — todos os 7 modelos Gᴱ)
+   com a UI (hoje `fletando_grafico.py` é a linha viva; `fletando.py`/
+   `main.py` são protótipos anteriores). Esse é o próximo item de maior
+   valor: sem essa integração o núcleo de cálculo não é utilizável pelo
+   usuário final. Aguardando o "vamos integrar" do autor.~~ **Feito em
+   2026-09-26** (commit `deba9cc`, "Liga a UI a calculate_vle_isothermal
+   — curva do modelo no gráfico"): `gerar_grafico` passou a chamar
+   `calculate_vle_isothermal` com modelo/parâmetros/componentes/
+   temperatura escolhidos na UI, sobrepondo a curva calculada aos pontos
+   digitados na tabela. Os itens 2-4 abaixo (banco IPDB, regressão de
+   Barker, comparação calculado-vs-experimental) já partem dessa
+   integração pronta. Esta entrada estava desatualizada — sinalizado
+   pelo autor em 2026-09-27.
 2. ~~Considerar expor `nrtl_params_from_ipdb` (e, futuramente, adaptadores
    equivalentes para Wilson/UNIQUAC via IPDB) na UI, para que o usuário
    possa escolher buscar parâmetros reais em vez de digitá-los
