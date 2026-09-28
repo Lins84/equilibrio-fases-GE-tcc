@@ -1010,31 +1010,96 @@ def main(page: ft.Page):
 
     construir_sliders(modelo_selecionado["nome"])
 
-    # Adiciona a tabela, os botões, o gráfico e as mensagens à página
-    page.add(
+    # Layout adaptativo (2026-09-28) — implementa, enfim, o arranjo previsto
+    # desde o rascunho original do autor e a seção 2.2 do mapeamento
+    # ("tabela de dados à esquerda + dois gráficos sincronizados à
+    # direita"), que a versão mobile-only nunca chegou a ter. Abaixo do
+    # breakpoint (celular, tela estreita): tudo empilhado numa coluna só,
+    # igual ao que já foi validado em sessão real. A partir do breakpoint
+    # (PC, navegador em janela larga): tabela/controles à esquerda, os dois
+    # gráficos à direita — reaproveitando os MESMOS objetos de controle
+    # (dt, chart, sliders_area etc.), só reorganizados em containers
+    # diferentes. `page.on_resize` reconstrói o layout ao vivo (ex.: girar
+    # o celular, redimensionar a janela do navegador).
+    LARGURA_BREAKPOINT_DESKTOP = 900
+
+    def construir_coluna_controles():
+        return ft.Column(
+            controls=[
+                dropdown_modelo,
+                linha_sistema,
+                sliders_area,
+                selo_origem,
+                nota_alpha_fixo,
+                ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
+                dt,
+                linha_botoes_tabela,
+                ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
+                mensagem_status,
+                linha_erro_comparativo,
+            ],
+            spacing=10,
+        )
+
+    def construir_coluna_graficos(altura_grafico):
+        return ft.Column(
+            controls=[
+                legenda,
+                ft.Container(content=chart, height=altura_grafico),
+                legenda_gamma,
+                ft.Container(content=chart_gamma, height=altura_grafico),
+            ],
+            spacing=10,
+            expand=True,
+        )
+
+    # Guarda o modo atual ("mobile"/"desktop") para só reconstruir o layout
+    # quando ele realmente muda — não a cada pixel de resize. Sem isso, abrir
+    # o seletor de arquivo nativo (botão "Importar CSV") no celular dispara
+    # um evento de resize (mudança de viewport ao abrir aquele painel), que
+    # reconstrói `page.controls` inteiro no meio da espera do
+    # `FilePicker.pick_files()`, derruba o listener que ele aguardava, e
+    # estoura em "TimeoutException... invoke method listener for
+    # FilePicker.pick_files" (bug relatado pelo autor, 2026-09-28).
+    modo_layout_atual = {"modo": None}
+
+    def montar_layout(e=None):
+        modo = "desktop" if (page.width or 0) >= LARGURA_BREAKPOINT_DESKTOP else "mobile"
+        if modo == modo_layout_atual["modo"]:
+            return
+        modo_layout_atual["modo"] = modo
+
         # Espaço reservado antes do 1º controle: o rótulo flutuante de
         # dropdown_modelo colava na borda superior da tela e cortava pela
         # metade em landscape no celular (visto em sessão real,
         # 2026-09-27) — aumentar page.padding não teve nenhum efeito
         # visível, então em vez de padding é espaço de layout de verdade.
-        ft.Container(height=24),
-        dropdown_modelo,
-        linha_sistema,
-        sliders_area,
-        selo_origem,
-        nota_alpha_fixo,
-        ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
-        dt,
-        linha_botoes_tabela,
-        ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
-        mensagem_status,
-        linha_erro_comparativo,
-        legenda,
-        ft.Container(content=chart, height=300),
-        legenda_gamma,
-        ft.Container(content=chart_gamma, height=300),
-    )
+        # Inofensivo no desktop (só um respiro extra no topo).
+        espaco_topo = ft.Container(height=24)
 
+        if modo == "desktop":
+            conteudo = ft.Row(
+                controls=[
+                    ft.Container(content=construir_coluna_controles(), width=420),
+                    construir_coluna_graficos(altura_grafico=400),
+                ],
+                spacing=24,
+                vertical_alignment=ft.CrossAxisAlignment.START,
+            )
+        else:
+            conteudo = ft.Column(
+                controls=[
+                    construir_coluna_controles(),
+                    construir_coluna_graficos(altura_grafico=300),
+                ],
+                spacing=10,
+            )
+
+        page.controls = [espaco_topo, conteudo]
+        page.update()
+
+    page.on_resize = montar_layout
+    montar_layout()
     gerar_grafico()
 
 
