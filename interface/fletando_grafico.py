@@ -1091,10 +1091,19 @@ def main(page: ft.Page):
     # Um card por gráfico (não mais um "Resultados" combinado) — no desktop
     # ficam lado a lado (ver montar_layout), cada um com `expand=True` pra
     # dividir a largura disponível ao meio.
+    # Altura fixa pra área da legenda — a legenda do P-x-y tem mais chips
+    # (4 a 6: tabela x/y + modelo + comparativo) que a do ln γ (2 a 4: só
+    # modelo + comparativo), então quebra em duas linhas mais cedo que a
+    # outra ao dividir a largura do desktop ao meio. Sem essa altura fixa,
+    # os dois cards ficavam com tamanhos diferentes (relatado pelo autor,
+    # 2026-09-28) — reservando espaço pra até duas linhas nos dois, os
+    # cards saem sempre do mesmo tamanho, quebre a legenda ou não.
+    ALTURA_LEGENDA = 64
+
     def construir_grafico_p_xy(altura, expand=False):
         return cartao(
             "Diagrama P-x-y",
-            legenda,
+            ft.Container(content=legenda, height=ALTURA_LEGENDA, alignment=ft.Alignment.CENTER),
             ft.Container(content=chart, height=altura),
             expand=expand,
         )
@@ -1102,7 +1111,7 @@ def main(page: ft.Page):
     def construir_grafico_gamma(altura, expand=False):
         return cartao(
             "Coeficientes de atividade (ln γ)",
-            legenda_gamma,
+            ft.Container(content=legenda_gamma, height=ALTURA_LEGENDA, alignment=ft.Alignment.CENTER),
             ft.Container(content=chart_gamma, height=altura),
             expand=expand,
         )
