@@ -692,25 +692,42 @@ def main(page: ft.Page):
     # thermo.Chemical dentro de calculate_vle_isothermal) e temperatura do
     # sistema. Recalculam a curva ao sair do campo (on_blur/on_submit) —
     # não a cada tecla, para não repetir Chemical() com nome incompleto.
+    # Largura (220) igual à do dropdown_modelo, por pedido do autor — mantém
+    # os campos da "linha do sistema" visualmente alinhados com ele; texto
+    # centralizado, mesmo padrão já usado nos campos da tabela.
     campo_componente1 = ft.TextField(
-        label="Componente 1", value="ethanol", width=180,
+        label="Componente 1", value="ethanol", width=220,
+        text_align=ft.TextAlign.CENTER,
         on_blur=gerar_grafico, on_submit=gerar_grafico,
     )
     campo_componente2 = ft.TextField(
-        label="Componente 2", value="water", width=180,
+        label="Componente 2", value="water", width=220,
+        text_align=ft.TextAlign.CENTER,
         on_blur=gerar_grafico, on_submit=gerar_grafico,
     )
     campo_temperatura = ft.TextField(
         label="Temperatura (°C)",
         value="70",
-        width=150,
+        width=220,
+        text_align=ft.TextAlign.CENTER,
         keyboard_type=ft.KeyboardType.NUMBER,
         on_blur=gerar_grafico,
         on_submit=gerar_grafico,
     )
+    # `wrap=True` (mesmo padrão já usado nas linhas de botões do app):
+    # 3 campos de 220px + espaçamento somam mais que a área útil de um
+    # celular em retrato (~340-370px) — sem quebra, os campos ultrapassavam
+    # a borda da tela desde a primeira versão (bug relatado pelo autor,
+    # 2026-09-28).
+    # `expand=True` é o que faz o `alignment=CENTER` valer: sem ele, a Row só
+    # ocupa a largura dos próprios campos (não a da página), e centralizar
+    # dentro dela mesma não tem efeito nenhum.
     linha_sistema = ft.Row(
         controls=[campo_componente1, campo_componente2, campo_temperatura],
         spacing=12,
+        wrap=True,
+        alignment=ft.MainAxisAlignment.CENTER,
+        expand=True,
     )
 
     # 6. Sliders dos parâmetros do modelo escolhido — guardam os valores
