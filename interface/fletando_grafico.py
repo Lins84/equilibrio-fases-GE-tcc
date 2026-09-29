@@ -1,6 +1,7 @@
 import csv
 import io
 import math
+import textwrap
 
 import flet as ft
 import flet_charts as fch
@@ -148,10 +149,19 @@ def main(page: ft.Page):
     # explicação muda em tempo real (ex.: origem do parâmetro).
     def icone_info(obter_texto, titulo="Sobre este valor"):
         def abrir(e):
+            # Quebra de linha manual via textwrap, não `width` no
+            # Container/Text — as duas tentativas anteriores (width no
+            # Text, depois Container(width=320) em volta dele) não
+            # bastaram pra impedir o texto de vazar pras laterais dentro
+            # do AlertDialog (autor confirmou nas duas vezes, 2026-09-28).
+            # Inserindo as quebras de linha (`\n`) no próprio texto, a
+            # largura de cada linha fica garantida independente de como o
+            # AlertDialog calcula a largura do conteúdo.
+            texto_quebrado = "\n".join(textwrap.wrap(obter_texto(), width=42))
             page.show_dialog(
                 ft.AlertDialog(
                     title=ft.Text(titulo),
-                    content=ft.Text(obter_texto()),
+                    content=ft.Text(texto_quebrado),
                     actions=[ft.TextButton("Ok", on_click=lambda e: page.pop_dialog())],
                 )
             )
@@ -169,14 +179,22 @@ def main(page: ft.Page):
     # diferentes. Cada card leva um título curto — mesma ideia de
     # "dashboards financeiros" já citada como inspiração do selo de origem
     # (seção 2.8 do mapeamento), aplicada agora ao layout inteiro.
-    def cartao(titulo, *controles, expand=False):
+    def cartao(titulo, *controles, expand=False, extra_titulo=None):
+        # `extra_titulo` (opcional) — um controle extra ao lado do título,
+        # no cabeçalho do card, em vez de só mais um item na lista debaixo.
+        # Usado pelo botão "Comparar" no card "Dados experimentais" (pedido
+        # do autor, 2026-09-28): fica junto do título, não lá embaixo perto
+        # de "Gerar Gráfico".
+        cabecalho = ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD)
+        if extra_titulo is not None:
+            cabecalho = ft.Row(
+                controls=[cabecalho, extra_titulo],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            )
         return ft.Card(
             content=ft.Container(
                 content=ft.Column(
-                    controls=[
-                        ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD),
-                        *controles,
-                    ],
+                    controls=[cabecalho, *controles],
                     spacing=ESPACO_PEQUENO,
                 ),
                 padding=ESPACO_MEDIO,
@@ -213,7 +231,24 @@ def main(page: ft.Page):
                 width=largura_coluna,
                 text_align=ft.TextAlign.CENTER,
                 keyboard_type=ft.KeyboardType.NUMBER,
+                # `keyboard_type=NUMBER` só troca o teclado virtual do
+                # celular — não impede digitar letras de verdade, sobretudo
+                # com teclado físico no PC (relatado pelo autor,
+                # 2026-09-28). O filtro abaixo bloqueia qualquer caractere
+                # fora de dígitos/ponto decimal/sinal de negativo, incluindo
+                # estados intermediários válidos de digitação (ex.: "-",
+                # ".", "-0.").
+                input_filter=ft.InputFilter(regex_string=r"^-?\d*\.?\d*$", allow=True),
                 border=ft.NoInputBorder(),
+                # Sem isso, "Comparar"/"Limpar Tabela" só reavaliavam se
+                # havia dado válido quando "Gerar Gráfico" era clicado —
+                # digitar direto na tabela não acendia nem apagava os
+                # botões (relatado pelo autor, 2026-09-28). `atualizar_
+                # estado_botoes_tabela` é leve (só recalcula os dois
+                # `.disabled`, não redesenha o gráfico inteiro a cada
+                # tecla) e é definida mais abaixo — resolvida por closure
+                # só quando o campo de verdade perde o foco.
+                on_blur=lambda e: atualizar_estado_botoes_tabela(),
             )
 
         # Prepara a nova linha
@@ -244,8 +279,18 @@ def main(page: ft.Page):
         dt.rows.append(nova_linha)
         page.update()
 
-    # Cria a primeira linha em branco automaticamente
-    adicionar_linha(None)
+    # Cria NUM_LINHAS_INICIAIS linhas em branco automaticamente (antes era
+    # só 1, aumentado pra 10 a pedido do autor, 2026-09-28: menos cliques em
+    # "Adicionar Novo Ponto" pra digitar um conjunto de dados típico). Extraí
+    # numa função porque "Limpar Tabela" (abaixo) precisa recriar o mesmo
+    # estado inicial.
+    NUM_LINHAS_INICIAIS = 10
+
+    def criar_linhas_iniciais():
+        for _ in range(NUM_LINHAS_INICIAIS):
+            adicionar_linha(None)
+
+    criar_linhas_iniciais()
 
     # 3. CORREÇÃO DA DEPRECIAÇÃO: Construindo um botão moderno com ft.Button
     # Em vez de text= e icon=, colocamos uma ft.Row dentro do content=
@@ -304,7 +349,51 @@ def main(page: ft.Page):
         ),
         on_click=importar_csv,
     )
-    linha_botoes_tabela = ft.Row(controls=[botao_adicionar, botao_importar_csv])
+
+    # 3c. Limpar tabela (2026-09-28, pedido do autor) — descarta todas as
+    # linhas atuais (digitadas ou importadas) e volta ao estado inicial
+    # (NUM_LINHAS_INICIAIS linhas em branco), sem precisar excluir linha por
+    # linha manualmente.
+    def limpar_tabela(e=None):
+        dt.rows.clear()
+        criar_linhas_iniciais()
+        gerar_grafico(
+            mensagem_extra=f"Tabela limpa — {NUM_LINHAS_INICIAIS} linha(s) em branco restaurada(s)."
+        )
+
+    # Ícone só (não botão com texto) — pedido do autor, 2026-09-28: precisa
+    # caber ao lado de "Comparar" no cabeçalho do card, sem disputar espaço
+    # com o título. "Delete sweep" (vassoura+lixo) é o ícone Material
+    # padrão pra "limpar tudo", autoexplicativo mesmo sem o rótulo de texto.
+    botao_limpar_tabela = ft.IconButton(
+        icon=ft.Icons.DELETE_SWEEP,
+        tooltip="Limpar Tabela",
+        on_click=limpar_tabela,
+    )
+
+    linha_botoes_tabela = ft.Row(controls=[botao_adicionar, botao_importar_csv], wrap=True)
+
+    # Reavaliação leve de "Comparar"/"Limpar Tabela" ao editar a tabela
+    # diretamente (ver criar_campo, on_blur) — só checa se existe ao menos
+    # um ponto válido, sem recalcular o modelo nem redesenhar os gráficos
+    # (isso só acontece em "Gerar Gráfico"). `botao_comparar` é definido
+    # mais abaixo; resolvido por closure, sem problema (mesmo padrão já
+    # usado em `importar_csv`/`gerar_grafico`).
+    def tabela_tem_ponto_valido():
+        for linha in dt.rows:
+            p_field, x_field, y_field = (linha.cells[i].content for i in range(3))
+            try:
+                parse_ponto(p_field.value, x_field.value, y_field.value)
+                return True
+            except ValueError:
+                continue
+        return False
+
+    def atualizar_estado_botoes_tabela():
+        tem_dado = tabela_tem_ponto_valido()
+        botao_comparar.disabled = not tem_dado
+        botao_limpar_tabela.disabled = not tem_dado
+        page.update()
 
     # 4. Gráfico P-x-y a partir dos dados brutos da tabela (Etapa 2 — sem
     # nenhum cálculo de modelo; só visualiza o que o usuário digitou).
@@ -454,6 +543,11 @@ def main(page: ft.Page):
         # comparação calculada antes, pra não sobrar uma curva comparativa
         # desatualizada em relação ao modelo/tabela atual.
         botao_comparar.disabled = not pontos_validos
+        # "Limpar Tabela" fica apagado sem dado nenhum pra apagar — mesmo
+        # critério do "Comparar" (pontos_validos), pedido do autor,
+        # 2026-09-28. O clique apaga qualquer dado presente, digitado à mão
+        # ou importado via CSV — `limpar_tabela` não distingue a origem.
+        botao_limpar_tabela.disabled = not pontos_validos
         chip_liquido_comparativo.visible = False
         chip_vapor_comparativo.visible = False
         chip_gamma1_comparativo.visible = False
@@ -734,9 +828,11 @@ def main(page: ft.Page):
     # thermo.Chemical dentro de calculate_vle_isothermal) e temperatura do
     # sistema. Recalculam a curva ao sair do campo (on_blur/on_submit) —
     # não a cada tecla, para não repetir Chemical() com nome incompleto.
-    # Largura (220) igual à do dropdown_modelo, por pedido do autor — mantém
-    # os campos da "linha do sistema" visualmente alinhados com ele; texto
-    # centralizado, mesmo padrão já usado nos campos da tabela.
+    # Largura fixa (220, igual ao dropdown_modelo) só no mobile — no
+    # desktop os 3 campos ficam com `expand=True` (ver montar_layout), pra
+    # sempre caberem na largura real do card "Sistema" (que agora divide a
+    # linha com "Parâmetros do modelo", mais estreito que antes), em vez de
+    # um valor fixo em pixels que quebra de novo a cada mudança de layout.
     campo_componente1 = ft.TextField(
         label="Componente 1", value="ethanol", width=220,
         text_align=ft.TextAlign.CENTER,
@@ -756,6 +852,7 @@ def main(page: ft.Page):
         on_blur=gerar_grafico,
         on_submit=gerar_grafico,
     )
+    campos_sistema = (campo_componente1, campo_componente2, campo_temperatura)
     # `wrap=True` (mesmo padrão já usado nas linhas de botões do app):
     # 3 campos de 220px + espaçamento somam mais que a área útil de um
     # celular em retrato (~340-370px) — sem quebra, os campos ultrapassavam
@@ -799,7 +896,9 @@ def main(page: ft.Page):
     # Estado mutável lido por icone_selo_origem no momento do toque — não dá
     # para fechar o texto no clique do ícone como nas explicações fixas
     # (ΔP/Δy) porque este detalhe muda em tempo real (atualizar_selo_origem).
-    detalhe_selo_origem = {"texto": ""}
+    # Guarda também o `tipo` (não só o `texto`), necessário pra restaurar o
+    # selo certo ao desfazer (ver empilhar_historico/desfazer, abaixo).
+    detalhe_selo_origem = {"tipo": None, "texto": ""}
     icone_selo_origem = icone_info(
         lambda: detalhe_selo_origem["texto"], titulo="Origem deste parâmetro"
     )
@@ -814,13 +913,69 @@ def main(page: ft.Page):
         chip_selo_origem.bgcolor = bg
         texto_selo_origem.value = rotulo
         texto_selo_origem.color = fg
+        detalhe_selo_origem["tipo"] = tipo
         detalhe_selo_origem["texto"] = detalhe
         selo_origem.visible = True
+
+    # Desfazer (2026-09-28, pedido do autor: "cliquei no Barker e me
+    # arrependi") — histórico dos últimos MAX_HISTORICO_PARAMETROS estados
+    # dos parâmetros do modelo (valores dos sliders + selo de origem),
+    # empilhado só antes de "Buscar do Banco" e "Calcular por Regressão
+    # (Barker)" — as duas ações que sobrescrevem todos os sliders de uma vez
+    # sem o usuário ter digitado nada diretamente. Arrastar um slider
+    # manualmente não empilha: é o próprio usuário no controle, diferente de
+    # um valor que veio de fora. Aumentado de 2 para 5 a pedido do autor
+    # (2026-09-28) — mudança de uma linha, já que o histórico é uma lista
+    # genérica, não variáveis fixas por passo.
+    MAX_HISTORICO_PARAMETROS = 5
+    historico_parametros = []
+
+    def empilhar_historico():
+        if not parametros_atuais:
+            return
+        historico_parametros.append({
+            "parametros": dict(parametros_atuais),
+            "tipo_origem": detalhe_selo_origem["tipo"],
+            "detalhe_origem": detalhe_selo_origem["texto"],
+        })
+        del historico_parametros[:-MAX_HISTORICO_PARAMETROS]
+        botao_desfazer.disabled = False
+
+    def desfazer(e=None):
+        if not historico_parametros:
+            return
+        estado = historico_parametros.pop()
+        for chave, valor in estado["parametros"].items():
+            if chave not in sliders_por_chave:
+                continue
+            slider, valor_texto, rotulo = sliders_por_chave[chave]
+            slider.value = max(slider.min, min(slider.max, valor))
+            valor_texto.value = f"{rotulo} = {valor:.3g}"
+            parametros_atuais[chave] = valor
+        if estado["tipo_origem"] is not None:
+            atualizar_selo_origem(estado["tipo_origem"], estado["detalhe_origem"])
+        botao_desfazer.disabled = not historico_parametros
+        gerar_grafico(mensagem_extra="Última alteração de parâmetros desfeita.")
+
+    botao_desfazer = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.UNDO), ft.Text("Desfazer")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=desfazer,
+        disabled=True,
+    )
 
     # Nota fixa do NRTL (requisito de UI da seção 2.8): α12 só é regredido
     # nunca — quando não vem do banco IPDB (que traz valor medido real),
     # fica fixado por convenção. Verdadeira nos dois casos, sem precisar
     # rastrear a origem de α12 separadamente do restante do selo.
+    # `expand=True` no Text (não no Row) — sem isso, o texto não tinha
+    # limite de largura e podia vazar pra fora do card "Parâmetros do
+    # modelo" (mesma classe de bug do texto do ⓘ, 2026-09-28); com
+    # `expand=True`, o texto ocupa só o espaço que sobra ao lado do ícone
+    # e quebra linha dentro dele.
     nota_alpha_fixo = ft.Row(
         controls=[
             ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=ft.Colors.GREY_600),
@@ -831,6 +986,7 @@ def main(page: ft.Page):
                 size=11,
                 color=ft.Colors.GREY_600,
                 italic=True,
+                expand=True,
             ),
         ],
         spacing=4,
@@ -841,9 +997,14 @@ def main(page: ft.Page):
         sliders_area.controls.clear()
         parametros_atuais.clear()
         sliders_por_chave.clear()
+        # Histórico não atravessa troca de modelo — os parâmetros de um
+        # modelo diferente não têm relação com os do anterior.
+        historico_parametros.clear()
+        botao_desfazer.disabled = True
 
         botao_buscar_banco.visible = nome_modelo in MODELOS_COM_BANCO_IPDB
         botao_regressao.visible = nome_modelo in PARAM_SLIDERS
+        botao_desfazer.visible = nome_modelo in PARAM_SLIDERS
         nota_alpha_fixo.visible = (nome_modelo == "NRTL")
 
         specs = PARAM_SLIDERS.get(nome_modelo)
@@ -929,6 +1090,7 @@ def main(page: ft.Page):
             page.update()
             return
 
+        empilhar_historico()
         for chave, valor in params.items():
             if chave not in sliders_por_chave:
                 continue
@@ -1009,6 +1171,7 @@ def main(page: ft.Page):
             page.update()
             return
 
+        empilhar_historico()
         for chave, valor in resultado["params"].items():
             if chave not in sliders_por_chave:
                 continue
@@ -1065,27 +1228,42 @@ def main(page: ft.Page):
     # o celular, redimensionar a janela do navegador).
     LARGURA_BREAKPOINT_DESKTOP = 900
 
-    def construir_coluna_controles():
-        return ft.Column(
-            controls=[
-                cartao("Sistema", dropdown_modelo, linha_sistema),
-                cartao(
-                    "Parâmetros do modelo",
-                    sliders_area,
-                    selo_origem,
-                    nota_alpha_fixo,
-                    ft.Row(controls=[botao_buscar_banco, botao_regressao], wrap=True),
-                ),
-                cartao(
-                    "Dados experimentais",
-                    dt,
-                    linha_botoes_tabela,
-                    ft.Row(controls=[botao_gerar_grafico, botao_comparar], wrap=True),
-                    mensagem_status,
-                    linha_erro_comparativo,
-                ),
-            ],
-            spacing=ESPACO_MEDIO,
+    # Um card por seção — antes viviam juntos numa única "coluna de
+    # controles"; a partir de 2026-09-28 o desktop os espalha em posições
+    # diferentes (Sistema e Parâmetros embaixo dos gráficos, Dados
+    # experimentais isolado à esquerda), então cada um vira uma função
+    # própria em vez de um bloco fixo.
+    def construir_card_sistema(expand=False):
+        return cartao("Sistema", dropdown_modelo, linha_sistema, expand=expand)
+
+    def construir_card_parametros(expand=False):
+        return cartao(
+            "Parâmetros do modelo",
+            sliders_area,
+            selo_origem,
+            nota_alpha_fixo,
+            ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
+            expand=expand,
+        )
+
+    def construir_card_dados(expand=False):
+        # Revertido (2026-09-28): embrulhar `dt` num Column/Row com altura
+        # fixa e scroll (tentativa de caber tudo em 100% de zoom) quebrava
+        # a renderização do ícone de excluir — sobrava só um traço
+        # vermelho (parecendo "i"), e piorou pra sumir de vez ao adicionar
+        # o scroll horizontal também. `dt` volta a ser filho direto do
+        # card, sem wrapper; a altura extra das 10 linhas soma na página
+        # (rolagem normal do navegador/`page.scroll` já cobre isso), em
+        # vez de arriscar quebrar o DataTable de novo.
+        return cartao(
+            "Dados experimentais",
+            dt,
+            linha_botoes_tabela,
+            botao_gerar_grafico,
+            mensagem_status,
+            linha_erro_comparativo,
+            expand=expand,
+            extra_titulo=ft.Row(controls=[botao_comparar, botao_limpar_tabela], spacing=4),
         )
 
     # Um card por gráfico (não mais um "Resultados" combinado) — no desktop
@@ -1132,6 +1310,18 @@ def main(page: ft.Page):
             return
         modo_layout_atual["modo"] = modo
 
+        # Campos de componente/temperatura: largura fixa no mobile (mesma
+        # de sempre), `expand=True` no desktop — pra caber na largura real
+        # do card "Sistema", que varia conforme o tamanho da janela.
+        # `wrap` da Row precisa desligar no desktop: `expand` num filho
+        # não tem efeito dentro de uma Row com `wrap=True` (ela vira um
+        # Wrap por baixo, que não suporta filho flexível) — sem
+        # `wrap=False`, os campos não cresceriam pra preencher a largura.
+        for campo in campos_sistema:
+            campo.width = None if modo == "desktop" else 220
+            campo.expand = modo == "desktop"
+        linha_sistema.wrap = modo != "desktop"
+
         # Espaço reservado antes do 1º controle: o rótulo flutuante de
         # dropdown_modelo colava na borda superior da tela e cortava pela
         # metade em landscape no celular (visto em sessão real,
@@ -1141,32 +1331,48 @@ def main(page: ft.Page):
         espaco_topo = ft.Container(height=24)
 
         if modo == "desktop":
-            # Gráficos lado a lado, não mais empilhados (autor relatou,
-            # 2026-09-28: empilhados exigiam reduzir o zoom do navegador a
-            # 75-90% pra caber tudo sem rolar, e espremer o padding dos
-            # cards pra compensar só deixou tudo feio). Lado a lado usa a
-            # largura do desktop em vez de brigar por altura, e permite
-            # devolver um espaçamento confortável (ESPACO_* acima).
+            # Reorganizado a pedido do autor (2026-09-28): a tabela de
+            # dados fica sozinha, isolada à esquerda (com mais linhas
+            # visíveis de uma vez — ver adicionar_linha), e Sistema +
+            # Parâmetros do modelo saem da esquerda e vão para uma segunda
+            # fileira, lado a lado, embaixo dos dois gráficos.
             conteudo = ft.Row(
                 controls=[
-                    ft.Container(content=construir_coluna_controles(), width=420),
-                    ft.Row(
+                    ft.Container(content=construir_card_dados(), width=420),
+                    ft.Column(
                         controls=[
-                            construir_grafico_p_xy(altura=320, expand=True),
-                            construir_grafico_gamma(altura=320, expand=True),
+                            ft.Row(
+                                controls=[
+                                    construir_grafico_p_xy(altura=320, expand=True),
+                                    construir_grafico_gamma(altura=320, expand=True),
+                                ],
+                                spacing=ESPACO_GRANDE,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
+                            ),
+                            ft.Row(
+                                controls=[
+                                    construir_card_sistema(expand=True),
+                                    construir_card_parametros(expand=True),
+                                ],
+                                spacing=ESPACO_GRANDE,
+                                vertical_alignment=ft.CrossAxisAlignment.START,
+                            ),
                         ],
                         spacing=ESPACO_GRANDE,
                         expand=True,
-                        vertical_alignment=ft.CrossAxisAlignment.START,
                     ),
                 ],
                 spacing=ESPACO_GRANDE,
                 vertical_alignment=ft.CrossAxisAlignment.START,
             )
         else:
+            # Mobile continua empilhado na ordem original, validada em
+            # sessão real — a reorganização acima é só pro desktop.
             conteudo = ft.Column(
                 controls=[
-                    construir_coluna_controles(),
+                    construir_card_sistema(),
+                    construir_card_parametros(),
+                    construir_card_dados(),
                     construir_grafico_p_xy(altura=300),
                     construir_grafico_gamma(altura=300),
                 ],
