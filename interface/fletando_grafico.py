@@ -230,7 +230,7 @@ def main(page: ft.Page):
 
     # 2. Função geradora de linhas — `valores`, se informado, é (P, x, y) já
     # validado (usado pela importação de CSV) para pré-preencher a linha.
-    def adicionar_linha(e=None, valores=None):
+    def adicionar_linha(e=None, valores=None, atualizar=True):
         textos_iniciais = [str(v) for v in valores] if valores else ["", "", ""]
 
         # Bloqueia caractere não numérico ao digitar (não só o teclado
@@ -291,20 +291,31 @@ def main(page: ft.Page):
             ft.DataCell(botao_excluir),
         ]
 
-        # Adiciona a linha à tabela e atualiza a interface
+        # Adiciona a linha à tabela e atualiza a interface — `atualizar`
+        # pode ser desligado por quem chama em lote (criação inicial,
+        # importação de CSV), pra mandar só UM `page.update()` no final em
+        # vez de um por linha. Um `page.update()` por linha, disparado em
+        # sequência rápida, é o suspeito principal de um bug intermitente
+        # (pré-existente, não introduzido hoje) em que o Flutter no
+        # celular quebra a renderização logo na carga da página — o
+        # próprio autor confirmou que o problema já aparece "de fábrica",
+        # sem precisar de nenhuma interação (2026-09-28).
         dt.rows.append(nova_linha)
-        page.update()
+        if atualizar:
+            page.update()
 
     # Cria NUM_LINHAS_INICIAIS linhas em branco automaticamente (antes era
     # só 1, aumentado pra 10 a pedido do autor, 2026-09-28: menos cliques em
     # "Adicionar Novo Ponto" pra digitar um conjunto de dados típico). Extraí
     # numa função porque "Limpar Tabela" (abaixo) precisa recriar o mesmo
-    # estado inicial.
+    # estado inicial. `atualizar=False` — só um `page.update()` no final,
+    # feito por quem chama esta função (o carregamento inicial da página e
+    # o "Limpar Tabela" já mandam sua própria atualização completa depois).
     NUM_LINHAS_INICIAIS = 10
 
     def criar_linhas_iniciais():
         for _ in range(NUM_LINHAS_INICIAIS):
-            adicionar_linha(None)
+            adicionar_linha(None, atualizar=False)
 
     criar_linhas_iniciais()
 
@@ -352,7 +363,7 @@ def main(page: ft.Page):
 
         dt.rows.clear()
         for ponto in pontos:
-            adicionar_linha(valores=ponto)
+            adicionar_linha(valores=ponto, atualizar=False)
 
         aviso = f" {ignoradas_csv} linha(s) do CSV ignorada(s) por dado inválido." if ignoradas_csv else ""
         gerar_grafico(mensagem_extra=f"{len(pontos)} ponto(s) importado(s) do CSV.{aviso}")
@@ -541,7 +552,7 @@ def main(page: ft.Page):
     # gráfico. Para Margules/Van Laar/Wilson/NRTL os parâmetros vêm dos
     # sliders (parametros_atuais); para UNIQUAC/UNIFAC vêm de
     # montar_parametros_automaticos, resolvido a partir dos componentes.
-    def gerar_grafico(e=None, mensagem_extra=None):
+    def gerar_grafico(e=None, mensagem_extra=None, atualizar_pagina=True):
         pontos_validos = []
         linhas_ignoradas = 0
         for linha in dt.rows:
@@ -650,7 +661,8 @@ def main(page: ft.Page):
                 "gerar o gráfico."
             )
             mensagem_status.color = ft.Colors.RED
-            page.update()
+            if atualizar_pagina:
+                page.update()
             return
 
         chart.data_series = series
@@ -687,7 +699,15 @@ def main(page: ft.Page):
         mensagem_status.value = " ".join(mensagens)
         mensagem_status.color = ft.Colors.ORANGE if mensagens else ""
 
-        page.update()
+        # `atualizar_pagina=False` só na carga inicial da página (ver
+        # montar_layout/main) — junta o que seria 2 `page.update()`
+        # seguidos (um daqui, um do montar_layout) num só, evitando
+        # disparar duas atualizações em sequência rápida logo na
+        # inicialização (suspeito do bug intermitente relatado pelo
+        # autor, 2026-09-28 — a página já chegava quebrada, sem precisar
+        # de nenhuma interação).
+        if atualizar_pagina:
+            page.update()
 
     botao_gerar_grafico = ft.Button(
         content=ft.Row(
@@ -1034,6 +1054,16 @@ def main(page: ft.Page):
                     "enquanto.",
                     color=ft.Colors.GREY_600,
                     italic=True,
+                    # `key` estável (2026-09-28) — sem identidade própria,
+                    # trocar de modelo repetidamente/rápido no dropdown
+                    # podia confundir a reconciliação de widgets do
+                    # Flutter (bug intermitente e pré-existente,
+                    # reproduzido pelo autor mesmo numa versão antiga do
+                    # código — não é regressão de hoje). Um `key` único
+                    # por modelo garante que o Flutter sempre trata isso
+                    # como um widget novo, nunca reaproveita estado de um
+                    # widget antigo por engano.
+                    key=ft.ValueKey(f"sem_sliders_{nome_modelo}"),
                 )
             )
             if nome_modelo == "UNIFAC":
@@ -1070,6 +1100,13 @@ def main(page: ft.Page):
                     )
                 gerar_grafico()
 
+            # `key` estável por modelo+parâmetro (não só `spec["chave"]"`,
+            # que se repete entre modelos — ex.: "A12" existe em Margules
+            # 2P e Van Laar) — mesmo motivo do `key` do texto "sem
+            # sliders" acima: evita o Flutter reaproveitar por engano o
+            # estado de um slider de um modelo anterior ao trocar rápido
+            # no dropdown.
+            chave_unica = f"{nome_modelo}_{spec['chave']}"
             slider = ft.Slider(
                 min=spec["min"],
                 max=spec["max"],
@@ -1077,8 +1114,11 @@ def main(page: ft.Page):
                 on_change=on_change,
                 on_change_end=on_change_end,
                 expand=True,
+                key=ft.ValueKey(f"slider_{chave_unica}"),
             )
-            sliders_area.controls.append(ft.Row([valor_texto, slider]))
+            sliders_area.controls.append(
+                ft.Row([valor_texto, slider], key=ft.ValueKey(f"linha_{chave_unica}"))
+            )
             sliders_por_chave[spec["chave"]] = (slider, valor_texto, spec["rotulo"])
 
         atualizar_selo_origem(
@@ -1326,17 +1366,20 @@ def main(page: ft.Page):
             return
         modo_layout_atual["modo"] = modo
 
-        # Campos de componente/temperatura: largura fixa no mobile (mesma
-        # de sempre), `expand=True` no desktop — pra caber na largura real
-        # do card "Sistema", que varia conforme o tamanho da janela.
-        # `wrap` da Row precisa desligar no desktop: `expand` num filho
-        # não tem efeito dentro de uma Row com `wrap=True` (ela vira um
-        # Wrap por baixo, que não suporta filho flexível) — sem
-        # `wrap=False`, os campos não cresceriam pra preencher a largura.
-        for campo in campos_sistema:
-            campo.width = None if modo == "desktop" else 220
-            campo.expand = modo == "desktop"
-        linha_sistema.wrap = modo != "desktop"
+        # Revertido em definitivo (2026-09-28): o toggle responsivo dos
+        # campos de componente/temperatura (mutar `.width`/`.expand` de
+        # controles já criados a cada chamada de `montar_layout`, inclusive
+        # na primeiríssima carga da página) foi isolado, por eliminação
+        # nesta mesma sessão, como o gatilho de um bug intermitente do
+        # Flutter em que a página carregava mostrando só o dropdown de
+        # modelo e uma área cinza no lugar do resto — reproduzível até com
+        # o código de antes desse recurso, mas só quando esse trecho
+        # específico estava ativo. Sem confirmação da causa raiz exata (é
+        # comportamento interno do Flutter/Flet, não deste código), a
+        # correção segura é não mutar mais essas propriedades depois de
+        # criadas — os campos ficam sempre com largura fixa (220px),
+        # perdendo o ajuste fino ao card "Sistema" mais estreito no
+        # desktop (cosmético) em troca de não quebrar a renderização.
 
         # Espaço reservado antes do 1º controle: o rótulo flutuante de
         # dropdown_modelo colava na borda superior da tela e cortava pela
@@ -1399,8 +1442,12 @@ def main(page: ft.Page):
         page.update()
 
     page.on_resize = montar_layout
+    # `gerar_grafico` primeiro, sem sua própria `page.update()`, montando o
+    # estado final dos controles (gráfico, mensagens, botões); só depois
+    # `montar_layout()` monta a árvore e manda a ÚNICA atualização real da
+    # carga inicial — em vez de duas seguidas (uma de cada função).
+    gerar_grafico(atualizar_pagina=False)
     montar_layout()
-    gerar_grafico()
 
 
 # Execução no Replit
