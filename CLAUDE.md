@@ -518,6 +518,105 @@ continuar sendo mantido.
   Adiado para depois da entrega do piloto; **não implementar sem pedido
   explícito do autor**.
 
+## Sessão de estética e bug de renderização intermitente (2026-09-28/29)
+
+Sessão longa dedicada à "fase de estética" (autorizada em 2026-09-28, ver
+"Decisões de engenharia do aluno" abaixo): tema claro fixo, escala de
+espaçamento, cards por seção, layout adaptativo desktop/mobile com
+gráficos e "Sistema"/"Parâmetros do modelo" reorganizados, botão
+"Desfazer" (histórico de parâmetros), "Limpar Tabela", "Comparar" movido
+pro cabeçalho do card, e mais uma dúzia de ajustes finos — tudo em
+`interface/fletando_grafico.py`, commits entre `2795aea` e `929ed60`.
+
+### O bug: renderização quebrada, intermitente, no carregamento
+
+No meio dessa sessão, o autor relatou que a página às vezes carregava no
+celular mostrando **só o dropdown de modelo**, com uma área cinza/marrom
+no lugar de todo o resto — **sem nenhuma interação do usuário**, o
+problema já vinha "de fábrica" no carregamento. Investigação seguiu por
+eliminação sistemática, com um obstáculo real: o Chromium headless deste
+ambiente Termux/proot não renderiza a página de verdade (erros de shader
+WebGL/CanvasKit mesmo com software rendering), então boa parte da
+depuração dependeu de o autor testar no celular e reportar o resultado.
+
+**Hipóteses testadas e descartadas** (nenhuma resolveu, então nenhuma era
+a causa raiz):
+- Filtro de caracteres da tabela (`ft.InputFilter`) — suspeito inicial
+  por ser o recurso mais novo/exótico; revertido para filtro em Python
+  puro (`on_change`) de qualquer forma, por ser mais simples.
+- Quebra de linha ausente no cabeçalho do card (Row sem `wrap=True`) —
+  bug real por si só (corrigido), mas não a causa deste problema.
+- Número de linhas iniciais da tabela (10 vs. 1).
+- Botão "Desfazer" e o mecanismo `extra_titulo` do cabeçalho do card,
+  isolados via bisseção de código.
+- `key` estável nos sliders (prática padrão contra bugs de reconciliação
+  de listas dinâmicas no Flutter) — mantido por ser boa prática, mas não
+  resolveu sozinho.
+- Debounce no `on_select` do dropdown (hipótese: seleções rápidas
+  disparando atualizações sobrepostas) — descartada quando o autor
+  esclareceu que o problema **já aparecia no carregamento**, sem precisar
+  tocar no dropdown.
+- Juntar duas chamadas `page.update()` seguidas no final da inicialização
+  em uma só.
+- Trocar o motor de renderização web de CanvasKit/WebGL para HTML puro
+  (editando `webRenderer` no template do pacote `flet_web` instalado, só
+  para teste local).
+- Cache do navegador (refresh forçado, aba anônima, force-stop do app do
+  navegador) — descartado porque o problema persistia mesmo assim.
+- Túnel público (`localtunnel`) como causa — descartado testando via
+  `http://localhost:PORTA` direto no celular (mesmo aparelho que roda o
+  servidor Termux), reproduzindo o mesmo problema sem nenhum túnel no
+  meio.
+
+**Confirmação de que não era regressão do dia:** publicadas duas branches
+de checkpoint (`checkpoint-mobile-ok-2026-09-28` no commit `153c14e`,
+antes da reorganização do layout desktop; `checkpoint-pc-ok-2026-09-28`
+no estado então atual) para o autor testar em isolamento. **O bug
+reproduziu até na versão antiga**, confirmando que era um problema
+pré-existente, não introduzido pelas mudanças de estética — e o autor
+relatou já ter visto esse mesmo tipo de trava antes, "como se fosse um
+erro do Flet mesmo". As branches foram apagadas depois de servirem seu
+propósito (os commits continuam no histórico normal do branch).
+
+**Causa isolada por eliminação:** o trecho de `montar_layout` que ajustava
+a largura dos campos de componente/temperatura conforme desktop ou
+mobile **mutava propriedades (`width`, `expand`) de `TextField`s já
+criados**, bem no momento da primeira montagem da página. Era o único
+lugar do app inteiro que fazia isso — todo o resto do código sempre cria
+controles novos a cada reconstrução, nunca muda propriedades de layout de
+um controle já existente. Desativar esse trecho (isolado por bisseção,
+testando peça por peça) foi a única mudança, dentre todas as testadas,
+que consistentemente resolveu o problema — confirmado pelo autor em
+múltiplas recargas, no celular e no PC.
+
+**Diagnóstico:** não foi possível confirmar a causa raiz exata do lado do
+Flutter (exigiria investigar o código-fonte Dart do framework), mas o
+padrão é consistente com uma falha de sincronização interna do Flet/
+Flutter ao mutar propriedades de um controle exatamente no momento em
+que ele é anexado à árvore da página pela primeira vez — não um erro de
+lógica desta aplicação.
+
+**Correção aplicada:** os campos de componente/temperatura voltaram a ter
+largura fixa (220px) sempre, sem o ajuste dinâmico. **Custo aceito:**
+perda do ajuste fino ao card "Sistema" mais estreito no desktop (efeito
+cosmético — os campos não preenchem toda a largura disponível), em troca
+de não quebrar a renderização. Mantidos como reforços de robustez, mesmo
+não sendo a causa raiz: `key` estável nos sliders/texto do card
+"Parâmetros do modelo", e parâmetros `atualizar`/`atualizar_pagina` em
+`adicionar_linha`/`gerar_grafico` para suprimir `page.update()` em
+chamadas de lote (menos tráfego desnecessário, mesmo não tendo sido a
+causa deste bug específico).
+
+**Lição de processo para a banca:** o ambiente de desenvolvimento
+(Termux/proot) não permite verificação visual confiável do app rodando
+— nem localmente (Chromium headless quebrado) nem sempre via túnel
+(serviço gratuito instável). A depuração deste bug dependeu inteiramente
+de reportes do autor testando no dispositivo real, com bisseção de
+código guiada por hipóteses e eliminação sistemática — um exemplo
+concreto de como a cadeia de validação (seção 5.2 do mapeamento) funciona
+na prática quando a ferramenta de IA não tem como verificar o resultado
+sozinha.
+
 ## Decisões de engenharia do aluno na produção da aplicação
 
 Criada em 2026-09-12, a pedido do autor: um mapeamento cronológico que
