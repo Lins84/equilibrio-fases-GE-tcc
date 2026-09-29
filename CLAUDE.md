@@ -73,12 +73,18 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   estático de exemplo via matplotlib, exibido como `ft.Image`.
 - `interface/fletando.py` (~218 linhas) — tabela dinâmica de pontos P/x/y
   com adição/remoção de linhas via `ft.DataTable`.
-- `interface/fletando_grafico.py` (~218 linhas) — **a linha viva da UI**:
-  a tabela do `fletando.py` mais um `flet_charts.LineChart` que plota o diagrama
-  P-x-y a partir dos dados brutos digitados (`parse_ponto` +
-  `pontos_para_series`), com validação de entrada e mensagem de erro.
-  Ainda "Etapa 2": nenhum cálculo de modelo, só visualiza o que o usuário
-  digitou.
+- `interface/fletando_grafico.py` (~1455 linhas) — **a linha viva da UI,
+  já integrada ao motor de cálculo**: tabela editável de pontos
+  experimentais P/x/y (com importação de CSV, "Desfazer" e "Limpar
+  Tabela"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
+  parâmetros, gráfico P-x-y com a curva do modelo
+  (`calculate_vle_isothermal`) sobreposta aos pontos, e gráfico de ln γ vs
+  x1. Botões de apoio ao parâmetro: "Buscar do Banco (IPDB)" (NRTL/Wilson),
+  "Calcular por Regressão (Barker)" e "Comparar" (curva calculada nos x1
+  exatos da tabela + ΔP/Δy). Selo de origem do parâmetro com ⓘ em diálogo.
+  Layout adaptativo desktop/mobile, tema claro fixo. Histórico e decisões
+  em "Próximos passos" (itens 1-4) e em "Sessão de estética e bug de
+  renderização intermitente (2026-09-28/29)".
 
 **Apoio:**
 
@@ -115,9 +121,11 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
   gerenciado com `uv`.
 
-**Lacuna central:** cálculo e UI seguem desconectados. `calculos/gemini.py`
-está pronto e validado, mas **nenhum** dos protótipos de UI chama
-`calculate_vle_isothermal` — é exatamente o item 1 de "Próximos passos".
+**Integração cálculo ↔ UI: concluída em 2026-09-26** (commit `deba9cc`).
+`fletando_grafico.py` importa `calculos.gemini` e chama
+`calculate_vle_isothermal`. Os protótipos `main.py` e `fletando.py`
+continuam como estavam, sem ligação com o motor de cálculo, e ficam só
+como registro da evolução da UI.
 
 > **Nota para a integração:** com a separação em pastas, um script rodado
 > de dentro de `interface/` não enxerga `calculos/` automaticamente (o
@@ -162,23 +170,24 @@ está pronto e validado, mas **nenhum** dos protótipos de UI chama
 > — é um fato técnico descoberto ao rodar de verdade, registrado para
 > quando isso importar.
 
-## Estado atual (2026-08-19)
+## Estado atual (2026-09-29)
 
 Snapshot; o histórico por sessão vem logo abaixo.
 
 - **Cálculo — pronto.** Os 7 modelos Gᴱ implementados e validados contra
   as referências do `thermo` em toda a faixa de x1 (0 a 1, extremos
-  inclusos), não só em pontos de exemplo. Parâmetros reais disponíveis via
-  `IPDB` (ChemSep) para NRTL, com `nrtl_params_from_ipdb`.
-- **UI — protótipos.** `fletando_grafico.py` é o mais avançado: tabela
-  editável + gráfico P-x-y dos dados digitados, com validação de entrada.
-  Não faz nenhum cálculo de modelo.
-- **Integração — não iniciada.** É o gargalo: nada na UI chama
-  `calculate_vle_isothermal`, então o núcleo validado ainda não chega ao
-  usuário final.
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI.
-- **Sem pendências de decisão em aberto** — a última (curva poligonal) foi
-  fechada em 2026-08-19, ver seção própria.
+  inclusos). Parâmetros via IPDB (NRTL, Wilson, UNIQUAC), via grupos
+  UNIFAC e via regressão de Barker (`regress_params_barker`).
+- **UI — integrada.** `fletando_grafico.py` calcula e plota a curva do
+  modelo sobre os pontos digitados, com banco IPDB, regressão, selo de
+  origem, comparação calculado-vs-experimental (ΔP/Δy) e a primeira
+  rodada de estética.
+- **Pendências.** A estética segue em andamento (escopo: app inteiro). O
+  modo isobárico (T-x-y) está adiado para depois do piloto, em
+  "Atualizações futuras". Não há decisão de rumo em aberto neste momento.
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (5
+  scripts em `testes/`, 4 automatizados). A interface só é verificada
+  visualmente pelo autor, no dispositivo real.
 
 ## Sessão de auditoria dos modelos (2026-07-27)
 
