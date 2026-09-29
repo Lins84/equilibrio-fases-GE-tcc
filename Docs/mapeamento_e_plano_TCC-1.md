@@ -5,7 +5,7 @@
 **Orientador:** Dr. Filipe Xavier Feitosa
 **Instituição:** UFC — Centro de Tecnologia — DEQ
 **Documento gerado em:** Julho de 2026
-**Última atualização:** 2026-09-28
+**Última atualização:** 2026-09-29
 
 > **Documento vivo.** As seções de **estado** (2.2, 2.4, 3, 4.1, 5.1, 7) são atualizadas conforme o projeto anda. As seções de **registro histórico datado** (2.5, 2.6, 7.2, 7.3 e o corpo original da 5.1) são preservadas como foram escritas — valem justamente como evidência do processo, e não são reescritas retroativamente.
 
@@ -480,3 +480,5 @@ Com a assinatura Claude Pro ativa ("Habemus Pro"), o roteiro de testes de uso re
 Criada em 2026-09-13. Ideias explicitamente **adiadas para depois da entrega do TCC** — não fazem parte do escopo do projeto piloto e não devem ser implementadas sem novo pedido explícito do autor, mesmo que pareçam pequenas. Diferem da seção 7 ("Pontos em Aberto"): aquela é o que falta decidir **dentro** do piloto; esta é o que vem **depois**, se o projeto continuar sendo mantido.
 
 - **α12 do NRTL não fixo.** Hoje decidido como fixo na regressão de parâmetros (seção 2.8), por simplicidade e estabilidade numérica com poucos pontos experimentais. Se a aplicação amadurecer e passar a lidar com tabelas maiores/mais confiáveis (uso de pesquisa, Eixo 3), ajustar os três parâmetros do NRTL simultaneamente (ou expor a escolha ao usuário) vira uma opção viável a reconsiderar.
+
+- **Interação mobile em paralelo à do PC, para alunos e professor (meta secundária, 2026-09-29).** Hoje o celular é só o ambiente de desenvolvimento do autor (seção 4.1) — o app roda numa única sessão, pensada pra um PC projetando em aula (seção 1.4). A meta aqui é diferente: alunos acompanhando pelo próprio celular **ao mesmo tempo** que o professor projeta do PC, não só "o app funciona bem se aberto num celular". Isso muda o público-alvo declarado (hoje só o orientador, seção 1.4) e provavelmente exige repensar arquitetura de sessão/estado compartilhado entre dispositivos — não é ajuste de layout responsivo, que já está feito. Prioridade explicitamente secundária à versão PC (autor confirmou, 2026-09-29): PC continua sendo o que o app precisa entregar bem primeiro; isso é visão de expansão futura, não requisito do piloto. **Não implementar sem pedido explícito do autor.**
