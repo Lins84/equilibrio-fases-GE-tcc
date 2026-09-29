@@ -1,6 +1,7 @@
 import csv
 import io
 import math
+import re
 import textwrap
 
 import flet as ft
@@ -187,9 +188,17 @@ def main(page: ft.Page):
         # de "Gerar Gráfico".
         cabecalho = ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD)
         if extra_titulo is not None:
+            # `wrap=True` — sem isso, título + extra_titulo (ex.: "Dados
+            # experimentais" + botão "Comparar" + ícone "Limpar Tabela")
+            # não cabiam numa linha só no celular, e o Flutter quebrava o
+            # layout inteiro com um erro de overflow (relatado pelo autor
+            # como uma "tarja" cobrindo a tela, 2026-09-28) — mesma classe
+            # de bug já corrigida antes em linha_sistema e nas linhas de
+            # botões.
             cabecalho = ft.Row(
                 controls=[cabecalho, extra_titulo],
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                wrap=True,
             )
         return ft.Card(
             content=ft.Container(
@@ -224,6 +233,20 @@ def main(page: ft.Page):
     def adicionar_linha(e=None, valores=None):
         textos_iniciais = [str(v) for v in valores] if valores else ["", "", ""]
 
+        # Bloqueia caractere não numérico ao digitar (não só o teclado
+        # virtual do `keyboard_type=NUMBER`, que não impede letras de
+        # verdade com teclado físico). Revertido de `ft.InputFilter`
+        # (2026-09-28): esse controle quebrou a renderização no celular —
+        # tudo depois do primeiro card virava uma área cinza (erro de
+        # widget do Flutter), provável problema de serialização da regex
+        # nessa versão do Flet. Filtro em Python puro (`on_change`
+        # reescrevendo o valor) evita depender desse controle.
+        def filtrar_numero(e):
+            valor_filtrado = re.sub(r"[^0-9.\-]", "", e.control.value or "")
+            if valor_filtrado != e.control.value:
+                e.control.value = valor_filtrado
+                e.control.update()
+
         # Função para criar as caixas de texto padronizadas
         def criar_campo(valor_inicial):
             return ft.TextField(
@@ -231,14 +254,7 @@ def main(page: ft.Page):
                 width=largura_coluna,
                 text_align=ft.TextAlign.CENTER,
                 keyboard_type=ft.KeyboardType.NUMBER,
-                # `keyboard_type=NUMBER` só troca o teclado virtual do
-                # celular — não impede digitar letras de verdade, sobretudo
-                # com teclado físico no PC (relatado pelo autor,
-                # 2026-09-28). O filtro abaixo bloqueia qualquer caractere
-                # fora de dígitos/ponto decimal/sinal de negativo, incluindo
-                # estados intermediários válidos de digitação (ex.: "-",
-                # ".", "-0.").
-                input_filter=ft.InputFilter(regex_string=r"^-?\d*\.?\d*$", allow=True),
+                on_change=filtrar_numero,
                 border=ft.NoInputBorder(),
                 # Sem isso, "Comparar"/"Limpar Tabela" só reavaliavam se
                 # havia dado válido quando "Gerar Gráfico" era clicado —
