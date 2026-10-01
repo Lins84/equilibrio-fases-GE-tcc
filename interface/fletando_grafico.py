@@ -229,15 +229,27 @@ def main(page: ft.Page):
     dt = ft.DataTable(
         column_spacing=16,
         horizontal_margin=8,
+        # Unidade no cabeçalho de P (2026-10-01): o motor trabalha em kPa
+        # (`calculate_vle_isothermal` devolve `P_kPa`) e `calcular_comparativo`
+        # divide P calculado por P experimental direto — digitar mmHg ou bar
+        # produzia um ΔP sem sentido e uma curva do modelo em escala
+        # diferente dos pontos, sem nenhum aviso. x1/y1 em vez de x/y para
+        # casar com a notação do resto do app e do cálculo.
+        # Sem subscrito Unicode ("x₁") de propósito: o projeto já perdeu um
+        # rótulo por glifo ausente em navegador de celular ("Gᴱ" saiu cortado
+        # no Samsung Browser, 2026-09-27 — ver dropdown_modelo).
         columns=[
             ft.DataColumn(
-                label=ft.Text("P", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text(
+                    "P (kPa)", width=largura_coluna, text_align=ft.TextAlign.CENTER,
+                    size=13,
+                )
             ),
             ft.DataColumn(
-                label=ft.Text("x", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text("x1", width=largura_coluna, text_align=ft.TextAlign.CENTER)
             ),
             ft.DataColumn(
-                label=ft.Text("y", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text("y1", width=largura_coluna, text_align=ft.TextAlign.CENTER)
             ),
             ft.DataColumn(label=ft.Text("", width=40)),  # Coluna vazia para a lixeira
         ],
@@ -449,12 +461,26 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
-        left_axis=fch.ChartAxis(label_size=40),
+        # Rótulos de eixo (2026-10-01): até aqui os dois gráficos mostravam
+        # só números soltos, sem dizer o que era cada eixo — num material
+        # didático, exatamente o que o aluno não decifra sozinho. O eixo
+        # horizontal carrega as duas composições, porque a curva do líquido
+        # é plotada contra x1 e a do vapor contra y1 no mesmo eixo.
+        left_axis=fch.ChartAxis(
+            label_size=40,
+            title=ft.Text("P (kPa)", size=13, weight=ft.FontWeight.BOLD),
+            title_size=22,
+        ),
         # label_spacing fixa o intervalo entre marcações (0.1 em 0..1 = 11
         # rótulos). Sem isso, o eixo calculava um intervalo tão miúdo que
         # os rótulos apareciam repetidos e o gráfico pedia mais largura do
         # que cabia na tela (obrigando a diminuir o zoom do navegador).
-        bottom_axis=fch.ChartAxis(label_size=32, label_spacing=0.1),
+        bottom_axis=fch.ChartAxis(
+            label_size=32,
+            label_spacing=0.1,
+            title=ft.Text("x1, y1 (fração molar)", size=13, weight=ft.FontWeight.BOLD),
+            title_size=22,
+        ),
         visible=False,
     )
 
@@ -544,8 +570,17 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
-        left_axis=fch.ChartAxis(label_size=40),
-        bottom_axis=fch.ChartAxis(label_size=32, label_spacing=0.1),
+        left_axis=fch.ChartAxis(
+            label_size=40,
+            title=ft.Text("ln γ", size=13, weight=ft.FontWeight.BOLD),
+            title_size=22,
+        ),
+        bottom_axis=fch.ChartAxis(
+            label_size=32,
+            label_spacing=0.1,
+            title=ft.Text("x1 (fração molar)", size=13, weight=ft.FontWeight.BOLD),
+            title_size=22,
+        ),
         visible=False,
     )
 
