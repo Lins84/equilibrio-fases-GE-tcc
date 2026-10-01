@@ -73,7 +73,7 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   estático de exemplo via matplotlib, exibido como `ft.Image`.
 - `interface/fletando.py` (~218 linhas) — tabela dinâmica de pontos P/x/y
   com adição/remoção de linhas via `ft.DataTable`.
-- `interface/fletando_grafico.py` (~1455 linhas) — **a linha viva da UI,
+- `interface/fletando_grafico.py` (~1525 linhas) — **a linha viva da UI,
   já integrada ao motor de cálculo**: tabela editável de pontos
   experimentais P/x/y (com importação de CSV, "Desfazer" e "Limpar
   Tabela"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
@@ -82,9 +82,11 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   x1. Botões de apoio ao parâmetro: "Buscar do Banco (IPDB)" (NRTL/Wilson),
   "Calcular por Regressão (Barker)" e "Comparar" (curva calculada nos x1
   exatos da tabela + ΔP/Δy). Selo de origem do parâmetro com ⓘ em diálogo.
-  Layout adaptativo desktop/mobile, tema claro fixo. Histórico e decisões
-  em "Próximos passos" (itens 1-4) e em "Sessão de estética e bug de
-  renderização intermitente (2026-09-28/29)".
+  Layout adaptativo desktop/mobile (com botão para alternar os dois à mão),
+  tema claro fixo. Histórico e decisões em "Próximos passos" (itens 1-4),
+  em "Sessão de estética e bug de renderização intermitente
+  (2026-09-28/29)" e em "Sessão de verificação visual, lixeira no celular
+  e modo de exibição (2026-09-30/10-01)".
 
 **Apoio:**
 
@@ -170,7 +172,7 @@ como registro da evolução da UI.
 > — é um fato técnico descoberto ao rodar de verdade, registrado para
 > quando isso importar.
 
-## Estado atual (2026-09-29)
+## Estado atual (2026-10-01)
 
 Snapshot; o histórico por sessão vem logo abaixo.
 
@@ -180,14 +182,18 @@ Snapshot; o histórico por sessão vem logo abaixo.
   UNIFAC e via regressão de Barker (`regress_params_barker`).
 - **UI — integrada.** `fletando_grafico.py` calcula e plota a curva do
   modelo sobre os pontos digitados, com banco IPDB, regressão, selo de
-  origem, comparação calculado-vs-experimental (ΔP/Δy) e a primeira
-  rodada de estética.
-- **Pendências.** A estética segue em andamento (escopo: app inteiro). O
-  modo isobárico (T-x-y) está adiado para depois do piloto, em
-  "Atualizações futuras". Não há decisão de rumo em aberto neste momento.
+  origem, comparação calculado-vs-experimental (ΔP/Δy), estética em
+  andamento e botão para alternar entre layout de celular e de computador.
+- **Pendências.** A estética segue em andamento (escopo: app inteiro); a
+  lista de itens levantados e ainda não atacados está na sessão de
+  2026-09-30/10-01. O modo isobárico (T-x-y) está adiado para depois do
+  piloto, em "Atualizações futuras". Não há decisão de rumo em aberto
+  neste momento.
 - **Testes** são scripts avulsos rodados à mão, sem runner nem CI (5
-  scripts em `testes/`, 4 automatizados). A interface só é verificada
-  visualmente pelo autor, no dispositivo real.
+  scripts em `testes/`, 4 automatizados). A interface é verificada
+  visualmente pelo autor no dispositivo real **e**, desde 2026-09-30,
+  também pelo Claude Code por captura de tela em ambiente de nuvem — ver
+  sessão de 2026-09-30/10-01 para o alcance e os limites de cada uma.
 
 ## Sessão de auditoria dos modelos (2026-07-27)
 
@@ -626,6 +632,160 @@ concreto de como a cadeia de validação (seção 5.2 do mapeamento) funciona
 na prática quando a ferramenta de IA não tem como verificar o resultado
 sozinha.
 
+> **Ressalva acrescentada em 2026-10-01:** o parágrafo acima continua
+> verdadeiro **para o ambiente Termux**, que segue sem renderização
+> confiável. Deixou de ser verdadeiro para o projeto como um todo: em
+> 2026-09-30 montou-se, no ambiente de nuvem do Claude Code, uma captura
+> de tela que funciona (ver sessão seguinte). Os reportes do autor no
+> aparelho real continuam sendo a palavra final — mas não são mais a
+> única fonte de evidência visual.
+
+## Sessão de verificação visual, lixeira no celular e modo de exibição (2026-09-30/10-01)
+
+Sessão que começou com uma pergunta do autor — "como fazer com que você
+consiga ver mais precisamente o resultado das alterações?" — e acabou
+achando e corrigindo uma funcionalidade perdida no celular.
+
+### A captura de tela no ambiente de nuvem
+
+Ao contrário do Termux, o ambiente de nuvem do Claude Code **consegue**
+renderizar o app e fotografar o resultado. Três obstáculos tiveram que ser
+contornados, todos sem afrouxar nenhuma verificação de segurança:
+
+1. **CanvasKit/Skia vem de `www.gstatic.com`**, host bloqueado ali. Os
+   mesmos arquivos existem em disco, dentro do pacote `flet_web`
+   instalado — a requisição é interceptada e servida do disco. (É o mesmo
+   fato técnico já registrado na nota do Flet 1.0.0, agora explorado a
+   favor.)
+2. **As fontes vinham erradas.** Na primeira tentativa o `fonts.gstatic.com`
+   foi bloqueado por precaução, e o Flutter caiu numa serifa de fallback
+   com acentos e γ faltando — prints inúteis justamente para julgar
+   tipografia. O host responde normalmente; o que falha é o Chromium não
+   confiar no certificado do proxy do ambiente. Em vez de desligar a
+   verificação de TLS do navegador, cada fonte é baixada com `curl` (que
+   usa o CA correto), guardada em cache e servida do disco.
+3. **`fullPage` não funciona com Flutter**, que pinta tudo num `<canvas>`
+   do tamanho da viewport; e a página pode ser fotografada antes da
+   primeira pintura, saindo em branco. Resolvido com viewport alta o
+   suficiente para a página caber inteira e uma espera que só captura
+   depois que a tela deixa de estar em branco, com várias tentativas —
+   salvaguarda que já pegou um caso real de página que só pintou na
+   segunda tentativa.
+
+**O que a ferramenta não faz:** não interage. Como o Flutter desenha no
+canvas, não há texto no DOM para procurar — só clique por coordenada
+calculada. Ela enxerga o estado de carregamento, que já traz as duas
+curvas do modelo, mas não pontos experimentais nem a comparação. E não
+ajuda no Termux, onde o problema continua.
+
+**Duas armadilhas da própria ferramenta**, registradas porque fazem uma
+verificação *parecer* confiável sem ser: (a) `pkill -f "fletando_grafico"`
+mata o próprio shell que o executa, porque o padrão casa com a linha de
+comando dele — resolvido com o truque do colchete, `[f]letando_grafico`;
+(b) `flet run` deixa um processo filho com outra linha de comando, que
+sobrevive ao encerramento do pai e continua servindo o código antigo —
+chegou a produzir um print "provando" que uma correção não funcionava
+quando ela nem tinha subido. Sempre conferir quantas instâncias restam
+antes de capturar.
+
+### O achado: não dava para excluir um ponto pelo celular
+
+Com a página inteira visível no modo celular, apareceu o que nenhuma
+leitura de código tinha mostrado: **a coluna da lixeira não existia**.
+Medido objetivamente, varrendo seis larguras e contando blocos de pixel
+vermelho forte (a cor do ícone de excluir; o texto de aviso é laranja e
+não entra no filtro):
+
+| Largura | Antes da correção |
+|---|---|
+| 360 px | nenhuma lixeira |
+| 390 px | nenhuma lixeira |
+| 430 px | 10, mas desenhadas **fora** do card |
+| 500 / 600 / 800 px | 10, na borda do card |
+
+**Causa:** a `DataTable` tem largura própria de ~440px, sendo quase metade
+só espaço vazio (o padrão do Material reserva 56px entre colunas e 24px
+nas bordas; o conteúdo real — 3 campos de 60px mais a lixeira — soma
+~228px). No celular o card oferece ~296px úteis, então a quarta coluna
+caía fora. **Rolagem horizontal não alcançava**: testado com roda e com
+arrasto, a imagem ficou idêntica — coerente com o código, já que `dt` é
+filho direto da `Column` do card, e com o registro de que embrulhar `dt`
+num contêiner rolável quebrou a renderização do ícone em 2026-09-28.
+
+Efeito prático: no dispositivo principal de uso, restavam "Limpar Tabela"
+(que apaga tudo) ou invalidar a linha na mão — nenhum dos dois é excluir
+aquele ponto.
+
+### A correção, e por que não foi a que se cogitou primeiro
+
+A conversa tinha caminhado para um redesenho da apresentação da tabela no
+celular. A medição mostrou que bastava **apertar o espaçamento**
+(`column_spacing` 56→16, `horizontal_margin` 24→8): commit `0551055`. As
+10 lixeiras passaram a aparecer dentro do card em todas as larguras
+testadas, inclusive 360px, e o autor confirmou no aparelho real, pelo
+Termux. Com isso o redesenho foi **descartado** (ver decisões abaixo).
+
+Valor único de espaçamento para os dois modos, de propósito: ajustá-lo
+conforme desktop/mobile exigiria mutar propriedade de controle já criado
+— o gatilho do bug de renderização de 2026-09-28.
+
+**Efeito colateral cosmético, não tratado:** a tabela agora é mais estreita
+que o card, sobrando um vão à direita, mais visível no desktop (card de
+420px fixos).
+
+### O botão de alternar modo de exibição
+
+Commit `191b4c4`. A detecção automática por largura continua sendo o
+padrão; o botão apenas a sobrepõe, e a escolha manual passa a mandar — um
+resize não a desfaz. O botão é criado novo a cada montagem, junto com os
+cards, em vez de ser um controle fixo com ícone/rótulo trocados a cada
+clique: mesmo motivo de sempre, este app não muta propriedade de controle
+já criado.
+
+**Correção de rumo no meio da implementação:** a primeira versão empilhava
+os cards mas deixava eles esticando pelos 1400px do monitor — tecnicamente
+o layout mobile, mas inútil como previsão. Acrescentado um limite de 420px
+centralizado, que **só entra quando há janela sobrando**; num telefone de
+verdade a condição é falsa e o empilhamento fica idêntico ao já validado.
+
+Verificado por captura de tela (ida e volta a 1400px, com o rótulo do botão
+invertendo a cada clique; e a 390px o botão presente sem a moldura de
+simulação) e confirmado pelo autor no aparelho — inclusive ao ligar o
+"Modo para PC" nas configurações do navegador do celular, caso em que a
+largura reportada cresce, a detecção automática escolhe desktop e o botão
+continua permitindo forçar o celular. Esse teste confirma a decisão de
+deixar o manual sobrepor o automático: no desenho inverso, o modo ficaria
+pulando.
+
+### Itens de estética levantados e ainda não atacados
+
+Levantados por leitura de código e pelos prints, **sem autorização ainda**:
+
+1. A tabela não diz a unidade de P. O cabeçalho é só `P`, mas o cálculo
+   trabalha em kPa e `calcular_comparativo` divide P calculado por P
+   experimental direto — digitar mmHg ou bar produz ΔP sem sentido, sem
+   nenhum aviso.
+2. Os dois gráficos não têm rótulo de eixo (`ChartAxis` aceita `title`).
+3. O dado experimental é desenhado como linha, e mais grossa que a curva
+   do modelo (`stroke_width` 3 contra 2) — o inverso de "dado é ponto,
+   modelo é linha". É a pendência que a decisão de 2026-08-19 deixou
+   explicitamente em aberto para quando a curva do modelo dividisse o
+   gráfico com os pontos. Viável: `ChartCirclePoint`/`ChartSquarePoint`
+   para marcador e `dash_pattern` para tracejado.
+4. Seis cores de série sem relação entre si; e o vermelho, que no app já
+   significa erro e exclusão, é também uma série de dados.
+5. O app não tem nome nem cabeçalho visível (`page.title` ainda é
+   "Fletando - Gráfico Dinâmico", nome de desenvolvimento).
+6. Tamanhos de fonte contra o requisito de projeção da seção 1.4: a nota
+   do α12 é 11px, itálico, cinza sobre branco.
+7. `ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln γ.
+8. Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com a
+   escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
+   cima do "0.00").
+9. Achado nos prints: a mensagem laranja "10 linha(s) da tabela
+   ignorada(s) por dado inválido" aparece **no carregamento, com a tabela
+   vazia** — linha em branco está sendo contada como dado inválido.
+
 ## Decisões de engenharia do aluno na produção da aplicação
 
 Criada em 2026-09-12, a pedido do autor: um mapeamento cronológico que
@@ -850,6 +1010,23 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
 - **(2026-09-12) Adotar o padrão selo + ícone ⓘ** para a nota de origem
   do parâmetro (sugestão do Claude Code; a decisão de adotá-la, em vez de
   rodapé fixo ou só ícone flutuante, foi do autor).
+- **(2026-10-01) Dois modos de exibição num código só, com botão para
+  alternar — recusando a separação em dois códigos.** A ideia original do
+  autor foi "códigos diferentes independentes, interligados no mesmo
+  ambiente, com o app perguntando se é celular ou computador". Posta a
+  conta na mesa — de 1455 linhas do `fletando_grafico.py`, apenas ~180 são
+  layout; os outros ~1270 (tabela, CSV, sliders, selo, banco, regressão,
+  comparação) são iguais nos dois modos, então "dois códigos" significaria
+  duplicá-los ou extrair o comum, que é o que já existe —, o autor
+  esclareceu que por "dois códigos" queria dizer **modos de exibição**, e
+  adotou a recomendação: um código, lógica compartilhada, um montador de
+  layout por modo, e um botão de alternância. Duas escolhas dentro dela
+  também foram dele: **botão em vez de pergunta na abertura** (sem atrito
+  no caso comum, que importa numa demonstração ao vivo) e **detecção
+  automática como padrão, sobreposta pela escolha manual**. Esta última se
+  mostrou acertada no teste em aparelho real: ligando o "Modo para PC" do
+  navegador do celular, a largura reportada cresce e a detecção automática
+  escolhe desktop — no desenho inverso, o modo ficaria pulando.
 
 ### C. Decisões de processo e prestação de contas
 
@@ -946,6 +1123,39 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   seção 3 para refletir o estado real antes de seguir para qualquer
   trabalho novo — evita que o documento de prestação de contas para a
   banca fique incoerente com o código.
+- **(2026-09-30) Montar uma ferramenta de captura de tela antes de seguir
+  com a estética, e deixá-la descartável por ora.** Partiu de uma pergunta
+  do autor ("como fazer com que você consiga ver mais precisamente o
+  resultado das alterações?"). Entre fazê-la versionada no repositório —
+  reprodutível e defensável como método, mas trazendo `playwright-core`
+  como primeira dependência de desenvolvimento do projeto — ou descartável
+  do lado do assistente, o autor escolheu **ver funcionando primeiro e
+  decidir depois**. Também definiu a ordem: a ferramenta antes dos itens
+  de estética, pelo argumento de que implementar estética antes dela faria
+  cada rodada voltar a depender de ele descobrir no aparelho o que
+  quebrou. Nada foi commitado nem adicionado ao `pyproject.toml`.
+- **(2026-10-01) Fatiar a correção e começar pela mais barata, descartando
+  o redesenho.** A conversa tinha caminhado para reapresentar a tabela no
+  celular como cartões por ponto — trabalho de verdade, porque hoje os
+  valores digitados moram dentro da própria tabela e separar dados de
+  apresentação viria antes. Quando a medição mostrou que apertar o
+  espaçamento resolveria, o autor aprovou essa ordem (espaçamento → botão
+  de modo → redesenho só se necessário) e, confirmada a correção no
+  aparelho, **descartou o redesenho**. Decisão de escopo: não gastar a
+  parte mais arriscada depois que o problema que a justificava sumiu.
+- **(2026-10-01) Manter a ideia do localizador por cor como plano B, não
+  implementar.** Ideia do autor: para achar um elemento que só é
+  alcançável por coordenada, pintá-lo temporariamente com uma cor
+  inconfundível, localizá-lo por varredura de pixel e devolver a cor
+  original — generalizando o que funcionou por acaso com o vermelho da
+  lixeira. O assistente apontou que a ideia coincide com uma técnica
+  estabelecida de computação gráfica (*color picking*), mas que o custo é
+  precisar mexer no código do app para pintar o alvo, e que uma
+  alternativa possivelmente melhor (ligar a camada de acessibilidade do
+  Flutter, procurando os botões pelo nome) existe, embora não verificada.
+  O autor decidiu **não implementar nada agora** e deixar a própria ideia
+  arquivada como plano B garantido — ela funciona com certeza, enquanto a
+  camada de acessibilidade é aposta.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
