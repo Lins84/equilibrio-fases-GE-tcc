@@ -1376,8 +1376,18 @@ def main(page: ft.Page):
     # FilePicker.pick_files" (bug relatado pelo autor, 2026-09-28).
     modo_layout_atual = {"modo": None}
 
+    # Modo escolhido à mão pelo botão de alternância (2026-10-01, pedido do
+    # autor). `None` = decide pela largura da janela, como sempre foi. Depois
+    # de um clique, a escolha do usuário manda, e redimensionar a janela não
+    # a desfaz — alguém que pediu "ver como celular" num monitor largo não
+    # quer o layout pulando de volta sozinho.
+    modo_forcado = {"valor": None}
+
     def montar_layout(e=None):
-        modo = "desktop" if (page.width or 0) >= LARGURA_BREAKPOINT_DESKTOP else "mobile"
+        modo_automatico = (
+            "desktop" if (page.width or 0) >= LARGURA_BREAKPOINT_DESKTOP else "mobile"
+        )
+        modo = modo_forcado["valor"] or modo_automatico
         if modo == modo_layout_atual["modo"]:
             return
         modo_layout_atual["modo"] = modo
@@ -1404,6 +1414,35 @@ def main(page: ft.Page):
         # visível, então em vez de padding é espaço de layout de verdade.
         # Inofensivo no desktop (só um respiro extra no topo).
         espaco_topo = ft.Container(height=24)
+
+        # Botão de alternar modo de exibição (2026-10-01). Criado NOVO a cada
+        # montagem, junto com os cards, em vez de ser um controle fixo que
+        # tem ícone/rótulo trocados a cada clique — pelo mesmo motivo
+        # registrado logo acima: este app não muta propriedade de controle já
+        # criado. O `modo` da closure é o desta montagem, então o botão
+        # sempre oferece o modo oposto ao que está na tela.
+        def alternar_modo(e):
+            modo_forcado["valor"] = "desktop" if modo == "mobile" else "mobile"
+            montar_layout()
+
+        botao_modo = ft.TextButton(
+            content=ft.Row(
+                controls=[
+                    ft.Icon(
+                        ft.Icons.DESKTOP_WINDOWS if modo == "mobile" else ft.Icons.PHONE_IPHONE,
+                        size=16,
+                    ),
+                    ft.Text(
+                        "Ver como computador" if modo == "mobile" else "Ver como celular",
+                        size=13,
+                    ),
+                ],
+                tight=True,
+                spacing=6,
+            ),
+            on_click=alternar_modo,
+        )
+        linha_modo = ft.Row(controls=[botao_modo], alignment=ft.MainAxisAlignment.END)
 
         if modo == "desktop":
             # Reorganizado a pedido do autor (2026-09-28): a tabela de
@@ -1454,7 +1493,22 @@ def main(page: ft.Page):
                 spacing=ESPACO_MEDIO,
             )
 
-        page.controls = [espaco_topo, conteudo]
+            # Modo celular numa janela larga = o usuário pediu pra PREVER como
+            # fica no telefone (botão acima). Sem limite de largura, os cards
+            # esticariam pelos 1400px do monitor e a previsão não valeria
+            # nada: sliders atravessando a tela, tabela perdida num canto.
+            # A moldura só entra quando há janela sobrando — num telefone de
+            # verdade a condição é falsa e o empilhamento fica exatamente como
+            # estava, sem nenhuma mudança no que já foi validado em aparelho
+            # real.
+            LARGURA_SIMULACAO_CELULAR = 420
+            if (page.width or 0) - 2 * ESPACO_GRANDE > LARGURA_SIMULACAO_CELULAR + 60:
+                conteudo = ft.Row(
+                    controls=[ft.Container(content=conteudo, width=LARGURA_SIMULACAO_CELULAR)],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                )
+
+        page.controls = [espaco_topo, linha_modo, conteudo]
         page.update()
 
     page.on_resize = montar_layout
