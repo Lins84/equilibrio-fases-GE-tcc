@@ -212,7 +212,23 @@ def main(page: ft.Page):
         )
 
     # 1. Criação da Tabela Vazia
+    #
+    # `column_spacing`/`horizontal_margin` apertados (2026-10-01): com os
+    # padrões do Material (56 entre colunas, 24 nas bordas), a tabela pedia
+    # ~440px de largura — sendo quase metade disso só espaço vazio, já que o
+    # conteúdo (3 campos de 60 + a lixeira) soma ~228. No celular o card
+    # oferece ~296px úteis, então a quarta coluna, a da lixeira, ficava fora
+    # da tela: em 360 e 390px de largura NENHUM ícone de excluir aparecia, e
+    # não havia rolagem horizontal pra alcançá-lo — ou seja, não dava pra
+    # excluir um ponto individual pelo celular, que é o dispositivo principal
+    # de uso. Medido por varredura de larguras com captura de tela.
+    # Valor único para os dois modos de layout, de propósito: ajustar isso
+    # conforme desktop/mobile significaria mutar propriedade de controle já
+    # criado, que foi exatamente o gatilho do bug de renderização de
+    # 2026-09-28 (ver montar_layout).
     dt = ft.DataTable(
+        column_spacing=16,
+        horizontal_margin=8,
         columns=[
             ft.DataColumn(
                 label=ft.Text("P", width=largura_coluna, text_align=ft.TextAlign.CENTER)
