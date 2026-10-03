@@ -785,9 +785,15 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
 8. Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com a
    escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
    cima do "0.00").
-9. Achado nos prints: a mensagem laranja "10 linha(s) da tabela
+9. ~~Achado nos prints: a mensagem laranja "10 linha(s) da tabela
    ignorada(s) por dado inválido" aparece **no carregamento, com a tabela
-   vazia** — linha em branco está sendo contada como dado inválido.
+   vazia** — linha em branco está sendo contada como dado inválido.~~
+   **Feito em 2026-10-03:** em `gerar_grafico`, linha com os 3 campos
+   vazios deixou de entrar na contagem; só conta como "ignorada" a linha
+   com algum campo preenchido que não vira número. Antes/depois simulados:
+   tabela vazia 10 → 0 avisos; 1 linha inválida + 9 em branco 10 → 1;
+   1 válida + 1 inválida + 8 em branco 9 → 1. Confirmado também na tela
+   (captura da nuvem, sem a mensagem laranja no carregamento).
 
 ## Sessão de ajustes no PC: card Sistema, tooltip e importação de CSV (2026-10-03)
 
@@ -875,7 +881,8 @@ seguido de `chooser.setFiles(...)`. Isso atualiza o limite registrado em
 2026-09-30 ("não interage") — agora a importação de CSV pode ser testada de
 ponta a ponta, ainda por coordenada. O item 9 da lista acima (mensagem
 laranja "10 linha(s) ... ignorada(s)" com a tabela vazia no carregamento)
-**continua aberto**: aparece nos prints desta sessão.
+aparecia nos prints desta sessão e foi **corrigido na sequência** (ver o
+próprio item 9).
 
 ## Decisões de engenharia do aluno na produção da aplicação
 

@@ -666,7 +666,14 @@ def main(page: ft.Page):
                     parse_ponto(p_field.value, x_field.value, y_field.value)
                 )
             except ValueError:
-                linhas_ignoradas += 1
+                # Linha com os 3 campos vazios é só espaço reservado da
+                # tabela (ela nasce com NUM_LINHAS_INICIAIS linhas em
+                # branco), não "dado inválido": não entra na contagem do
+                # aviso. Antes, a tabela vazia no carregamento já mostrava
+                # "10 linha(s) ... ignorada(s)" (achado nos prints,
+                # 2026-10-01).
+                if any((campo.value or "").strip() for campo in (p_field, x_field, y_field)):
+                    linhas_ignoradas += 1
 
         # "Comparar" só faz sentido havendo dado experimental de verdade na
         # tabela para comparar contra — desabilitado sem isso (item 4 do
