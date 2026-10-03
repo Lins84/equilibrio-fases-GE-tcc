@@ -1505,7 +1505,9 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   passou a `INFO` cheio, 18px, `LIGHT_BLUE_600` (contraste 2,79:1 sobre o
   cartão, um pouco abaixo dos 3:1 usuais para gráficos — consequência
   aceita da escolha de um azul claro; tons mais escuros perdem o aspecto
-  de celeste). Os ⓘ do ΔP/Δy continuam no estilo discreto de antes.
+  de celeste). Depois o autor pediu que os ⓘ do erro (ΔP/Δy) ficassem
+  "como os outros": o parâmetro `destaque` foi removido e todo `icone_info`
+  (selo, ΔP, Δy) usa o mesmo ícone cheio, 18px, `LIGHT_BLUE_600`.
 
 - **(2026-10-03) Fontes e contraste para projeção: opção B, com as três
   mudanças.** O assistente mediu o contraste e os tamanhos do app, testou
