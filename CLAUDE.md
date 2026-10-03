@@ -1575,6 +1575,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   etanol/água e "Comparar") e a 360px (as 10 lixeiras continuam dentro do
   card); os 4 testes passam.
 
+- **(2026-10-03) Estilo estendido aos demais cards.** Pedido do autor
+  ("agora adapte os demais a esse mesmo estilo"), depois de aprovar o card
+  "Dados experimentais". Aplicado em `cartao()`, portanto a **todos** os
+  cards (Dados experimentais, Diagrama P-x-y, ln γ, Sistema, Parâmetros do
+  modelo): fundo branco, moldura `BLUE_200` de 1,5px, cantos de 12px, sem
+  sombra (`elevation=0`) e título em `BLUE_800` negrito. No card
+  "Parâmetros do modelo": os botões "Buscar do Banco (IPDB)", "Calcular por
+  Regressão (Barker)" e "Desfazer" usam `estilo_botao()` (secundário, com o
+  cinza de apagado do Desfazer); os sliders ficaram com trilho ativo e
+  botão `BLUE_700` e trilho inativo `BLUE_100`, e o rótulo do valor
+  ("A = 0.5") em `BLUE_GREY_900` de peso médio. Gráficos mantidos como
+  estavam (paleta de fase/origem já decidida). Verificado por captura de
+  tela a 1400px (com CSV e "Comparar") e a 360px; os 4 testes passam.
+  Não conferido por captura: NRTL/Wilson (botão "Buscar do Banco" e nota do
+  α₁₂), que usam o mesmo `estilo_botao()`.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

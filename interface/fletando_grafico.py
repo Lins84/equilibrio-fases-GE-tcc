@@ -364,7 +364,11 @@ def main(page: ft.Page):
         # Usado pelo botão "Comparar" no card "Dados experimentais" (pedido
         # do autor, 2026-09-28): fica junto do título, não lá embaixo perto
         # de "Gerar Gráfico".
-        cabecalho = ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD)
+        # Estilo (2026-10-03): título em azul-escuro, como os rótulos das
+        # caixas do card Sistema.
+        cabecalho = ft.Text(
+            titulo, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800
+        )
         if extra_titulo is not None:
             # `wrap=True` — sem isso, título + extra_titulo (ex.: "Dados
             # experimentais" + botão "Comparar" + ícone "Limpar Tabela")
@@ -378,7 +382,15 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 wrap=True,
             )
+        # Estilo (2026-10-03): todos os cards com fundo branco, moldura
+        # azul-clara de 1,5px e cantos de 12px, sem sombra — a mesma
+        # linguagem das caixas, da tabela e dos botões.
         return ft.Card(
+            bgcolor=ft.Colors.WHITE,
+            elevation=0,
+            shape=ft.RoundedRectangleBorder(
+                radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
+            ),
             content=ft.Container(
                 content=ft.Column(
                     controls=[cabecalho, *controles],
@@ -1388,6 +1400,7 @@ def main(page: ft.Page):
         ),
         on_click=desfazer,
         disabled=True,
+        style=estilo_botao(),
     )
 
     # Nota fixa do NRTL (requisito de UI da seção 2.8): α12 só é regredido
@@ -1486,7 +1499,12 @@ def main(page: ft.Page):
 
         for spec in specs:
             parametros_atuais[spec["chave"]] = spec["inicial"]
-            valor_texto = ft.Text(f"{spec['rotulo']} = {spec['inicial']:.3g}", width=110)
+            valor_texto = ft.Text(
+                f"{spec['rotulo']} = {spec['inicial']:.3g}",
+                width=110,
+                color=ft.Colors.BLUE_GREY_900,
+                weight=ft.FontWeight.W_500,
+            )
 
             def on_change(e, spec=spec, valor_texto=valor_texto):
                 valor_texto.value = f"{spec['rotulo']} = {e.control.value:.3g}"
@@ -1516,6 +1534,9 @@ def main(page: ft.Page):
                 on_change=on_change,
                 on_change_end=on_change_end,
                 expand=True,
+                active_color=ft.Colors.BLUE_700,
+                inactive_color=ft.Colors.BLUE_100,
+                thumb_color=ft.Colors.BLUE_700,
                 key=ft.ValueKey(f"slider_{chave_unica}"),
             )
             sliders_area.controls.append(
@@ -1581,6 +1602,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=buscar_do_banco,
+        style=estilo_botao(),
     )
 
     # 6c. Regressão de parâmetros pelo método de Barker (seção 2.8 do
@@ -1669,6 +1691,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=calcular_por_regressao,
+        style=estilo_botao(),
     )
 
     construir_sliders(modelo_selecionado["nome"])
