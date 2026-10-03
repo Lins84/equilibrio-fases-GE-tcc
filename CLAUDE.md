@@ -761,11 +761,14 @@ pulando.
 
 Levantados por leitura de código e pelos prints, **sem autorização ainda**:
 
-1. A tabela não diz a unidade de P. O cabeçalho é só `P`, mas o cálculo
+1. ~~A tabela não diz a unidade de P. O cabeçalho é só `P`, mas o cálculo
    trabalha em kPa e `calcular_comparativo` divide P calculado por P
    experimental direto — digitar mmHg ou bar produz ΔP sem sentido, sem
-   nenhum aviso.
-2. Os dois gráficos não têm rótulo de eixo (`ChartAxis` aceita `title`).
+   nenhum aviso.~~ **Feito em 2026-10-01** (commit `9eb6a0c`): cabeçalho
+   `P (kPa)`.
+2. ~~Os dois gráficos não têm rótulo de eixo (`ChartAxis` aceita
+   `title`).~~ **Feito em 2026-10-01** (commit `9eb6a0c`): rótulos nos
+   eixos dos dois gráficos.
 3. O dado experimental é desenhado como linha, e mais grossa que a curva
    do modelo (`stroke_width` 3 contra 2) — o inverso de "dado é ponto,
    modelo é linha". É a pendência que a decisão de 2026-08-19 deixou
@@ -785,6 +788,94 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
 9. Achado nos prints: a mensagem laranja "10 linha(s) da tabela
    ignorada(s) por dado inválido" aparece **no carregamento, com a tabela
    vazia** — linha em branco está sendo contada como dado inválido.
+
+## Sessão de ajustes no PC: card Sistema, tooltip e importação de CSV (2026-10-03)
+
+Primeira sessão com o app rodando no PC do autor (Windows, Chrome,
+Python 3.13, `uv run flet run interface/fletando_grafico.py --web --port
+5000`), em vez de só no celular via Termux. Quatro coisas saíram dela, todas
+em `interface/fletando_grafico.py`.
+
+### 1. Card "Sistema" em grade 2×2 (commit `6b253a7`)
+
+No desktop o card "Sistema" divide a linha com "Parâmetros do modelo" e
+fica com ~400-450px úteis. Os quatro controles (dropdown de modelo,
+Componente 1, Componente 2, Temperatura) tinham 220px fixos: dois lado a
+lado (~452px) não cabiam, então cada um caía numa linha própria — o
+dropdown à esquerda e os campos com `alignment=CENTER`, num degrau sem
+harmonia (relatado pelo autor). Agora: **componentes em cima, modelo e
+temperatura embaixo**, alinhados à esquerda, com largura única
+`LARGURA_CAMPO_SISTEMA = 190` definida na criação (duas linhas `ft.Row`
+com `wrap=True`). No celular, onde dois não cabem, cada um vai para uma
+linha própria, também à esquerda. **A largura é definida na criação, nunca
+mutada depois** — mesma regra do bug de renderização de 2026-09-28.
+Alternativa descartada pelo autor: coluna única com 220px (mais simples,
+mas deixava um vão à direita no card). Verificado por captura de tela da
+nuvem (1400px): a grade aparece como desenhada.
+
+### 2. Tooltip dos pontos nos gráficos (commits `601b5b3`, `1e099eb`, `3df887d`, `c53b46f`)
+
+O tooltip padrão do Flet mostra só o valor de y, como float inteiro (ex.:
+`45.234871620938`). Em quatro passos, a pedidos do autor:
+
+1. **Algarismos significativos:** `formatar_valor` (4 algarismos, sem
+   notação científica; ruído de ponto flutuante < 1e-9 vira `0`; NaN/inf
+   passam como texto, sem estourar o `log10`).
+2. **x, nome e unidade:** `ponto_grafico(x, y, nome_x, nome_y, unidade_y)`
+   — `x1` na curva do líquido, `y1` na do vapor (o eixo horizontal do
+   P-x-y carrega as duas composições), `P ... kPa`; no gráfico de ln γ,
+   `x1` e `ln γ1`/`ln γ2`, sem unidade.
+3. **Duas linhas** (`\n`), com x em cima e y embaixo.
+4. **Alinhado à esquerda** (`text_align=START`; o padrão do Flet é
+   `CENTER`).
+
+Resultado: `x1 = 0.3500` / `P = 45.23 kPa`. Vale para todas as séries
+(tabela, modelo, comparativo). O balão em si só o autor vê no navegador —
+a captura de tela da nuvem não passa o cursor sobre os pontos.
+
+### 3. Erro ao importar CSV: "Timeout waiting for invoke method listener" (commit `e1004b3`)
+
+No PC, "Importar CSV" falhou **sempre**, com a tela de erro do Flet:
+`TimeoutException after 0:00:10 ... Timeout waiting for invoke method
+listener for FilePicker(112).pick_files`. O traceback mostra o lado do
+navegador dizendo que não tinha o serviço do seletor registrado.
+
+**Tentativa de reprodução na nuvem, sem sucesso:** Chromium 141 (que usa o
+mesmo build WebAssembly do Flutter que o Chrome), Linux, Python 3.11 **e**
+3.13, página recém-aberta **e** aba aberta durante reinício do servidor —
+em todos os casos o seletor abriu, o CSV de etanol/água carregou e a tabela
+e os gráficos foram preenchidos, sem erro no log. Descartadas como causa a
+versão do Python (suspeita levantada pelo assistente: o formato do
+traceback indicava 3.13 ou mais novo)
+e uma aba antiga religada ao servidor novo. Hipótese seguinte (cache do
+service worker do cliente Flet no `localhost:5000`) foi proposta ao autor
+com um teste de janela anônima.
+
+**Desfecho:** o autor deu `F5` e **funcionou normalmente**. Causa raiz
+**não identificada** — o estado do lado do navegador (carregamento
+incompleto ou sessão antiga) é a explicação mais provável, mas não foi
+provada. Parente do bug de carregamento intermitente de 2026-09-28
+(também um serviço/controle que o navegador não montava).
+
+**O que ficou no código:** `importar_csv` captura `RuntimeError`/
+`TimeoutError` e mostra na tabela "Não foi possível abrir o seletor de
+arquivos (o navegador não respondeu). Recarregue a página (F5) e tente de
+novo." — em vez da tela de erro. Não corrige a causa; só troca um erro
+assustador por uma instrução. Validado por simulação da falha.
+
+### 4. Atualização da ferramenta de captura de tela da nuvem
+
+Reaproveitada nesta sessão, com três achados novos: (a) o Chromium
+automatizado precisa de `locale: 'en-US'`, senão o Flutter falha com
+`RangeError: Incorrect locale information provided`; (b) o app carrega o
+build **WebAssembly** (`main.dart.wasm`, skwasm), com `crossOriginIsolated`
+verdadeiro; (c) o seletor de arquivo **dá para exercitar**:
+`page.waitForEvent('filechooser')` depois de um clique por coordenada,
+seguido de `chooser.setFiles(...)`. Isso atualiza o limite registrado em
+2026-09-30 ("não interage") — agora a importação de CSV pode ser testada de
+ponta a ponta, ainda por coordenada. O item 9 da lista acima (mensagem
+laranja "10 linha(s) ... ignorada(s)" com a tabela vazia no carregamento)
+**continua aberto**: aparece nos prints desta sessão.
 
 ## Decisões de engenharia do aluno na produção da aplicação
 
@@ -1156,6 +1247,18 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   O autor decidiu **não implementar nada agora** e deixar a própria ideia
   arquivada como plano B garantido — ela funciona com certeza, enquanto a
   camada de acessibilidade é aposta.
+- **(2026-10-03) Card "Sistema" em grade 2×2, não em coluna única.** O
+  autor relatou o degrau (dropdown à esquerda, campos centralizados) no
+  desktop. Entre grade 2×2 com campos de 190px e coluna única com 220px
+  (mais simples, mas com vão à direita), escolheu a grade — aceitando mexer
+  também no celular, onde o ganho é só o fim do degrau. Origem da ideia de
+  largura menor: análise do assistente (dois campos de 220px não cabem em
+  ~420px); a escolha entre as duas opções foi do autor.
+- **(2026-10-03) Conteúdo e formato do tooltip dos gráficos.** Quem ditou
+  foi o autor, em passos: reduzir os algarismos significativos, incluir o x
+  e a unidade, quebrar em duas linhas e alinhar à esquerda. O assistente só
+  levantou que o padrão mostrava apenas o y e deixou a decisão de incluir x
+  e unidade para ele.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
