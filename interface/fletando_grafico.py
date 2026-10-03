@@ -170,6 +170,10 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
     return f"{round(valor, casas):.{max(casas, 0)}f}"
 
 
+# Fundo do balão do tooltip dos gráficos (ver `ponto_grafico`).
+TOOLTIP_FUNDO = ft.Colors.BLUE_GREY_900
+
+
 def ponto_grafico(
     x: float, y: float, nome_x: str, nome_y: str, unidade_y: str = ""
 ) -> fch.LineChartDataPoint:
@@ -189,7 +193,16 @@ def ponto_grafico(
         x,
         y,
         tooltip=fch.LineChartDataPointTooltip(
-            text=texto, text_align=ft.TextAlign.START
+            text=texto,
+            text_align=ft.TextAlign.START,
+            # Texto branco (2026-10-03): sem `text_style` o Flet pinta cada
+            # linha com a cor da própria série (azul/laranja) sobre o fundo
+            # cinza-azulado do balão — contraste muito baixo, quase ilegível
+            # (relatado pelo autor). Branco sobre o fundo escuro de
+            # TOOLTIP_FUNDO dá ~14:1.
+            text_style=ft.TextStyle(
+                color=ft.Colors.WHITE, size=14, weight=ft.FontWeight.W_500
+            ),
         ),
     )
 
@@ -709,6 +722,7 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
+        tooltip=fch.LineChartTooltip(bgcolor=TOOLTIP_FUNDO),
         # Rótulos de eixo (2026-10-01): até aqui os dois gráficos mostravam
         # só números soltos, sem dizer o que era cada eixo — num material
         # didático, exatamente o que o aluno não decifra sozinho. O eixo
@@ -864,6 +878,7 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
+        tooltip=fch.LineChartTooltip(bgcolor=TOOLTIP_FUNDO),
         left_axis=fch.ChartAxis(
             label_size=40,
             title=ft.Text("ln γ", size=14, weight=ft.FontWeight.BOLD),
