@@ -184,7 +184,7 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
 # do cabeçalho da tabela, semitransparente (pedido do autor, 2026-10-03) para
 # o gráfico aparecer por trás do balão. A moldura `BLUE_200` continua opaca e
 # delimita o balão.
-OPACIDADE_TOOLTIP = 0.55
+OPACIDADE_TOOLTIP = 0.70
 TOOLTIP_FUNDO = ft.Colors.with_opacity(OPACIDADE_TOOLTIP, ft.Colors.BLUE_50)
 
 

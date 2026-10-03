@@ -1741,6 +1741,12 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   legibilidade naquelas linhas — o preço de ver o gráfico atrás. Verificado
   por captura no P-x-y e no ln γ; 5 testes passam.
 
+- **(2026-10-03) Opacidade do balão do tooltip: 55% → 70%.** Pedido do
+  autor ("aumente a opacidade para 70%"), depois de ver o texto atravessado
+  pelas curvas com 55%. `OPACIDADE_TOOLTIP = 0.70`; o gráfico por trás
+  continua visível, com menos interferência no texto. Verificado por
+  captura; 5 testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
