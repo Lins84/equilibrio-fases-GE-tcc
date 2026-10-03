@@ -1287,19 +1287,36 @@ def main(page: ft.Page):
     # modelo" (mesma classe de bug do texto do ⓘ, 2026-09-28); com
     # `expand=True`, o texto ocupa só o espaço que sobra ao lado do ícone
     # e quebra linha dentro dele.
+    # Ícone ⓘ e "α₁₂" em azul e texto em verde-azulado escuro itálico
+    # (pedido do autor, 2026-10-03): a nota é um aviso científico que não
+    # pode passar despercebido, então se destaca do cinza dos demais textos.
+    # Todas as cores passam de 4,5:1 sobre o cartão.
     nota_alpha_fixo = ft.Row(
         controls=[
-            ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=ft.Colors.GREY_800),
+            ft.Icon(ft.Icons.INFO, size=18, color=ft.Colors.BLUE_700),
             ft.Text(
-                "α₁₂: quando não vier do banco IPDB, fica fixado por "
-                "convenção (não é ajustado pela regressão de Barker) — "
-                "valor de referência típico entre 0,2 e 0,47.",
+                spans=[
+                    ft.TextSpan(
+                        "α₁₂",
+                        style=ft.TextStyle(
+                            color=ft.Colors.BLUE_800,
+                            weight=ft.FontWeight.BOLD,
+                            italic=True,
+                        ),
+                    ),
+                    ft.TextSpan(
+                        ": quando não vier do banco IPDB, fica fixado por "
+                        "convenção (não é ajustado pela regressão de Barker) — "
+                        "valor de referência típico entre 0,2 e 0,47."
+                    ),
+                ],
                 size=14,
-                color=ft.Colors.GREY_800,
+                color=ft.Colors.TEAL_900,
+                italic=True,
                 expand=True,
             ),
         ],
-        spacing=4,
+        spacing=6,
         visible=False,
     )
 

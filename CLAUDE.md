@@ -1491,6 +1491,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   "com uma cor levemente destacada" dentro da faixa, atendido com fundo
   branco translúcido.
 
+- **(2026-10-03) Nota do α₁₂ com cores próprias e itálico de volta.** Logo
+  depois de aplicar o item 6, o autor pediu: ícone ⓘ da nota "colorido e
+  destacado", o "α₁₂" da nota em outra cor (sugeriu azul) e o texto da nota
+  em outra cor, em itálico como antes — deixando as cores a critério do
+  assistente. Escolhas do assistente: ícone `INFO` cheio, 18px,
+  `BLUE_700`; "α₁₂" em `BLUE_800`, negrito e itálico; texto em `TEAL_900`
+  itálico (todas acima de 4,5:1 sobre o cartão). Isso reverte, só para
+  essa nota, a retirada do itálico do item 6 (o aviso de UNIQUAC/UNIFAC
+  continua sem itálico). O ⓘ do selo de origem, ao lado de "Fornecido",
+  não foi alterado.
+
 - **(2026-10-03) Fontes e contraste para projeção: opção B, com as três
   mudanças.** O assistente mediu o contraste e os tamanhos do app, testou
   três opções rodando (A só contraste; B contraste e piso de 14px; C cerca
