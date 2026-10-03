@@ -134,7 +134,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   contra a referência da própria docstring de `thermo.wilson.Wilson`
   para etanol/água a 70 °C, e `buscar_parametros_banco` para NRTL e
   Wilson via nome/sinônimo em vez de CAS, além dos erros esperados:
-  modelo sem tabela no IPDB e par ausente na tabela).
+  modelo sem tabela no IPDB e par ausente na tabela) e
+  `teste_limites_redondos.py` (2026-10-03 — regressão do passo do eixo
+  vertical dos gráficos: nunca zero, mesmo com ln γ quase constante).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -1707,6 +1709,24 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   ficou bold"; se a intenção era outra, a mudança é de uma linha em
   `ponto_grafico(..., negrito=False)`). Verificado por captura; 4 testes
   passam.
+
+- **(2026-10-03) Erro "label_spacing cannot be 0" ao mexer no slider do
+  Margules 1P.** Relatado pelo autor, com dados importados. **Causa
+  (reproduzida em Python):** o "zero" do slider sai como A ≈ 1e‑16 (ruído de
+  ponto flutuante, não 0 exato), então o ln γ fica praticamente constante;
+  `limites_redondos` calculava um passo minúsculo (~1e‑17) que
+  `round(passo, 10)` transformava em **0**, e o `ChartAxis` do Flet recusa
+  `label_spacing=0`. O caso de intervalo *exatamente* constante já era
+  tratado em `gerar_grafico` (abre ±1), mas o *quase* constante não.
+  **Correção:** em `limites_redondos`, intervalo menor que 1e‑6 × max(1,
+  |valores|) é tratado como constante (abre ±1, mesmo comportamento do caso
+  exato) — a correção fica na função, então vale para os dois gráficos. Novo
+  teste de regressão `testes/teste_limites_redondos.py` (passo > 0 em
+  intervalos degenerados; limites normais inalterados; varredura de A de −3
+  a 3 no Margules 1P) — **falha no código antigo e passa no corrigido**. Não
+  reproduzido arrastando o slider pela captura de tela (o toque exato em
+  ~1e‑16 não é controlável por coordenada); a reprodução e a verificação
+  foram no nível da função e da varredura do modelo. Passam os 5 testes.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

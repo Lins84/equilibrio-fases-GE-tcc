@@ -80,7 +80,17 @@ def limites_redondos(vmin: float, vmax: float, alvo: int = 7) -> tuple[float, fl
     "6.4" colado no "10", "-0.05" quebrando sobre o "0.00" (item 8 da lista
     de estética, 2026-10-03). Com os limites sobre múltiplos do passo, o
     rótulo dos extremos coincide com um marcador regular e deixa de colidir."""
-    amplitude = max(vmax - vmin, 1e-12)
+    # Intervalo praticamente constante (ex.: ln γ com A ≈ 1e-16, o "zero" do
+    # slider, que sai com ruído de ponto flutuante em vez de 0 exato): o passo
+    # calculado cairia abaixo de 5e-11 e `round(passo, 10)` o transformava em
+    # 0 — o Flet então estourava "label_spacing cannot be 0" (relatado pelo
+    # autor ao mexer no slider do Margules 1P, 2026-10-03). Tratado como
+    # constante, do mesmo jeito que `gerar_grafico` já trata o caso exato
+    # (vmin == vmax): abre ±1 em volta.
+    escala = max(1.0, abs(vmin), abs(vmax))
+    if vmax - vmin < 1e-6 * escala:
+        vmin, vmax = vmin - 1, vmax + 1
+    amplitude = vmax - vmin
     bruto = amplitude / alvo
     potencia = 10 ** math.floor(math.log10(bruto))
     passo = next(m * potencia for m in (1, 2, 2.5, 5, 10) if bruto <= m * potencia)
