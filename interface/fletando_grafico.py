@@ -104,7 +104,15 @@ def ponto_grafico(
         f"{nome_x} = {formatar_valor(x)}\n"
         f"{nome_y} = {formatar_valor(y)}{sufixo}"
     )
-    return fch.LineChartDataPoint(x, y, tooltip=texto)
+    # `text_align` padrão do Flet é CENTER: as duas linhas saíam centradas
+    # uma em relação à outra. START alinha o início das duas à esquerda.
+    return fch.LineChartDataPoint(
+        x,
+        y,
+        tooltip=fch.LineChartDataPointTooltip(
+            text=texto, text_align=ft.TextAlign.START
+        ),
+    )
 
 
 def importar_pontos_csv(
