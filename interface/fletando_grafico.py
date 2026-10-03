@@ -193,7 +193,7 @@ def main(page: ft.Page):
             # não cabiam numa linha só no celular, e o Flutter quebrava o
             # layout inteiro com um erro de overflow (relatado pelo autor
             # como uma "tarja" cobrindo a tela, 2026-09-28) — mesma classe
-            # de bug já corrigida antes em linha_sistema e nas linhas de
+            # de bug já corrigida antes em linha_componentes e nas linhas de
             # botões.
             cabecalho = ft.Row(
                 controls=[cabecalho, extra_titulo],
@@ -899,6 +899,10 @@ def main(page: ft.Page):
         construir_sliders(modelo_selecionado["nome"])
         gerar_grafico()
 
+    # Largura única dos 4 controles do card "Sistema" (dropdown de modelo,
+    # dois componentes e temperatura) — ver a grade 2×2 logo abaixo.
+    LARGURA_CAMPO_SISTEMA = 190
+
     dropdown_modelo = ft.Dropdown(
         # "Gᴱ" (small capital E) some fontes/navegadores não têm o glifo —
         # visto em sessão real no Samsung Browser (2026-09-27): o rótulo
@@ -908,52 +912,56 @@ def main(page: ft.Page):
         value=modelo_selecionado["nome"],
         options=[ft.dropdown.Option(nome) for nome in MODELS_GE],
         on_select=selecionar_modelo,
-        width=220,
+        width=LARGURA_CAMPO_SISTEMA,
     )
 
     # 5b. Seletores de componente (nome/sinônimo/CAS — resolvidos pelo
     # thermo.Chemical dentro de calculate_vle_isothermal) e temperatura do
     # sistema. Recalculam a curva ao sair do campo (on_blur/on_submit) —
     # não a cada tecla, para não repetir Chemical() com nome incompleto.
-    # Largura fixa (220, igual ao dropdown_modelo) só no mobile — no
-    # desktop os 3 campos ficam com `expand=True` (ver montar_layout), pra
-    # sempre caberem na largura real do card "Sistema" (que agora divide a
-    # linha com "Parâmetros do modelo", mais estreito que antes), em vez de
-    # um valor fixo em pixels que quebra de novo a cada mudança de layout.
+    # Largura fixa, sempre (a mesma nos dois modos — mutar `width` de
+    # controle já criado foi o gatilho do bug de renderização de
+    # 2026-09-28, ver montar_layout). Grade 2×2 (2026-10-03, pedido do
+    # autor): com 220px, dois campos lado a lado (~452px) não cabiam no
+    # card "Sistema" do desktop (~400-450px úteis, já que ele divide a
+    # linha com "Parâmetros do modelo"), então cada um caía numa linha
+    # própria — o dropdown à esquerda e os campos centralizados, num
+    # degrau sem harmonia. Com 190px, dois campos + espaçamento (392px)
+    # cabem; no celular, onde não cabem dois, `wrap=True` empilha um por
+    # linha, agora todos alinhados à esquerda.
     campo_componente1 = ft.TextField(
-        label="Componente 1", value="ethanol", width=220,
+        label="Componente 1", value="ethanol", width=LARGURA_CAMPO_SISTEMA,
         text_align=ft.TextAlign.CENTER,
         on_blur=gerar_grafico, on_submit=gerar_grafico,
     )
     campo_componente2 = ft.TextField(
-        label="Componente 2", value="water", width=220,
+        label="Componente 2", value="water", width=LARGURA_CAMPO_SISTEMA,
         text_align=ft.TextAlign.CENTER,
         on_blur=gerar_grafico, on_submit=gerar_grafico,
     )
     campo_temperatura = ft.TextField(
         label="Temperatura (°C)",
         value="70",
-        width=220,
+        width=LARGURA_CAMPO_SISTEMA,
         text_align=ft.TextAlign.CENTER,
         keyboard_type=ft.KeyboardType.NUMBER,
         on_blur=gerar_grafico,
         on_submit=gerar_grafico,
     )
-    campos_sistema = (campo_componente1, campo_componente2, campo_temperatura)
-    # `wrap=True` (mesmo padrão já usado nas linhas de botões do app):
-    # 3 campos de 220px + espaçamento somam mais que a área útil de um
-    # celular em retrato (~340-370px) — sem quebra, os campos ultrapassavam
-    # a borda da tela desde a primeira versão (bug relatado pelo autor,
-    # 2026-09-28).
-    # `expand=True` é o que faz o `alignment=CENTER` valer: sem ele, a Row só
-    # ocupa a largura dos próprios campos (não a da página), e centralizar
-    # dentro dela mesma não tem efeito nenhum.
-    linha_sistema = ft.Row(
-        controls=[campo_componente1, campo_componente2, campo_temperatura],
+    # `wrap=True` (mesmo padrão já usado nas linhas de botões do app): sem
+    # quebra, campos de largura fixa ultrapassavam a borda da tela de um
+    # celular em retrato (~340-370px) — bug relatado pelo autor,
+    # 2026-09-28. Duas linhas fixas: componentes em cima, modelo e
+    # temperatura embaixo.
+    linha_componentes = ft.Row(
+        controls=[campo_componente1, campo_componente2],
         spacing=12,
         wrap=True,
-        alignment=ft.MainAxisAlignment.CENTER,
-        expand=True,
+    )
+    linha_modelo_temperatura = ft.Row(
+        controls=[dropdown_modelo, campo_temperatura],
+        spacing=12,
+        wrap=True,
     )
 
     # 6. Sliders dos parâmetros do modelo escolhido — guardam os valores
@@ -1341,7 +1349,9 @@ def main(page: ft.Page):
     # experimentais isolado à esquerda), então cada um vira uma função
     # própria em vez de um bloco fixo.
     def construir_card_sistema(expand=False):
-        return cartao("Sistema", dropdown_modelo, linha_sistema, expand=expand)
+        return cartao(
+            "Sistema", linha_componentes, linha_modelo_temperatura, expand=expand
+        )
 
     def construir_card_parametros(expand=False):
         return cartao(
