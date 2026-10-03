@@ -1591,6 +1591,24 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Não conferido por captura: NRTL/Wilson (botão "Buscar do Banco" e nota do
   α₁₂), que usam o mesmo `estilo_botao()`.
 
+- **(2026-10-03) Tabela e botões centralizados no card "Dados
+  experimentais", só no desktop.** Pedido do autor: centralizar a tabela e
+  as caixas **se isso não mudasse a vista do celular**. Análise: no
+  celular a tabela (~284px) já ocupa quase todo o card (~296px), então
+  centralizar a tabela mal mudaria nada, mas centralizar os botões
+  (Adicionar/Importar quebram em duas linhas) mudaria. Para cumprir a
+  condição à risca, `construir_card_dados(centralizar=True)` é usado só no
+  layout de desktop; no celular segue `False` e o card é o mesmo de antes.
+  Implementação: `cartao(..., centralizar)` põe `horizontal_alignment=CENTER`
+  na Column do card (título e mensagens continuam à esquerda — título numa
+  Row, mensagens em Container alinhado à esquerda); os botões ganham uma
+  Row nova com `alignment=CENTER` a cada montagem, em vez de mutar
+  `linha_botoes_tabela`; `dt` segue filho direto da Column. Verificado:
+  captura a 1400px (tabela, botões e "Gerar Gráfico" no meio) e captura a
+  360px **idêntica pixel a pixel** à anterior (diferença nula); 4 testes
+  passam. O modo "Ver como celular" num monitor largo também não muda (usa o
+  ramo do celular).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

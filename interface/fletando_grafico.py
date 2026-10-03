@@ -358,7 +358,7 @@ def main(page: ft.Page):
     # diferentes. Cada card leva um título curto — mesma ideia de
     # "dashboards financeiros" já citada como inspiração do selo de origem
     # (seção 2.8 do mapeamento), aplicada agora ao layout inteiro.
-    def cartao(titulo, *controles, expand=False, extra_titulo=None):
+    def cartao(titulo, *controles, expand=False, extra_titulo=None, centralizar=False):
         # `extra_titulo` (opcional) — um controle extra ao lado do título,
         # no cabeçalho do card, em vez de só mais um item na lista debaixo.
         # Usado pelo botão "Comparar" no card "Dados experimentais" (pedido
@@ -369,6 +369,10 @@ def main(page: ft.Page):
         cabecalho = ft.Text(
             titulo, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800
         )
+        if centralizar and extra_titulo is None:
+            # Num Column centralizado o título viria no meio; a Row ocupa a
+            # largura toda e mantém o título à esquerda.
+            cabecalho = ft.Row(controls=[cabecalho])
         if extra_titulo is not None:
             # `wrap=True` — sem isso, título + extra_titulo (ex.: "Dados
             # experimentais" + botão "Comparar" + ícone "Limpar Tabela")
@@ -395,6 +399,11 @@ def main(page: ft.Page):
                 content=ft.Column(
                     controls=[cabecalho, *controles],
                     spacing=ESPACO_PEQUENO,
+                    horizontal_alignment=(
+                        ft.CrossAxisAlignment.CENTER
+                        if centralizar
+                        else ft.CrossAxisAlignment.START
+                    ),
                 ),
                 padding=ESPACO_MEDIO,
             ),
@@ -1729,7 +1738,7 @@ def main(page: ft.Page):
             expand=expand,
         )
 
-    def construir_card_dados(expand=False):
+    def construir_card_dados(expand=False, centralizar=False):
         # Revertido (2026-09-28): embrulhar `dt` num Column/Row com altura
         # fixa e scroll (tentativa de caber tudo em 100% de zoom) quebrava
         # a renderização do ícone de excluir — sobrava só um traço
@@ -1738,13 +1747,33 @@ def main(page: ft.Page):
         # card, sem wrapper; a altura extra das 10 linhas soma na página
         # (rolagem normal do navegador/`page.scroll` já cobre isso), em
         # vez de arriscar quebrar o DataTable de novo.
+        # `centralizar` (2026-10-03, só no desktop): tabela e botões no meio do
+        # card de 420px. No celular fica False e o card é idêntico ao de
+        # antes. Em vez de mutar `linha_botoes_tabela` (criada uma vez), uma
+        # Row nova com o alinhamento certo a cada montagem; as mensagens
+        # voltam para a esquerda dentro de um Container.
+        if centralizar:
+            botoes = ft.Row(
+                controls=[botao_adicionar, botao_importar_csv],
+                wrap=True,
+                alignment=ft.MainAxisAlignment.CENTER,
+            )
+            mensagens = [
+                ft.Container(content=mensagem_status, alignment=ft.Alignment.CENTER_LEFT),
+                ft.Container(
+                    content=linha_erro_comparativo, alignment=ft.Alignment.CENTER_LEFT
+                ),
+            ]
+        else:
+            botoes = linha_botoes_tabela
+            mensagens = [mensagem_status, linha_erro_comparativo]
         return cartao(
             "Dados experimentais",
             dt,
-            linha_botoes_tabela,
+            botoes,
             botao_gerar_grafico,
-            mensagem_status,
-            linha_erro_comparativo,
+            *mensagens,
+            centralizar=centralizar,
             expand=expand,
             extra_titulo=ft.Row(controls=[botao_comparar, botao_limpar_tabela], spacing=4),
         )
@@ -1918,7 +1947,7 @@ def main(page: ft.Page):
             # fileira, lado a lado, embaixo dos dois gráficos.
             conteudo = ft.Row(
                 controls=[
-                    ft.Container(content=construir_card_dados(), width=420),
+                    ft.Container(content=construir_card_dados(centralizar=True), width=420),
                     ft.Column(
                         controls=[
                             ft.Row(
