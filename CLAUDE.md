@@ -814,8 +814,31 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    (regra de não mutar controle criado). Verificado por captura de tela a
    1400px e a 390px. **Ressalva:** o "ᴱ" do subtítulo sai bem pequeno na
    fonte renderizada (glifo sobrescrito Unicode), legível mas discreto.
-6. Tamanhos de fonte contra o requisito de projeção da seção 1.4: a nota
-   do α12 é 11px, itálico, cinza sobre branco.
+6. ~~Tamanhos de fonte contra o requisito de projeção da seção 1.4: a nota
+   do α12 é 11px, itálico, cinza sobre branco.~~ **Feito em 2026-10-03**
+   (opção B escolhida pelo autor, com as três mudanças propostas — ver
+   "Decisões de engenharia do aluno"). Medição que embasou: contraste WCAG
+   (mínimo 4,5:1 para texto, 3:1 para linhas de gráfico) reprovava no aviso
+   laranja (1,95:1), selo "Calculado" (2,99:1), erro vermelho (3,33:1), nota
+   do α₁₂ e aviso de UNIQUAC/UNIFAC (4,17:1) e linha laranja do vapor
+   (2,79:1); havia textos de 11, 12 e 13px. Aplicado: **(a) contraste** —
+   aviso `#9A3B00` (6,34:1), erro `RED_800` (5,09:1), selo "Calculado" com
+   texto `#7A3300` sobre `ORANGE_100` (7,2:1), notas em `GREY_800`
+   (9,1:1), `COR_VAPOR` de `ORANGE_800` para `ORANGE_900` (3,43:1);
+   **(b) sem itálico** na nota do α₁₂ e no aviso de UNIQUAC/UNIFAC;
+   **(c) piso de 14px** — todo `size=` de 11/12/13 virou 14; **(d) escala
+   dos gráficos** — os números dos eixos usam o estilo `body_medium` do
+   tema, que passou de 14 para 16 (`page.theme`, `ft.TextTheme`),
+   levando a escala de ~12px para ~14,5px. **Efeito colateral tratado:**
+   com a escala maior os rótulos do eixo x de 0,1 em 0,1 se encostavam no
+   celular ("0.10.20.3…" a 360px); o passo do eixo x passou a **0,2** nos
+   dois gráficos (`label_spacing=0.2`), nos dois modos, porque os eixos são
+   criados uma vez e variar por modo exigiria mutar controle já criado.
+   Verificado por captura de tela a 1400, 390 e 360px. A opção C (tudo ~30%
+   maior) foi testada e descartada como padrão: a 390px os números do eixo
+   x se encostavam e a palavra "comparativo" da legenda era cortada.
+   Possível "modo projeção" opcional fica registrado como ideia, sem
+   implementação.
 7. ~~`ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln
    γ. Agravante achado no item 4: com "Comparar" ativo a legenda do P-x-y
    passa a três linhas e invade o topo do eixo vertical.~~ **Feito em
@@ -1467,6 +1490,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   preferiu a faixa e o crédito curto). Na sequência pediu o botão de modo
   "com uma cor levemente destacada" dentro da faixa, atendido com fundo
   branco translúcido.
+
+- **(2026-10-03) Fontes e contraste para projeção: opção B, com as três
+  mudanças.** O assistente mediu o contraste e os tamanhos do app, testou
+  três opções rodando (A só contraste; B contraste e piso de 14px; C cerca
+  de 30% maior) e recomendou a B. O autor escolheu **B** e aprovou as três
+  mudanças que a acompanhavam: **linha do vapor um tom mais escura** (para
+  passar 3:1), **tirar o itálico** da nota do α₁₂ e do aviso de
+  UNIQUAC/UNIFAC, e **subir a escala dos gráficos** (a proposta dizia que o
+  assistente testaria e mostraria antes de aplicar; o autor mandou aplicar
+  direto, e o resultado foi conferido por captura de tela). O passo 0,2 do
+  eixo x, necessário para a escala maior caber no celular, foi decisão
+  técnica do assistente, não pedida — registrada aqui e a confirmar pelo
+  autor.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

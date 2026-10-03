@@ -22,7 +22,7 @@ from calculos.gemini import (
 ORIGENS_SELO = {
     "fornecido": (ft.Colors.BLUE_GREY_100, ft.Colors.BLUE_GREY_900, "Fornecido"),
     "banco": (ft.Colors.GREEN_100, ft.Colors.GREEN_900, "Banco de dados"),
-    "calculado": (ft.Colors.ORANGE_100, ft.Colors.ORANGE_900, "Calculado"),
+    "calculado": (ft.Colors.ORANGE_100, "#7A3300", "Calculado"),
     "calculado_poucos_pontos": (ft.Colors.RED_100, ft.Colors.RED_900, "Calculado (poucos pontos)"),
     "preditivo": (ft.Colors.PURPLE_100, ft.Colors.PURPLE_900, "Preditivo"),
 }
@@ -66,7 +66,7 @@ PARAM_SLIDERS = {
 # que ele já significa no app (erro, exclusão). No gráfico de ln γ a
 # distinção é por componente (outra grandeza), com par de cores próprio.
 COR_LIQUIDO = ft.Colors.BLUE_700
-COR_VAPOR = ft.Colors.ORANGE_800
+COR_VAPOR = ft.Colors.ORANGE_900
 COR_GAMMA1 = ft.Colors.GREEN_700
 COR_GAMMA2 = ft.Colors.PURPLE_600
 
@@ -118,7 +118,7 @@ def eixo_vertical(titulo: str, passo: float, largura_rotulo: int = 40) -> fch.Ch
         label_spacing=passo,
         show_min=False,
         show_max=False,
-        title=ft.Text(titulo, size=13, weight=ft.FontWeight.BOLD),
+        title=ft.Text(titulo, size=14, weight=ft.FontWeight.BOLD),
         title_size=22,
     )
 
@@ -254,7 +254,17 @@ def main(page: ft.Page):
     # nesse cenário, e o tema escuro anterior (herdado do navegador) saiu
     # visivelmente mais escuro/baixo contraste num teste real em monitor.
     page.theme_mode = ft.ThemeMode.LIGHT
-    page.theme = ft.Theme(color_scheme_seed=ft.Colors.BLUE_700)
+    # `body_medium` em 16 (padrão 14), item 6 da estética (2026-10-03): é o
+    # estilo que o gráfico usa para os números da escala dos eixos, que
+    # ficavam em ~12px — os textos que o público mais precisa ler de longe
+    # em projeção. Com a escala maior, os rótulos do eixo x de 0,1 em 0,1
+    # se encostavam no celular ("0.10.20.3…" a 360px), então o passo do
+    # eixo x passou a 0,2 nos dois gráficos (os dois eixos são criados uma
+    # vez, não dá para variar por modo sem mutar o eixo).
+    page.theme = ft.Theme(
+        color_scheme_seed=ft.Colors.BLUE_700,
+        text_theme=ft.TextTheme(body_medium=ft.TextStyle(size=16)),
+    )
 
     # Variável de largura para manter tudo alinhado
     largura_coluna = 60
@@ -360,7 +370,7 @@ def main(page: ft.Page):
             ft.DataColumn(
                 label=ft.Text(
                     "P (kPa)", width=largura_coluna, text_align=ft.TextAlign.CENTER,
-                    size=13,
+                    size=14,
                 )
             ),
             ft.DataColumn(
@@ -503,7 +513,7 @@ def main(page: ft.Page):
                 "Não foi possível abrir o seletor de arquivos (o navegador "
                 "não respondeu). Recarregue a página (F5) e tente de novo."
             )
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
         if not arquivos:
@@ -514,13 +524,13 @@ def main(page: ft.Page):
             pontos, ignoradas_csv = importar_pontos_csv(texto)
         except (ValueError, UnicodeDecodeError) as exc:
             mensagem_status.value = f"Falha ao importar CSV: {exc}."
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
 
         if not pontos:
             mensagem_status.value = "Nenhum ponto válido encontrado no CSV."
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
 
@@ -587,7 +597,7 @@ def main(page: ft.Page):
 
     # 4. Gráfico P-x-y a partir dos dados brutos da tabela (Etapa 2 — sem
     # nenhum cálculo de modelo; só visualiza o que o usuário digitou).
-    mensagem_status = ft.Text(value="", color=ft.Colors.RED)
+    mensagem_status = ft.Text(value="", color=ft.Colors.RED_800)
 
     chart = fch.LineChart(
         data_series=[],
@@ -603,17 +613,17 @@ def main(page: ft.Page):
         # é plotada contra x1 e a do vapor contra y1 no mesmo eixo.
         left_axis=fch.ChartAxis(
             label_size=40,
-            title=ft.Text("P (kPa)", size=13, weight=ft.FontWeight.BOLD),
+            title=ft.Text("P (kPa)", size=14, weight=ft.FontWeight.BOLD),
             title_size=22,
         ),
-        # label_spacing fixa o intervalo entre marcações (0.1 em 0..1 = 11
+        # label_spacing fixa o intervalo entre marcações (0.2 em 0..1 = 6; era 0.1 = 11
         # rótulos). Sem isso, o eixo calculava um intervalo tão miúdo que
         # os rótulos apareciam repetidos e o gráfico pedia mais largura do
         # que cabia na tela (obrigando a diminuir o zoom do navegador).
         bottom_axis=fch.ChartAxis(
             label_size=32,
-            label_spacing=0.1,
-            title=ft.Text("x₁, y₁ (fração molar)", size=13, weight=ft.FontWeight.BOLD),
+            label_spacing=0.2,
+            title=ft.Text("x₁, y₁ (fração molar)", size=14, weight=ft.FontWeight.BOLD),
             title_size=22,
         ),
         visible=False,
@@ -651,7 +661,7 @@ def main(page: ft.Page):
     def coluna_legenda(cabecalho, itens, largura):
         return ft.Column(
             controls=[
-                celula_legenda(ft.Text(cabecalho, size=12, color=ft.Colors.BLUE_GREY_700)),
+                celula_legenda(ft.Text(cabecalho, size=14, color=ft.Colors.BLUE_GREY_700)),
                 *[celula_legenda(item) for item in itens],
             ],
             spacing=2,
@@ -682,7 +692,7 @@ def main(page: ft.Page):
     # parâmetro: valor sempre visível, explicação do que cada Δ significa
     # só aparece ao tocar no ícone (diálogo — ver icone_info), sem poluir a
     # tela com texto fixo.
-    texto_dp_comparativo = ft.Text("", size=13, weight=ft.FontWeight.BOLD)
+    texto_dp_comparativo = ft.Text("", size=14, weight=ft.FontWeight.BOLD)
     icone_dp_comparativo = icone_info(
         lambda: (
             "ΔP (RMS): erro relativo médio entre a pressão calculada pelo "
@@ -690,7 +700,7 @@ def main(page: ft.Page):
         ),
         titulo="O que é ΔP?",
     )
-    texto_dy_comparativo = ft.Text("", size=13, weight=ft.FontWeight.BOLD)
+    texto_dy_comparativo = ft.Text("", size=14, weight=ft.FontWeight.BOLD)
     icone_dy_comparativo = icone_info(
         lambda: (
             "Δy (RMS): erro absoluto médio entre a fração molar de vapor "
@@ -717,7 +727,7 @@ def main(page: ft.Page):
         controls=[
             coluna_legenda(
                 "",
-                [ft.Text("líquido", size=13), ft.Text("vapor", size=13)],
+                [ft.Text("líquido", size=14), ft.Text("vapor", size=14)],
                 56,
             ),
             coluna_legenda(
@@ -753,13 +763,13 @@ def main(page: ft.Page):
         expand=True,
         left_axis=fch.ChartAxis(
             label_size=40,
-            title=ft.Text("ln γ", size=13, weight=ft.FontWeight.BOLD),
+            title=ft.Text("ln γ", size=14, weight=ft.FontWeight.BOLD),
             title_size=22,
         ),
         bottom_axis=fch.ChartAxis(
             label_size=32,
-            label_spacing=0.1,
-            title=ft.Text("x₁ (fração molar)", size=13, weight=ft.FontWeight.BOLD),
+            label_spacing=0.2,
+            title=ft.Text("x₁ (fração molar)", size=14, weight=ft.FontWeight.BOLD),
             title_size=22,
         ),
         visible=False,
@@ -769,7 +779,7 @@ def main(page: ft.Page):
         controls=[
             coluna_legenda(
                 "",
-                [ft.Text("ln γ₁", size=13), ft.Text("ln γ₂", size=13)],
+                [ft.Text("ln γ₁", size=14), ft.Text("ln γ₂", size=14)],
                 56,
             ),
             coluna_legenda(
@@ -911,7 +921,7 @@ def main(page: ft.Page):
                 f"corrija os campos de componente/temperatura{motivo}, para "
                 "gerar o gráfico."
             )
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             if atualizar_pagina:
                 page.update()
             return
@@ -952,7 +962,7 @@ def main(page: ft.Page):
         if erro_modelo:
             mensagens.append(f"Curva do modelo não calculada: {erro_modelo}.")
         mensagem_status.value = " ".join(mensagens)
-        mensagem_status.color = ft.Colors.ORANGE if mensagens else ""
+        mensagem_status.color = "#9A3B00" if mensagens else ""
 
         # `atualizar_pagina=False` só na carga inicial da página (ver
         # montar_layout/main) — junta o que seria 2 `page.update()`
@@ -1011,7 +1021,7 @@ def main(page: ft.Page):
             )
         except Exception as exc:
             mensagem_status.value = f"Comparação não calculada: {exc}."
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
 
@@ -1188,7 +1198,7 @@ def main(page: ft.Page):
     # como um todo: busca no banco e regressão atualizam todos de uma vez,
     # e mexer em qualquer slider manualmente já invalida a origem
     # "banco"/"calculado" anterior.
-    texto_selo_origem = ft.Text("", size=12, weight=ft.FontWeight.BOLD)
+    texto_selo_origem = ft.Text("", size=14, weight=ft.FontWeight.BOLD)
     chip_selo_origem = ft.Container(
         content=texto_selo_origem,
         padding=ft.Padding(8, 2, 8, 2),
@@ -1279,14 +1289,13 @@ def main(page: ft.Page):
     # e quebra linha dentro dele.
     nota_alpha_fixo = ft.Row(
         controls=[
-            ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=ft.Colors.GREY_600),
+            ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=ft.Colors.GREY_800),
             ft.Text(
                 "α₁₂: quando não vier do banco IPDB, fica fixado por "
                 "convenção (não é ajustado pela regressão de Barker) — "
                 "valor de referência típico entre 0,2 e 0,47.",
-                size=11,
-                color=ft.Colors.GREY_600,
-                italic=True,
+                size=14,
+                color=ft.Colors.GREY_800,
                 expand=True,
             ),
         ],
@@ -1317,8 +1326,7 @@ def main(page: ft.Page):
                     "clássicos e, para UNIQUAC, o banco de interação "
                     "binária IPDB/ChemSep) — sem sliders manuais por "
                     "enquanto.",
-                    color=ft.Colors.GREY_600,
-                    italic=True,
+                    color=ft.Colors.GREY_800,
                     # `key` estável (2026-09-28) — sem identidade própria,
                     # trocar de modelo repetidamente/rápido no dropdown
                     # podia confundir a reconciliação de widgets do
@@ -1407,7 +1415,7 @@ def main(page: ft.Page):
             params = buscar_parametros_banco(nome_modelo, comp1, comp2, T_C + 273.15)
         except Exception as exc:
             mensagem_status.value = f"Busca no banco não realizada: {exc}."
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
 
@@ -1460,7 +1468,7 @@ def main(page: ft.Page):
                 "Regressão por Barker só está disponível, por enquanto, "
                 "para os modelos com slider manual (não UNIQUAC/UNIFAC)."
             )
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
 
@@ -1488,7 +1496,7 @@ def main(page: ft.Page):
             )
         except Exception as exc:
             mensagem_status.value = f"Regressão não realizada: {exc}."
-            mensagem_status.color = ft.Colors.RED
+            mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
 
@@ -1684,7 +1692,7 @@ def main(page: ft.Page):
                     ),
                     ft.Text(
                         "Ver como computador" if modo == "mobile" else "Ver como celular",
-                        size=13,
+                        size=14,
                         color=ft.Colors.WHITE,
                     ),
                 ],
@@ -1712,13 +1720,13 @@ def main(page: ft.Page):
                 ),
                 ft.Text(
                     "Equilíbrio líquido-vapor com modelos de Gᴱ",
-                    size=13,
+                    size=14,
                     color=ft.Colors.WHITE,
                 ),
             ],
             spacing=2,
         )
-        credito_app = ft.Text("UFC", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        credito_app = ft.Text("UFC", size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
         if modo == "desktop":
             interior_cabecalho = ft.Row(
                 controls=[
