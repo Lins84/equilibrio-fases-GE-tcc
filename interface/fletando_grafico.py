@@ -1753,6 +1753,16 @@ def main(page: ft.Page):
         # Row nova com o alinhamento certo a cada montagem; as mensagens
         # voltam para a esquerda dentro de um Container.
         if centralizar:
+            # "Comparar" e a lixeira de limpar (que no celular ficam no
+            # cabeçalho, ao lado do título) vão para uma Row própria,
+            # centralizada, logo abaixo do título.
+            acoes_topo = [
+                ft.Row(
+                    controls=[botao_comparar, botao_limpar_tabela],
+                    spacing=4,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                )
+            ]
             botoes = ft.Row(
                 controls=[botao_adicionar, botao_importar_csv],
                 wrap=True,
@@ -1765,17 +1775,23 @@ def main(page: ft.Page):
                 ),
             ]
         else:
+            acoes_topo = []
             botoes = linha_botoes_tabela
             mensagens = [mensagem_status, linha_erro_comparativo]
         return cartao(
             "Dados experimentais",
+            *acoes_topo,
             dt,
             botoes,
             botao_gerar_grafico,
             *mensagens,
             centralizar=centralizar,
             expand=expand,
-            extra_titulo=ft.Row(controls=[botao_comparar, botao_limpar_tabela], spacing=4),
+            extra_titulo=(
+                None
+                if centralizar
+                else ft.Row(controls=[botao_comparar, botao_limpar_tabela], spacing=4)
+            ),
         )
 
     # Um card por gráfico (não mais um "Resultados" combinado) — no desktop

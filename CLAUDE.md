@@ -1608,6 +1608,13 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   360px **idêntica pixel a pixel** à anterior (diferença nula); 4 testes
   passam. O modo "Ver como celular" num monitor largo também não muda (usa o
   ramo do celular).
+  **Complemento (mesmo dia):** o autor notou que faltavam o "Comparar" e a
+  lixeira de "Limpar Tabela", que ficam no cabeçalho do card e tinham
+  continuado à esquerda. No desktop (`centralizar=True`) os dois passam a
+  uma Row própria, centralizada, logo abaixo do título (o `extra_titulo`
+  do cabeçalho fica vazio); no celular continuam no cabeçalho, como antes.
+  Verificado: captura a 1400px com o "Comparar" funcionando, e captura a
+  360px idêntica à anterior (diferença nula); 4 testes passam.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
