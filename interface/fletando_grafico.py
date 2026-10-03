@@ -71,6 +71,37 @@ COR_GAMMA1 = ft.Colors.GREEN_700
 COR_GAMMA2 = ft.Colors.PURPLE_600
 
 
+def limites_redondos(vmin: float, vmax: float, alvo: int = 7) -> tuple[float, float, float]:
+    """Limites e passo "redondos" para um eixo, a partir do intervalo dos
+    dados: devolve (inicio, fim, passo) com o passo em 1, 2, 2.5 ou 5 vezes
+    uma potência de 10, e inicio/fim múltiplos do passo, com cerca de `alvo`
+    intervalos. Sem isso o eixo ia de, por ex., 27.1 a 76.1 e o gráfico
+    desenhava esses dois extremos por cima dos marcadores regulares (30, 70):
+    "6.4" colado no "10", "-0.05" quebrando sobre o "0.00" (item 8 da lista
+    de estética, 2026-10-03). Com os limites sobre múltiplos do passo, o
+    rótulo dos extremos coincide com um marcador regular e deixa de colidir."""
+    amplitude = max(vmax - vmin, 1e-12)
+    bruto = amplitude / alvo
+    potencia = 10 ** math.floor(math.log10(bruto))
+    passo = next(m * potencia for m in (1, 2, 2.5, 5, 10) if bruto <= m * potencia)
+    inicio = math.floor(vmin / passo) * passo
+    fim = math.ceil(vmax / passo) * passo
+    return round(inicio, 10), round(fim, 10), round(passo, 10)
+
+
+def eixo_vertical(titulo: str, passo: float) -> fch.ChartAxis:
+    """Eixo vertical dos gráficos, com o passo fixo vindo de
+    `limites_redondos`. Criado NOVO a cada `gerar_grafico` em vez de mutar o
+    `label_spacing` do eixo existente — este app não muta propriedade de
+    controle já criado."""
+    return fch.ChartAxis(
+        label_size=40,
+        label_spacing=passo,
+        title=ft.Text(titulo, size=13, weight=ft.FontWeight.BOLD),
+        title_size=22,
+    )
+
+
 def marcador_vazado(forma: str, cor) -> fch.ChartPointShape:
     """Marcador só com contorno (sem preenchimento) — o calculado nos pontos
     da tabela, para ser lido contra o marcador cheio do dado experimental.
@@ -823,9 +854,9 @@ def main(page: ft.Page):
         min_y, max_y = min(valores_P), max(valores_P)
         if min_y == max_y:
             min_y, max_y = min_y - 1, max_y + 1
-        margem = (max_y - min_y) * 0.1
-        chart.min_y = min_y - margem
-        chart.max_y = max_y + margem
+        margem = (max_y - min_y) * 0.05
+        chart.min_y, chart.max_y, passo_y = limites_redondos(min_y - margem, max_y + margem)
+        chart.left_axis = eixo_vertical("P (kPa)", passo_y)
         chart.visible = True
         legenda.visible = True
 
@@ -834,9 +865,11 @@ def main(page: ft.Page):
             min_g, max_g = min(valores_gamma), max(valores_gamma)
             if min_g == max_g:
                 min_g, max_g = min_g - 1, max_g + 1
-            margem_g = (max_g - min_g) * 0.1
-            chart_gamma.min_y = min_g - margem_g
-            chart_gamma.max_y = max_g + margem_g
+            margem_g = (max_g - min_g) * 0.05
+            chart_gamma.min_y, chart_gamma.max_y, passo_g = limites_redondos(
+                min_g - margem_g, max_g + margem_g
+            )
+            chart_gamma.left_axis = eixo_vertical("ln γ", passo_g)
             chart_gamma.visible = True
             legenda_gamma.visible = True
         else:

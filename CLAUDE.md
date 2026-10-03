@@ -807,9 +807,17 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
 7. `ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln γ.
    Agravante achado no item 4: com "Comparar" ativo a legenda do P-x-y
    passa a três linhas e invade o topo do eixo vertical.
-8. Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com a
-   escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
-   cima do "0.00").
+8. ~~Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com
+   a escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
+   cima do "0.00").~~ **Feito em 2026-10-03:** os limites do eixo vertical
+   (antes `min − 10%` / `max + 10%`, valores "quebrados" como 27.1 e 76.1)
+   passam por `limites_redondos(vmin, vmax)`, que devolve início/fim
+   múltiplos de um passo em 1, 2, 2.5 ou 5 × 10^k (cerca de 7 intervalos), e
+   o eixo é recriado com esse `label_spacing` por `eixo_vertical(titulo,
+   passo)` — novo a cada `gerar_grafico`, sem mutar eixo existente. Com os
+   extremos sobre múltiplos do passo, o rótulo do extremo coincide com um
+   marcador regular. Verificado por captura de tela: P de 0 a 80 de 10 em
+   10; ln γ de −0,10 a 0,60 de 0,10 em 0,10.
 9. ~~Achado nos prints: a mensagem laranja "10 linha(s) da tabela
    ignorada(s) por dado inválido" aparece **no carregamento, com a tabela
    vazia** — linha em branco está sendo contada como dado inválido.~~
