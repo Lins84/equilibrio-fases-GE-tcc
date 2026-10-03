@@ -276,7 +276,7 @@ def main(page: ft.Page):
     # gesto (toque) em qualquer dispositivo. `obter_texto` é uma função sem
     # argumentos (não uma string fixa) para cobrir os casos em que a
     # explicação muda em tempo real (ex.: origem do parâmetro).
-    def icone_info(obter_texto, titulo="Sobre este valor"):
+    def icone_info(obter_texto, titulo="Sobre este valor", destaque=False):
         def abrir(e):
             # Quebra de linha manual via textwrap, não `width` no
             # Container/Text — as duas tentativas anteriores (width no
@@ -295,6 +295,17 @@ def main(page: ft.Page):
                 )
             )
 
+        # `destaque=True` (selo de origem do parâmetro, pedido do autor,
+        # 2026-10-03): ícone cheio, um pouco maior, em azul-celeste. Os ⓘ do
+        # ΔP/Δy ficam no estilo discreto de antes.
+        if destaque:
+            return ft.IconButton(
+                icon=ft.Icons.INFO,
+                icon_size=18,
+                icon_color=ft.Colors.LIGHT_BLUE_600,
+                padding=0,
+                on_click=abrir,
+            )
         return ft.IconButton(
             icon=ft.Icons.INFO_OUTLINE,
             icon_size=16,
@@ -1211,7 +1222,9 @@ def main(page: ft.Page):
     # selo certo ao desfazer (ver empilhar_historico/desfazer, abaixo).
     detalhe_selo_origem = {"tipo": None, "texto": ""}
     icone_selo_origem = icone_info(
-        lambda: detalhe_selo_origem["texto"], titulo="Origem deste parâmetro"
+        lambda: detalhe_selo_origem["texto"],
+        titulo="Origem deste parâmetro",
+        destaque=True,
     )
     selo_origem = ft.Row(
         controls=[chip_selo_origem, icone_selo_origem],

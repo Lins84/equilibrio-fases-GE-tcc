@@ -1499,8 +1499,13 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   `BLUE_700`; "α₁₂" em `BLUE_800`, negrito e itálico; texto em `TEAL_900`
   itálico (todas acima de 4,5:1 sobre o cartão). Isso reverte, só para
   essa nota, a retirada do itálico do item 6 (o aviso de UNIQUAC/UNIFAC
-  continua sem itálico). O ⓘ do selo de origem, ao lado de "Fornecido",
-  não foi alterado.
+  continua sem itálico). Na sequência o autor pediu o mesmo destaque para o
+  ⓘ do selo de origem do parâmetro, "em azul de tom claro, próximo ao
+  celeste": `icone_info` ganhou o parâmetro `destaque`; no selo o ícone
+  passou a `INFO` cheio, 18px, `LIGHT_BLUE_600` (contraste 2,79:1 sobre o
+  cartão, um pouco abaixo dos 3:1 usuais para gráficos — consequência
+  aceita da escolha de um azul claro; tons mais escuros perdem o aspecto
+  de celeste). Os ⓘ do ΔP/Δy continuam no estilo discreto de antes.
 
 - **(2026-10-03) Fontes e contraste para projeção: opção B, com as três
   mudanças.** O assistente mediu o contraste e os tamanhos do app, testou
