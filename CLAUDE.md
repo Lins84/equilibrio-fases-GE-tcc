@@ -801,8 +801,19 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    comparação ativa a legenda do P-x-y tem três linhas e a terceira
    encosta no "78" do topo do eixo vertical (altura fixa
    `ALTURA_LEGENDA = 64` não comporta) — era o "S" solto visto antes.
-5. O app não tem nome nem cabeçalho visível (`page.title` ainda é
-   "Fletando - Gráfico Dinâmico", nome de desenvolvimento).
+5. ~~O app não tem nome nem cabeçalho visível (`page.title` ainda é
+   "Fletando - Gráfico Dinâmico", nome de desenvolvimento).~~ **Feito em
+   2026-10-03** (opção H2 escolhida pelo autor, ver "Decisões de engenharia
+   do aluno"): faixa azul (`BLUE_700`, cantos de 12px) no topo com o nome
+   **VLE Interativo**, o subtítulo "Equilíbrio líquido-vapor com modelos de
+   Gᴱ" e o crédito "UFC"; `page.title` passou a "VLE Interativo". O botão
+   de modo de exibição foi para dentro da faixa, com fundo branco
+   translúcido (18%) para se destacar (pedido do autor). Desktop: título à
+   esquerda, crédito e botão à direita; celular: título, subtítulo e, na
+   linha de baixo, crédito e botão. Faixa criada nova a cada `montar_layout`
+   (regra de não mutar controle criado). Verificado por captura de tela a
+   1400px e a 390px. **Ressalva:** o "ᴱ" do subtítulo sai bem pequeno na
+   fonte renderizada (glifo sobrescrito Unicode), legível mas discreto.
 6. Tamanhos de fonte contra o requisito de projeção da seção 1.4: a nota
    do α12 é 11px, itálico, cinza sobre branco.
 7. ~~`ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln
@@ -1407,6 +1418,16 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   escolha de visual), levantados pelo próprio assistente e relatados pelo
   autor ("o gamma não renderiza correto"); o autor autorizou a correção
   ("Sim, corrija o defeito do celular, além do gamma").
+- **(2026-10-03) Nome e cabeçalho do app: faixa de cabeçalho (H2), "VLE
+  Interativo".** O assistente levou duas disposições (H1: título solto à
+  esquerda com o botão de modo à direita; H2: faixa colorida) e quatro
+  candidatos de nome, com imagens no desktop e no celular. O autor escolheu
+  **H2**, o nome **VLE Interativo**, o subtítulo **"Equilíbrio
+  líquido-vapor com modelos de Gᴱ"** e o crédito **"UFC"** (o assistente
+  tinha recomendado H1 e sugerido "TCC — Engenharia Química — UFC"; o autor
+  preferiu a faixa e o crédito curto). Na sequência pediu o botão de modo
+  "com uma cor levemente destacada" dentro da faixa, atendido com fundo
+  branco translúcido.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

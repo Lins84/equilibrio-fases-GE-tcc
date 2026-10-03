@@ -240,7 +240,7 @@ ESPACO_GRANDE = 20
 # Função principal que constrói a interface
 def main(page: ft.Page):
     # Configuração básica da página
-    page.title = "Fletando - Gráfico Dinâmico"
+    page.title = "VLE Interativo"
     page.padding = ESPACO_GRANDE
     # Sem isso, conteúdo mais alto que a janela fica simplesmente
     # inacessível — sem scroll nem aviso, só dá pra ver diminuindo o zoom
@@ -1677,18 +1677,75 @@ def main(page: ft.Page):
                     ft.Icon(
                         ft.Icons.DESKTOP_WINDOWS if modo == "mobile" else ft.Icons.PHONE_IPHONE,
                         size=16,
+                        color=ft.Colors.WHITE,
                     ),
                     ft.Text(
                         "Ver como computador" if modo == "mobile" else "Ver como celular",
                         size=13,
+                        color=ft.Colors.WHITE,
                     ),
                 ],
                 tight=True,
                 spacing=6,
             ),
             on_click=alternar_modo,
+            # Fundo branco translúcido (pedido do autor, 2026-10-03): destaca
+            # o botão da faixa azul sem competir com o título.
+            style=ft.ButtonStyle(bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.WHITE)),
         )
-        linha_modo = ft.Row(controls=[botao_modo], alignment=ft.MainAxisAlignment.END)
+
+        # Faixa de cabeçalho (item 5 da estética, 2026-10-03, opção H2 do
+        # autor): nome, subtítulo e crédito, com o botão de modo dentro da
+        # faixa. Montada nova a cada `montar_layout`, como o resto — sem
+        # mutar controle já criado. No desktop o crédito e o botão ficam à
+        # direita; no celular, abaixo do subtítulo, para o título caber.
+        titulo_app = ft.Column(
+            controls=[
+                ft.Text(
+                    "VLE Interativo",
+                    size=24,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.WHITE,
+                ),
+                ft.Text(
+                    "Equilíbrio líquido-vapor com modelos de Gᴱ",
+                    size=13,
+                    color=ft.Colors.WHITE,
+                ),
+            ],
+            spacing=2,
+        )
+        credito_app = ft.Text("UFC", size=12, weight=ft.FontWeight.BOLD, color=ft.Colors.WHITE)
+        if modo == "desktop":
+            interior_cabecalho = ft.Row(
+                controls=[
+                    ft.Container(content=titulo_app, expand=True),
+                    ft.Column(
+                        controls=[credito_app, botao_modo],
+                        spacing=0,
+                        horizontal_alignment=ft.CrossAxisAlignment.END,
+                    ),
+                ],
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            )
+        else:
+            interior_cabecalho = ft.Column(
+                controls=[
+                    titulo_app,
+                    ft.Row(
+                        controls=[credito_app, botao_modo],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                ],
+                spacing=ESPACO_PEQUENO,
+            )
+        linha_modo = ft.Container(
+            content=interior_cabecalho,
+            bgcolor=ft.Colors.BLUE_700,
+            border_radius=12,
+            padding=ft.Padding(16, 12, 16, 12),
+        )
 
         if modo == "desktop":
             # Reorganizado a pedido do autor (2026-09-28): a tabela de
