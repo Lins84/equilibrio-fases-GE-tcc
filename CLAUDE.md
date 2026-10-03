@@ -1671,6 +1671,25 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   decidir pelo autor: tudo em negrito, tudo normal, ou esperar correção do
   Flet. Verificado por captura antes/depois; 4 testes passam.
 
+- **(2026-10-03) Tooltip: balão dentro do gráfico, e experimental normal ×
+  calculado em negrito.** Pedido do autor ("corrija o tooltip cortado no
+  topo e também temos que diferenciar a cor pra não ficar confuso entre
+  experimental e calculado. Deixa experimental normal e calc bold").
+  **(1) Cortado no topo:** visto na captura do gráfico de ln γ — perto do
+  topo o balão subia além do card e a primeira linha sumia. Correção:
+  `fit_inside_vertically=True` e `fit_inside_horizontally=True` no
+  `LineChartTooltip` dos dois gráficos; conferido com o balão no topo do
+  ln γ e na borda direita do P-x-y (x₁ = 1). **(2) Experimental × calculado:**
+  em vez de outra cor (o autor pediu o peso da letra), `ponto_grafico` ganhou
+  `experimental: bool = False`; os pontos da tabela (as duas séries de
+  marcadores cheios do P-x-y) passam `experimental=True` e saem em peso
+  normal (W_400); todo o resto — curva do modelo e comparativo, nos dois
+  gráficos — é calculado e sai em negrito (BOLD, antes W_600). Isso resolve
+  o caso em que um mesmo balão mistura as duas origens (ex.: `x₁ = 0.2910`
+  normal para a tabela e `x₁ = 0.2900` negrito para o modelo). O ln γ só tem
+  séries calculadas, então fica todo em negrito. Verificado por captura;
+  4 testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

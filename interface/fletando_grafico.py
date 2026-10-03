@@ -176,13 +176,22 @@ TOOLTIP_FUNDO = ft.Colors.BLUE_50
 
 
 def ponto_grafico(
-    x: float, y: float, nome_x: str, nome_y: str, unidade_y: str = ""
+    x: float,
+    y: float,
+    nome_x: str,
+    nome_y: str,
+    unidade_y: str = "",
+    experimental: bool = False,
 ) -> fch.LineChartDataPoint:
     """Ponto de série dos gráficos, com o tooltip (ao passar o cursor)
     mostrando os dois valores, nomeados e formatados por `formatar_valor`
     — em duas linhas, ex.: "x1 = 0.3500" e "P = 45.23 kPa". Sem o nome,
     o valor solto do tooltip padrão não diz de que eixo é; sem o x, não
-    diz onde está."""
+    diz onde está.
+
+    `experimental=True` (pontos da tabela) deixa o texto do balão em peso
+    normal; o padrão (curva do modelo e comparativo, ambos calculados) usa
+    negrito. É o que diferencia, no balão, dado medido de dado calculado."""
     sufixo = f" {unidade_y}" if unidade_y else ""
     texto = (
         f"{nome_x} = {formatar_valor(x)}\n"
@@ -206,7 +215,10 @@ def ponto_grafico(
         tooltip=fch.LineChartDataPointTooltip(
             text=texto,
             text_align=ft.TextAlign.START,
-            text_style=ft.TextStyle(size=14, weight=ft.FontWeight.W_600),
+            text_style=ft.TextStyle(
+                size=14,
+                weight=ft.FontWeight.W_400 if experimental else ft.FontWeight.BOLD,
+            ),
         ),
     )
 
@@ -729,6 +741,10 @@ def main(page: ft.Page):
         tooltip=fch.LineChartTooltip(
             bgcolor=TOOLTIP_FUNDO,
             border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
+            # Mantém o balão dentro da área do gráfico: sem isso, perto do
+            # topo ele subia além do card e a primeira linha era cortada.
+            fit_inside_horizontally=True,
+            fit_inside_vertically=True,
         ),
         # Rótulos de eixo (2026-10-01): até aqui os dois gráficos mostravam
         # só números soltos, sem dizer o que era cada eixo — num material
@@ -888,6 +904,10 @@ def main(page: ft.Page):
         tooltip=fch.LineChartTooltip(
             bgcolor=TOOLTIP_FUNDO,
             border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
+            # Mantém o balão dentro da área do gráfico: sem isso, perto do
+            # topo ele subia além do card e a primeira linha era cortada.
+            fit_inside_horizontally=True,
+            fit_inside_vertically=True,
         ),
         left_axis=fch.ChartAxis(
             label_size=40,
@@ -980,13 +1000,19 @@ def main(page: ft.Page):
                 color=COR_LIQUIDO,
                 stroke_width=0,
                 point=fch.ChartSquarePoint(size=8, color=COR_LIQUIDO, stroke_width=0),
-                points=[ponto_grafico(x, p, "x₁", "P", "kPa") for x, p in liquido],
+                points=[
+                    ponto_grafico(x, p, "x₁", "P", "kPa", experimental=True)
+                    for x, p in liquido
+                ],
             ))
             series.append(fch.LineChartData(
                 color=COR_VAPOR,
                 stroke_width=0,
                 point=fch.ChartCirclePoint(radius=4.5, color=COR_VAPOR, stroke_width=0),
-                points=[ponto_grafico(x, p, "y₁", "P", "kPa") for x, p in vapor],
+                points=[
+                    ponto_grafico(x, p, "y₁", "P", "kPa", experimental=True)
+                    for x, p in vapor
+                ],
             ))
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]
 
