@@ -1690,6 +1690,21 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   séries calculadas, então fica todo em negrito. Verificado por captura;
   4 testes passam.
 
+- **(2026-10-03) Legendas com inicial maiúscula; peso do tooltip no ln γ.**
+  Pedido do autor ("os nomes com inicial minúscula ponha maiúscula: liq vap
+  tab model; no gráfico gamma, dados vazados normais e os outros bem
+  negrito"). **(1)** Rótulos das duas legendas: `Líquido`, `Vapor`,
+  `Tabela`, `Modelo` — e `Comparativo`, que o autor não listou mas seguia o
+  mesmo padrão (coluna de 84px comporta). Os rótulos `ln γ₁`/`ln γ₂` não
+  mudam (notação). **(2)** `ponto_grafico` trocou o parâmetro `experimental`
+  por `negrito: bool = True`: no **ln γ**, os marcadores vazados
+  (Comparativo, o modelo calculado nos x₁ da tabela) saem em peso normal e a
+  curva do modelo em negrito; no **P-x-y** segue como antes — pontos da
+  tabela normais, modelo e comparativo em negrito (o autor pediu a mudança
+  só para o ln γ; no P-x-y o comparativo continua em negrito, o que deixa as
+  duas regras diferentes entre os gráficos). Verificado por captura; 4 testes
+  passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

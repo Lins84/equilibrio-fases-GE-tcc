@@ -181,7 +181,7 @@ def ponto_grafico(
     nome_x: str,
     nome_y: str,
     unidade_y: str = "",
-    experimental: bool = False,
+    negrito: bool = True,
 ) -> fch.LineChartDataPoint:
     """Ponto de série dos gráficos, com o tooltip (ao passar o cursor)
     mostrando os dois valores, nomeados e formatados por `formatar_valor`
@@ -189,9 +189,12 @@ def ponto_grafico(
     o valor solto do tooltip padrão não diz de que eixo é; sem o x, não
     diz onde está.
 
-    `experimental=True` (pontos da tabela) deixa o texto do balão em peso
-    normal; o padrão (curva do modelo e comparativo, ambos calculados) usa
-    negrito. É o que diferencia, no balão, dado medido de dado calculado."""
+    `negrito=False` deixa o texto do balão em peso normal; o padrão é
+    negrito. Usado para diferenciar, no balão, séries de origens diferentes:
+    no P-x-y, os pontos da tabela (experimentais) saem normais e o resto
+    (modelo e comparativo, calculados) em negrito; no ln γ, que não tem dado
+    experimental, os marcadores vazados (comparativo) saem normais e a
+    curva do modelo em negrito."""
     sufixo = f" {unidade_y}" if unidade_y else ""
     texto = (
         f"{nome_x} = {formatar_valor(x)}\n"
@@ -217,7 +220,7 @@ def ponto_grafico(
             text_align=ft.TextAlign.START,
             text_style=ft.TextStyle(
                 size=14,
-                weight=ft.FontWeight.W_400 if experimental else ft.FontWeight.BOLD,
+                weight=ft.FontWeight.BOLD if negrito else ft.FontWeight.W_400,
             ),
         ),
     )
@@ -815,13 +818,13 @@ def main(page: ft.Page):
     # mudou). Uma coluna por gráfico (P-x-y e ln γ) — γ1/γ2 do modelo
     # avaliados exatamente nos x1 da tabela, junto com "Comparar".
     coluna_comparativo_pxy = coluna_legenda(
-        "comparativo",
+        "Comparativo",
         [glifo_legenda(COR_LIQUIDO, "quadrado_vazado"), glifo_legenda(COR_VAPOR, "circulo_vazado")],
         84,
     )
     coluna_comparativo_pxy.visible = False
     coluna_comparativo_gamma = coluna_legenda(
-        "comparativo",
+        "Comparativo",
         [glifo_legenda(COR_GAMMA1, "circulo_vazado"), glifo_legenda(COR_GAMMA2, "circulo_vazado")],
         84,
     )
@@ -867,16 +870,16 @@ def main(page: ft.Page):
         controls=[
             coluna_legenda(
                 "",
-                [ft.Text("líquido", size=14), ft.Text("vapor", size=14)],
+                [ft.Text("Líquido", size=14), ft.Text("Vapor", size=14)],
                 56,
             ),
             coluna_legenda(
-                "tabela",
+                "Tabela",
                 [glifo_legenda(COR_LIQUIDO, "quadrado"), glifo_legenda(COR_VAPOR, "circulo")],
                 60,
             ),
             coluna_legenda(
-                "modelo",
+                "Modelo",
                 [glifo_legenda(COR_LIQUIDO, "linha"), glifo_legenda(COR_VAPOR, "linha")],
                 60,
             ),
@@ -931,7 +934,7 @@ def main(page: ft.Page):
                 56,
             ),
             coluna_legenda(
-                "modelo",
+                "Modelo",
                 [glifo_legenda(COR_GAMMA1, "linha"), glifo_legenda(COR_GAMMA2, "linha")],
                 60,
             ),
@@ -1001,7 +1004,7 @@ def main(page: ft.Page):
                 stroke_width=0,
                 point=fch.ChartSquarePoint(size=8, color=COR_LIQUIDO, stroke_width=0),
                 points=[
-                    ponto_grafico(x, p, "x₁", "P", "kPa", experimental=True)
+                    ponto_grafico(x, p, "x₁", "P", "kPa", negrito=False)
                     for x, p in liquido
                 ],
             ))
@@ -1010,7 +1013,7 @@ def main(page: ft.Page):
                 stroke_width=0,
                 point=fch.ChartCirclePoint(radius=4.5, color=COR_VAPOR, stroke_width=0),
                 points=[
-                    ponto_grafico(x, p, "y₁", "P", "kPa", experimental=True)
+                    ponto_grafico(x, p, "y₁", "P", "kPa", negrito=False)
                     for x, p in vapor
                 ],
             ))
@@ -1206,13 +1209,13 @@ def main(page: ft.Page):
                 color=COR_GAMMA1,
                 stroke_width=0,
                 point=marcador_vazado("circulo", COR_GAMMA1),
-                points=[ponto_grafico(x, g, "x₁", "ln γ₁") for x, g in ln_gamma1_comp],
+                points=[ponto_grafico(x, g, "x₁", "ln γ₁", negrito=False) for x, g in ln_gamma1_comp],
             ),
             fch.LineChartData(
                 color=COR_GAMMA2,
                 stroke_width=0,
                 point=marcador_vazado("circulo", COR_GAMMA2),
-                points=[ponto_grafico(x, g, "x₁", "ln γ₂") for x, g in ln_gamma2_comp],
+                points=[ponto_grafico(x, g, "x₁", "ln γ₂", negrito=False) for x, g in ln_gamma2_comp],
             ),
         ]
         coluna_comparativo_gamma.visible = True
