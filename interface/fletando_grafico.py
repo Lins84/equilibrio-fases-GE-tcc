@@ -91,10 +91,19 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
     return f"{round(valor, casas):.{max(casas, 0)}f}"
 
 
-def ponto_grafico(x: float, y: float) -> fch.LineChartDataPoint:
+def ponto_grafico(
+    x: float, y: float, nome_x: str, nome_y: str, unidade_y: str = ""
+) -> fch.LineChartDataPoint:
     """Ponto de série dos gráficos, com o tooltip (ao passar o cursor)
-    formatado por `formatar_valor` em vez do float cru."""
-    return fch.LineChartDataPoint(x, y, tooltip=formatar_valor(y))
+    mostrando os dois valores, nomeados e formatados por `formatar_valor`
+    — ex.: "x1 = 0.3500 · P = 45.23 kPa". Sem o nome, o valor solto do
+    tooltip padrão não diz de que eixo é; sem o x, não diz onde está."""
+    sufixo = f" {unidade_y}" if unidade_y else ""
+    texto = (
+        f"{nome_x} = {formatar_valor(x)} · "
+        f"{nome_y} = {formatar_valor(y)}{sufixo}"
+    )
+    return fch.LineChartDataPoint(x, y, tooltip=texto)
 
 
 def importar_pontos_csv(
@@ -664,12 +673,12 @@ def main(page: ft.Page):
             series.append(fch.LineChartData(
                 color=ft.Colors.BLUE,
                 stroke_width=3,
-                points=[ponto_grafico(x, p) for x, p in liquido],
+                points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido],
             ))
             series.append(fch.LineChartData(
                 color=ft.Colors.RED,
                 stroke_width=3,
-                points=[ponto_grafico(x, p) for x, p in vapor],
+                points=[ponto_grafico(x, p, "y1", "P", "kPa") for x, p in vapor],
             ))
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]
 
@@ -692,12 +701,12 @@ def main(page: ft.Page):
             series.append(fch.LineChartData(
                 color=ft.Colors.GREEN,
                 stroke_width=2,
-                points=[ponto_grafico(x, p) for x, p in liquido_calc],
+                points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido_calc],
             ))
             series.append(fch.LineChartData(
                 color=ft.Colors.ORANGE,
                 stroke_width=2,
-                points=[ponto_grafico(y, p) for y, p in vapor_calc],
+                points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_calc],
             ))
             valores_P += resultado["P_kPa"]
 
@@ -706,12 +715,12 @@ def main(page: ft.Page):
             series_gamma.append(fch.LineChartData(
                 color=ft.Colors.GREEN,
                 stroke_width=2,
-                points=[ponto_grafico(x, g) for x, g in zip(resultado["x1"], ln_gamma1)],
+                points=[ponto_grafico(x, g, "x1", "ln γ1") for x, g in zip(resultado["x1"], ln_gamma1)],
             ))
             series_gamma.append(fch.LineChartData(
                 color=ft.Colors.ORANGE,
                 stroke_width=2,
-                points=[ponto_grafico(x, g) for x, g in zip(resultado["x1"], ln_gamma2)],
+                points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in zip(resultado["x1"], ln_gamma2)],
             ))
             valores_gamma += ln_gamma1 + ln_gamma2
             modelo_ok = True
@@ -839,12 +848,12 @@ def main(page: ft.Page):
             fch.LineChartData(
                 color=ft.Colors.PURPLE,
                 stroke_width=2,
-                points=[ponto_grafico(x, p) for x, p in liquido_comp],
+                points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido_comp],
             ),
             fch.LineChartData(
                 color=ft.Colors.CYAN,
                 stroke_width=2,
-                points=[ponto_grafico(y, p) for y, p in vapor_comp],
+                points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_comp],
             ),
         ]
         chip_liquido_comparativo.visible = True
@@ -856,12 +865,12 @@ def main(page: ft.Page):
             fch.LineChartData(
                 color=ft.Colors.PURPLE,
                 stroke_width=2,
-                points=[ponto_grafico(x, g) for x, g in ln_gamma1_comp],
+                points=[ponto_grafico(x, g, "x1", "ln γ1") for x, g in ln_gamma1_comp],
             ),
             fch.LineChartData(
                 color=ft.Colors.CYAN,
                 stroke_width=2,
-                points=[ponto_grafico(x, g) for x, g in ln_gamma2_comp],
+                points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in ln_gamma2_comp],
             ),
         ]
         chip_gamma1_comparativo.visible = True
