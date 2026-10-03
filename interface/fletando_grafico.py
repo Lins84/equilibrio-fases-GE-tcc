@@ -269,6 +269,44 @@ def main(page: ft.Page):
     # Variável de largura para manter tudo alinhado
     largura_coluna = 60
 
+    # Estilo dos botões do card "Dados experimentais" (2026-10-03, a pedido
+    # do autor, a critério do assistente). Secundários: fundo azul bem claro,
+    # texto e ícone azul-escuro, contorno azul e cantos de 12px (a mesma
+    # família das caixas do card Sistema). Primário ("Gerar Gráfico"): azul
+    # cheio com texto branco. O mapa de estados é por `ft.ControlState` para
+    # o botão apagado (Comparar sem dado) ficar cinza em vez de azul. O
+    # estilo é definido na criação do botão, nunca mutado depois.
+    def estilo_botao(primario=False):
+        if primario:
+            return ft.ButtonStyle(
+                bgcolor={
+                    ft.ControlState.DEFAULT: ft.Colors.BLUE_700,
+                    ft.ControlState.DISABLED: ft.Colors.GREY_300,
+                },
+                color={
+                    ft.ControlState.DEFAULT: ft.Colors.WHITE,
+                    ft.ControlState.DISABLED: ft.Colors.GREY_600,
+                },
+                shape=ft.RoundedRectangleBorder(radius=12),
+                padding=ft.Padding(16, 12, 16, 12),
+            )
+        return ft.ButtonStyle(
+            bgcolor={
+                ft.ControlState.DEFAULT: ft.Colors.BLUE_50,
+                ft.ControlState.DISABLED: ft.Colors.GREY_100,
+            },
+            color={
+                ft.ControlState.DEFAULT: ft.Colors.BLUE_800,
+                ft.ControlState.DISABLED: ft.Colors.GREY_600,
+            },
+            side={
+                ft.ControlState.DEFAULT: ft.BorderSide(1.5, ft.Colors.BLUE_200),
+                ft.ControlState.DISABLED: ft.BorderSide(1.5, ft.Colors.GREY_300),
+            },
+            shape=ft.RoundedRectangleBorder(radius=12),
+            padding=ft.Padding(14, 10, 14, 10),
+        )
+
     # Ícone ⓘ tocável (não só hover) — o `tooltip` nativo do Flet depende de
     # hover ou long-press, e o usuário final deste app usa celular (sem
     # mouse); um toque simples no ícone não abria nada de forma confiável.
@@ -366,9 +404,18 @@ def main(page: ft.Page):
     # conforme desktop/mobile significaria mutar propriedade de controle já
     # criado, que foi exatamente o gatilho do bug de renderização de
     # 2026-09-28 (ver montar_layout).
+    # Estilo (2026-10-03): cabeçalho azul claro com texto azul-escuro em
+    # negrito, linhas brancas separadas por filete azul e moldura de cantos
+    # arredondados. `dt` continua filho direto da Column do card, sem
+    # contêiner em volta (embrulhá-lo quebrou a renderização em 2026-09-28).
     dt = ft.DataTable(
         column_spacing=16,
         horizontal_margin=8,
+        heading_row_color=ft.Colors.BLUE_50,
+        data_row_color=ft.Colors.WHITE,
+        border=ft.Border.all(1.5, ft.Colors.BLUE_200),
+        border_radius=12,
+        horizontal_lines=ft.BorderSide(1, ft.Colors.BLUE_100),
         # Unidade no cabeçalho de P (2026-10-01): o motor trabalha em kPa
         # (`calculate_vle_isothermal` devolve `P_kPa`) e `calcular_comparativo`
         # divide P calculado por P experimental direto — digitar mmHg ou bar
@@ -382,14 +429,20 @@ def main(page: ft.Page):
             ft.DataColumn(
                 label=ft.Text(
                     "P (kPa)", width=largura_coluna, text_align=ft.TextAlign.CENTER,
-                    size=14,
+                    size=14, color=ft.Colors.BLUE_800, weight=ft.FontWeight.BOLD,
                 )
             ),
             ft.DataColumn(
-                label=ft.Text("x₁", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text(
+                    "x₁", width=largura_coluna, text_align=ft.TextAlign.CENTER,
+                    color=ft.Colors.BLUE_800, weight=ft.FontWeight.BOLD,
+                )
             ),
             ft.DataColumn(
-                label=ft.Text("y₁", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text(
+                    "y₁", width=largura_coluna, text_align=ft.TextAlign.CENTER,
+                    color=ft.Colors.BLUE_800, weight=ft.FontWeight.BOLD,
+                )
             ),
             ft.DataColumn(label=ft.Text("", width=40)),  # Coluna vazia para a lixeira
         ],
@@ -424,6 +477,20 @@ def main(page: ft.Page):
                 keyboard_type=ft.KeyboardType.NUMBER,
                 on_change=filtrar_numero,
                 border=ft.NoInputBorder(),
+                # Estilo (2026-10-03): fundo transparente (um branco opaco
+                # cobria o filete entre as linhas) que vira azul claro ao
+                # focar, cantos arredondados, texto escuro de peso médio.
+                filled=True,
+                fill_color=ft.Colors.TRANSPARENT,
+                focused_bgcolor=ft.Colors.BLUE_50,
+                border_radius=8,
+                text_style=ft.TextStyle(
+                    color=ft.Colors.BLUE_GREY_900, weight=ft.FontWeight.W_500
+                ),
+                cursor_color=ft.Colors.BLUE_700,
+                # Sem preenchimento lateral: com `filled`, o padrão do Material
+                # (12px de cada lado) cortava "0.935" nos 60px da coluna.
+                content_padding=ft.Padding(0, 8, 0, 8),
                 # Sem isso, "Comparar"/"Limpar Tabela" só reavaliavam se
                 # havia dado válido quando "Gerar Gráfico" era clicado —
                 # digitar direto na tabela não acendia nem apagava os
@@ -496,6 +563,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=adicionar_linha,
+        style=estilo_botao(),
     )
 
     # 3b. Importação via CSV (colunas P, x, y) — substitui os pontos da
@@ -560,6 +628,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=importar_csv,
+        style=estilo_botao(),
     )
 
     # 3c. Limpar tabela (2026-09-28, pedido do autor) — descarta todas as
@@ -580,6 +649,7 @@ def main(page: ft.Page):
     botao_limpar_tabela = ft.IconButton(
         icon=ft.Icons.DELETE_SWEEP,
         tooltip="Limpar Tabela",
+        icon_color=ft.Colors.BLUE_800,
         on_click=limpar_tabela,
     )
 
@@ -993,6 +1063,7 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=gerar_grafico,
+        style=estilo_botao(primario=True),
     )
 
     # 4c. Comparação calculado-vs-experimental (item 4 do roadmap) — só a
@@ -1116,6 +1187,7 @@ def main(page: ft.Page):
         ),
         on_click=calcular_comparativo,
         disabled=True,
+        style=estilo_botao(),
     )
 
     # 5. Dropdown de seleção do modelo Gᴱ — troca o modelo e já recalcula

@@ -1551,6 +1551,30 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   no log do servidor; conferir o log e `ss -ltn` antes de confiar na
   imagem.
 
+- **(2026-10-03) Estilo do card "Dados experimentais".** Pedido do autor
+  ("gostei, estilize o card dados experimentais"), na linha do card Sistema,
+  com o estilo a critério do assistente; paleta já existente no app.
+  **Tabela (`dt`):** cabeçalho em `BLUE_50` com texto `BLUE_800` negrito,
+  linhas brancas separadas por filete `BLUE_100`, moldura `BLUE_200` de
+  1,5px com cantos de 12px; `column_spacing=16`/`horizontal_margin=8`
+  mantidos e `dt` segue filho direto da Column do card, sem contêiner em
+  volta (embrulhá-lo quebrou a renderização em 2026-09-28). **Células:**
+  fundo transparente que vira `BLUE_50` ao focar, cantos de 8px, texto
+  `BLUE_GREY_900` de peso médio, cursor `BLUE_700`. Dois acertos achados
+  na captura: um branco opaco cobria o filete entre as linhas (por isso
+  transparente) e o `content_padding` padrão do campo preenchido cortava
+  "12.33"/"0.935" nos 60px da coluna (por isso `Padding(0, 8, 0, 8)`).
+  **Botões:** `estilo_botao()` — secundários (Adicionar Novo Ponto,
+  Importar CSV, Comparar) com fundo `BLUE_50`, texto/ícone `BLUE_800`,
+  contorno `BLUE_200` e cantos de 12px; primário ("Gerar Gráfico") em
+  `BLUE_700` com texto branco; estado apagado cinza (mapa
+  `ft.ControlState.DISABLED`, usado pelo Comparar sem dado). Ícone de
+  "Limpar Tabela" em `BLUE_800`; a lixeira continua vermelha (vermelho
+  reservado a erro/exclusão). Tudo definido na criação, sem mutar controle
+  já criado. Verificado por captura de tela a 1400px (com o CSV de
+  etanol/água e "Comparar") e a 360px (as 10 lixeiras continuam dentro do
+  card); os 4 testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
