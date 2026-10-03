@@ -1747,6 +1747,36 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   continua visível, com menos interferência no texto. Verificado por
   captura; 5 testes passam.
 
+- **(2026-10-03) Lupa "Ampliar gráfico" nos cards dos gráficos, só no
+  desktop (opção A).** O autor perguntou se seria possível "um ícone de lupa
+  dentro do card do gráfico que de alguma forma dá um zoom". O assistente
+  verificou que o `LineChart` do Flet 1.0.0 **não tem zoom nem pan** (só
+  `min_x/max_x/min_y/max_y`) e levou três opções: **A** lupa que abre o
+  gráfico ampliado num diálogo; **B** modo de zoom por botões `+`/`−`/
+  redefinir; **C** diálogo com seletores de faixa. O autor escolheu **A** e
+  disse que "o celular não precisa desse zoom". **Implementação:** ícone
+  `ZOOM_IN` ao lado do título dos cards "Diagrama P-x-y" e "Coeficientes de
+  atividade (ln γ)", **só no layout de desktop** (`com_lupa=True` em
+  `construir_grafico_*`; no celular os cards ficam como estavam — captura a
+  360px **idêntica pixel a pixel** à do commit anterior). Ao clicar abre um
+  `AlertDialog` (até 92% da largura e ~88% da altura da janela, fecha no X, no
+  Esc ou clicando fora) com título, legenda e um gráfico **novo** — não é o
+  mesmo controle, porque um controle não pode ter dois pais: séries copiadas
+  por `clonar_series` (`dataclasses.replace`, que gera ids novos; `deepcopy`
+  duplicava o id interno), `novo_tooltip()` (agora função, usada também nos
+  dois gráficos dos cards), eixo vertical novo com o mesmo passo e limites
+  do card, eixo x com passo 0,1 (cabe no tamanho grande), e legenda montada
+  por `montar_legenda_pxy`/`montar_legenda_gamma` (refatoradas de blocos
+  fixos para funções), com a coluna "Comparativo" só se "Comparar" estiver
+  ativo. Os botões da lupa são criados uma vez e reaproveitados entre
+  montagens de layout (como `botao_comparar`); começam apagados e
+  `gerar_grafico`/`calcular_comparativo` os acendem quando há gráfico.
+  **Limites:** o diálogo mostra o gráfico **como está no momento do clique**
+  (não acompanha mudanças feitas com ele aberto — fechar e reabrir); é
+  tamanho grande, não zoom de região. Verificado por captura a 1400px com o
+  CSV de etanol/água e "Comparar" ativo (P-x-y e ln γ, inclusive o tooltip
+  dentro do diálogo); 5 testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

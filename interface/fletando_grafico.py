@@ -1,4 +1,5 @@
 import csv
+import dataclasses
 import io
 import math
 import re
@@ -186,6 +187,36 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
 # delimita o balão.
 OPACIDADE_TOOLTIP = 0.70
 TOOLTIP_FUNDO = ft.Colors.with_opacity(OPACIDADE_TOOLTIP, ft.Colors.BLUE_50)
+
+
+def novo_tooltip() -> fch.LineChartTooltip:
+    """Balão do tooltip dos gráficos. Uma função (e não um objeto único)
+    porque o gráfico do card e o do diálogo "Ampliar" precisam cada um do
+    seu — o app não reaproveita controle entre dois pais."""
+    return fch.LineChartTooltip(
+        bgcolor=TOOLTIP_FUNDO,
+        border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
+        # Mantém o balão dentro da área do gráfico: sem isso, perto do
+        # topo ele subia além do card e a primeira linha era cortada.
+        fit_inside_horizontally=True,
+        fit_inside_vertically=True,
+    )
+
+
+def clonar_series(series: list) -> list:
+    """Cópia das séries de um gráfico, para o gráfico do diálogo "Ampliar".
+    `dataclasses.replace` gera controles novos, com identificador próprio (um
+    `deepcopy` copiava o identificador interno, e dois controles com o mesmo
+    id confundem o cliente); os pontos precisam ser copiados um a um, porque
+    o `replace` da série é raso e dividiria a lista com o original. Os
+    marcadores (`point`) e os tooltips não são controles, podem ser
+    compartilhados."""
+    return [
+        dataclasses.replace(
+            serie, points=[dataclasses.replace(p) for p in serie.points]
+        )
+        for serie in series
+    ]
 
 
 def ponto_grafico(
@@ -752,14 +783,7 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
-        tooltip=fch.LineChartTooltip(
-            bgcolor=TOOLTIP_FUNDO,
-            border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
-            # Mantém o balão dentro da área do gráfico: sem isso, perto do
-            # topo ele subia além do card e a primeira linha era cortada.
-            fit_inside_horizontally=True,
-            fit_inside_vertically=True,
-        ),
+        tooltip=novo_tooltip(),
         # Rótulos de eixo (2026-10-01): até aqui os dois gráficos mostravam
         # só números soltos, sem dizer o que era cada eixo — num material
         # didático, exatamente o que o aluno não decifra sozinho. O eixo
@@ -828,17 +852,25 @@ def main(page: ft.Page):
     # sempre que gerar_grafico() reconstrói o gráfico do zero (modelo/tabela
     # mudou). Uma coluna por gráfico (P-x-y e ln γ) — γ1/γ2 do modelo
     # avaliados exatamente nos x1 da tabela, junto com "Comparar".
-    coluna_comparativo_pxy = coluna_legenda(
-        "Comparativo",
-        [glifo_legenda(COR_LIQUIDO, "quadrado_vazado"), glifo_legenda(COR_VAPOR, "circulo_vazado")],
-        84,
-    )
+    # Funções (e não objetos únicos) porque o diálogo "Ampliar" monta uma
+    # legenda própria — um controle não pode ter dois pais.
+    def nova_coluna_comparativo_pxy():
+        return coluna_legenda(
+            "Comparativo",
+            [glifo_legenda(COR_LIQUIDO, "quadrado_vazado"), glifo_legenda(COR_VAPOR, "circulo_vazado")],
+            84,
+        )
+
+    def nova_coluna_comparativo_gamma():
+        return coluna_legenda(
+            "Comparativo",
+            [glifo_legenda(COR_GAMMA1, "circulo_vazado"), glifo_legenda(COR_GAMMA2, "circulo_vazado")],
+            84,
+        )
+
+    coluna_comparativo_pxy = nova_coluna_comparativo_pxy()
     coluna_comparativo_pxy.visible = False
-    coluna_comparativo_gamma = coluna_legenda(
-        "Comparativo",
-        [glifo_legenda(COR_GAMMA1, "circulo_vazado"), glifo_legenda(COR_GAMMA2, "circulo_vazado")],
-        84,
-    )
+    coluna_comparativo_gamma = nova_coluna_comparativo_gamma()
     coluna_comparativo_gamma.visible = False
 
     # Resultado numérico da comparação (ΔP/Δy, seção "Próximos passos" item
@@ -877,29 +909,32 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    legenda = ft.Row(
-        controls=[
-            coluna_legenda(
-                "",
-                [ft.Text("Líquido", size=14), ft.Text("Vapor", size=14)],
-                56,
-            ),
-            coluna_legenda(
-                "Tabela",
-                [glifo_legenda(COR_LIQUIDO, "quadrado"), glifo_legenda(COR_VAPOR, "circulo")],
-                60,
-            ),
-            coluna_legenda(
-                "Modelo",
-                [glifo_legenda(COR_LIQUIDO, "linha"), glifo_legenda(COR_VAPOR, "linha")],
-                60,
-            ),
-            coluna_comparativo_pxy,
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        spacing=4,
-        visible=False,
-    )
+    def montar_legenda_pxy(coluna_comparativo):
+        return ft.Row(
+            controls=[
+                coluna_legenda(
+                    "",
+                    [ft.Text("Líquido", size=14), ft.Text("Vapor", size=14)],
+                    56,
+                ),
+                coluna_legenda(
+                    "Tabela",
+                    [glifo_legenda(COR_LIQUIDO, "quadrado"), glifo_legenda(COR_VAPOR, "circulo")],
+                    60,
+                ),
+                coluna_legenda(
+                    "Modelo",
+                    [glifo_legenda(COR_LIQUIDO, "linha"), glifo_legenda(COR_VAPOR, "linha")],
+                    60,
+                ),
+                coluna_comparativo,
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=4,
+        )
+
+    legenda = montar_legenda_pxy(coluna_comparativo_pxy)
+    legenda.visible = False
 
     # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — a curva do
     # modelo na malha genérica de 101 pontos, mais (via "Comparar", igual ao
@@ -915,14 +950,7 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
-        tooltip=fch.LineChartTooltip(
-            bgcolor=TOOLTIP_FUNDO,
-            border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
-            # Mantém o balão dentro da área do gráfico: sem isso, perto do
-            # topo ele subia além do card e a primeira linha era cortada.
-            fit_inside_horizontally=True,
-            fit_inside_vertically=True,
-        ),
+        tooltip=novo_tooltip(),
         left_axis=fch.ChartAxis(
             label_size=40,
             title=ft.Text("ln γ", size=14, weight=ft.FontWeight.BOLD),
@@ -937,24 +965,128 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    legenda_gamma = ft.Row(
-        controls=[
-            coluna_legenda(
-                "",
-                [ft.Text("ln γ₁", size=14), ft.Text("ln γ₂", size=14)],
-                56,
+    def montar_legenda_gamma(coluna_comparativo):
+        return ft.Row(
+            controls=[
+                coluna_legenda(
+                    "",
+                    [ft.Text("ln γ₁", size=14), ft.Text("ln γ₂", size=14)],
+                    56,
+                ),
+                coluna_legenda(
+                    "Modelo",
+                    [glifo_legenda(COR_GAMMA1, "linha"), glifo_legenda(COR_GAMMA2, "linha")],
+                    60,
+                ),
+                coluna_comparativo,
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=4,
+        )
+
+    legenda_gamma = montar_legenda_gamma(coluna_comparativo_gamma)
+    legenda_gamma.visible = False
+
+    # Lupa do card (2026-10-03, opção A do autor, só no desktop): abre o
+    # gráfico ampliado num diálogo. O Flet 1.0.0 não tem zoom/pan no gráfico
+    # de linhas, então não é zoom de região — é o mesmo gráfico em tamanho
+    # grande. O diálogo monta um gráfico NOVO (cópia das séries, mesmo
+    # tooltip, eixos e legenda novos), porque um controle não pode estar em
+    # dois lugares. Os botões são criados uma vez e reaproveitados entre as
+    # montagens de layout (como `botao_comparar`); ficam apagados até haver
+    # gráfico (`gerar_grafico` os acende).
+    def ampliar_grafico(titulo, grafico, legenda_nova, titulo_eixo_x, titulo_eixo_y, largura_rotulo_y):
+        largura = min((page.width or 1200) * 0.92, 1300)
+        altura = min((page.height or 800) * 0.88, 820)
+        # Reserva: título do diálogo + legenda (72) + folgas.
+        altura_grafico = max(altura - 72 - 130, 260)
+        grande = fch.LineChart(
+            data_series=clonar_series(grafico.data_series),
+            min_x=0,
+            max_x=1,
+            min_y=grafico.min_y,
+            max_y=grafico.max_y,
+            expand=True,
+            tooltip=novo_tooltip(),
+            left_axis=eixo_vertical(
+                titulo_eixo_y, grafico.left_axis.label_spacing, largura_rotulo_y
             ),
-            coluna_legenda(
-                "Modelo",
-                [glifo_legenda(COR_GAMMA1, "linha"), glifo_legenda(COR_GAMMA2, "linha")],
-                60,
+            # Mais largo = cabe o passo de 0,1 sem os rótulos se encostarem.
+            bottom_axis=fch.ChartAxis(
+                label_size=32,
+                label_spacing=0.1,
+                title=ft.Text(titulo_eixo_x, size=14, weight=ft.FontWeight.BOLD),
+                title_size=22,
             ),
-            coluna_comparativo_gamma,
-        ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        spacing=4,
-        visible=False,
-    )
+        )
+        page.show_dialog(
+            ft.AlertDialog(
+                bgcolor=ft.Colors.WHITE,
+                shape=ft.RoundedRectangleBorder(
+                    radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
+                ),
+                title=ft.Row(
+                    controls=[
+                        ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800),
+                        ft.IconButton(
+                            icon=ft.Icons.CLOSE,
+                            icon_color=ft.Colors.BLUE_800,
+                            tooltip="Fechar",
+                            on_click=lambda e: page.pop_dialog(),
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                ),
+                # Altura explícita: sem ela o diálogo ficava ~175px mais alto
+                # que o conteúdo, com faixa branca embaixo.
+                content=ft.Container(
+                    width=largura,
+                    height=72 + altura_grafico + ESPACO_PEQUENO,
+                    content=ft.Column(
+                        controls=[
+                            ft.Container(
+                                content=legenda_nova,
+                                height=72,
+                                alignment=ft.Alignment.CENTER,
+                            ),
+                            ft.Container(content=grande, height=altura_grafico),
+                        ],
+                        spacing=ESPACO_PEQUENO,
+                        tight=True,
+                    ),
+                ),
+            )
+        )
+
+    def ampliar_pxy(e=None):
+        coluna = nova_coluna_comparativo_pxy()
+        coluna.visible = coluna_comparativo_pxy.visible
+        ampliar_grafico(
+            "Diagrama P-x-y", chart, montar_legenda_pxy(coluna),
+            "x₁, y₁ (fração molar)", "P (kPa)", 40,
+        )
+
+    def ampliar_gamma(e=None):
+        coluna = nova_coluna_comparativo_gamma()
+        coluna.visible = coluna_comparativo_gamma.visible
+        ampliar_grafico(
+            "Coeficientes de atividade (ln γ)", chart_gamma, montar_legenda_gamma(coluna),
+            "x₁ (fração molar)", "ln γ", 52,
+        )
+
+    def nova_lupa(ao_clicar):
+        return ft.IconButton(
+            icon=ft.Icons.ZOOM_IN,
+            icon_size=22,
+            icon_color=ft.Colors.BLUE_800,
+            padding=4,
+            tooltip="Ampliar gráfico",
+            on_click=ao_clicar,
+            disabled=True,
+        )
+
+    botao_lupa_pxy = nova_lupa(ampliar_pxy)
+    botao_lupa_gamma = nova_lupa(ampliar_gamma)
 
     # Ponta a ponta: pontos digitados na tabela (discretos, sem interpolação —
     # decisão de 2026-08-19) + curva calculada por calculate_vle_isothermal
@@ -1104,6 +1236,7 @@ def main(page: ft.Page):
         chart.left_axis = eixo_vertical("P (kPa)", passo_y)
         chart.visible = True
         legenda.visible = True
+        botao_lupa_pxy.disabled = False
 
         if modelo_ok:
             chart_gamma.data_series = series_gamma
@@ -1118,9 +1251,11 @@ def main(page: ft.Page):
             chart_gamma.left_axis = eixo_vertical("ln γ", passo_g, largura_rotulo=52)
             chart_gamma.visible = True
             legenda_gamma.visible = True
+            botao_lupa_gamma.disabled = False
         else:
             chart_gamma.visible = False
             legenda_gamma.visible = False
+            botao_lupa_gamma.disabled = True
 
         mensagens = []
         if mensagem_extra:
@@ -1232,6 +1367,7 @@ def main(page: ft.Page):
         coluna_comparativo_gamma.visible = True
         chart_gamma.visible = True
         legenda_gamma.visible = True
+        botao_lupa_gamma.disabled = False
 
         # Erro do ajuste: ΔP relativo (%) e Δy absoluto (fração molar),
         # cada um como RMS — mesma convenção de `regress_params_barker`
@@ -1869,20 +2005,24 @@ def main(page: ft.Page):
     # qualquer largura, sem espaço morto e sem cobrir o topo do eixo.
     ALTURA_LEGENDA = 72
 
-    def construir_grafico_p_xy(altura, expand=False):
+    # `com_lupa` só no desktop (o celular não precisa do "Ampliar", pedido do
+    # autor): no celular o card fica exatamente como antes.
+    def construir_grafico_p_xy(altura, expand=False, com_lupa=False):
         return cartao(
             "Diagrama P-x-y",
             ft.Container(content=legenda, height=ALTURA_LEGENDA, alignment=ft.Alignment.CENTER),
             ft.Container(content=chart, height=altura),
             expand=expand,
+            extra_titulo=botao_lupa_pxy if com_lupa else None,
         )
 
-    def construir_grafico_gamma(altura, expand=False):
+    def construir_grafico_gamma(altura, expand=False, com_lupa=False):
         return cartao(
             "Coeficientes de atividade (ln γ)",
             ft.Container(content=legenda_gamma, height=ALTURA_LEGENDA, alignment=ft.Alignment.CENTER),
             ft.Container(content=chart_gamma, height=altura),
             expand=expand,
+            extra_titulo=botao_lupa_gamma if com_lupa else None,
         )
 
     # Guarda o modo atual ("mobile"/"desktop") para só reconstruir o layout
@@ -2033,8 +2173,8 @@ def main(page: ft.Page):
                         controls=[
                             ft.Row(
                                 controls=[
-                                    construir_grafico_p_xy(altura=320, expand=True),
-                                    construir_grafico_gamma(altura=320, expand=True),
+                                    construir_grafico_p_xy(altura=320, expand=True, com_lupa=True),
+                                    construir_grafico_gamma(altura=320, expand=True, com_lupa=True),
                                 ],
                                 spacing=ESPACO_GRANDE,
                                 vertical_alignment=ft.CrossAxisAlignment.START,
