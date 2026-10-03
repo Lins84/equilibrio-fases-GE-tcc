@@ -1530,6 +1530,27 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   para os três diálogos criados por `icone_info` (origem do parâmetro, ΔP e
   Δy). O botão "Ok" ficou no estilo padrão. Verificado por captura de tela.
 
+- **(2026-10-03) Estilo das caixas do card "Sistema".** Pedido do autor
+  ("dê um estilo para as caixas do card Sistema, está muito simples"), com
+  o estilo a critério do assistente. Aplicado aos quatro campos (Componente
+  1, Componente 2, Modelo GE, Temperatura) por um dicionário comum,
+  `ESTILO_CAIXA_SISTEMA`: fundo branco (`filled`), cantos de 12px, borda
+  `BLUE_200` de 1,5px que vira `BLUE_700` de 2,5px ao focar, rótulo em
+  `BLUE_800` negrito, texto `BLUE_GREY_900` com peso médio e um ícone
+  `BLUE_700` na frente de cada campo (frasco, frasco vazio, sigma,
+  termômetro). O texto deixou de ser centralizado (com ícone na frente,
+  alinhado à esquerda fica natural). `LARGURA_CAMPO_SISTEMA` subiu de 190
+  para 200px (duas caixas + espaçamento = 412px, ainda cabe nos ~420px do
+  card no desktop) e o dropdown usa texto de 14px, porque com ícone e seta
+  "Margules (1-P)" era cortado. Tudo definido na criação (regra de não
+  mutar controle já criado). Verificado por captura de tela a 1400 e 360px.
+  **Armadilha de verificação reencontrada:** durante este ajuste o servidor
+  antigo continuou de pé na porta 5000 (processo filho do `flet run`, com
+  outra linha de comando), o novo falhou em silêncio com "address already
+  in use" e as primeiras capturas mostraram a versão velha — o aviso estava
+  no log do servidor; conferir o log e `ss -ltn` antes de confiar na
+  imagem.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

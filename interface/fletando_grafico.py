@@ -1129,7 +1129,26 @@ def main(page: ft.Page):
 
     # Largura única dos 4 controles do card "Sistema" (dropdown de modelo,
     # dois componentes e temperatura) — ver a grade 2×2 logo abaixo.
-    LARGURA_CAMPO_SISTEMA = 190
+    LARGURA_CAMPO_SISTEMA = 200
+
+    # Estilo das caixas do card "Sistema" (pedido do autor, 2026-10-03: "está
+    # muito simples"): fundo branco sobre o cartão cinza-azulado, borda azul
+    # clara que fica azul forte e mais grossa ao focar, cantos arredondados,
+    # rótulo em azul escuro negrito, texto escuro com peso médio e um ícone
+    # azul na frente de cada campo. Só cores já usadas no app. Tudo definido
+    # na criação — nada é alterado depois (regra de 2026-09-28).
+    ESTILO_CAIXA_SISTEMA = dict(
+        filled=True,
+        fill_color=ft.Colors.WHITE,
+        border_radius=12,
+        border_width=1.5,
+        border_color=ft.Colors.BLUE_200,
+        focused_border_width=2.5,
+        focused_border_color=ft.Colors.BLUE_700,
+        label_style=ft.TextStyle(color=ft.Colors.BLUE_800, weight=ft.FontWeight.BOLD),
+        text_style=ft.TextStyle(color=ft.Colors.BLUE_GREY_900, weight=ft.FontWeight.W_500),
+        content_padding=ft.Padding(8, 14, 8, 14),
+    )
 
     dropdown_modelo = ft.Dropdown(
         # "Gᴱ" (small capital E) some fontes/navegadores não têm o glifo —
@@ -1141,6 +1160,11 @@ def main(page: ft.Page):
         options=[ft.dropdown.Option(nome) for nome in MODELS_GE],
         on_select=selecionar_modelo,
         width=LARGURA_CAMPO_SISTEMA,
+        leading_icon=ft.Icon(ft.Icons.FUNCTIONS, color=ft.Colors.BLUE_700),
+        # 14px (os outros campos usam 16): com ícone na frente e seta atrás,
+        # o nome "Margules (1-P)" não cabia nos 200px a 16px e era cortado.
+        text_size=14,
+        **ESTILO_CAIXA_SISTEMA,
     )
 
     # 5b. Seletores de componente (nome/sinônimo/CAS — resolvidos pelo
@@ -1159,22 +1183,25 @@ def main(page: ft.Page):
     # linha, agora todos alinhados à esquerda.
     campo_componente1 = ft.TextField(
         label="Componente 1", value="ethanol", width=LARGURA_CAMPO_SISTEMA,
-        text_align=ft.TextAlign.CENTER,
+        prefix_icon=ft.Icon(ft.Icons.SCIENCE, color=ft.Colors.BLUE_700),
         on_blur=gerar_grafico, on_submit=gerar_grafico,
+        **ESTILO_CAIXA_SISTEMA,
     )
     campo_componente2 = ft.TextField(
         label="Componente 2", value="water", width=LARGURA_CAMPO_SISTEMA,
-        text_align=ft.TextAlign.CENTER,
+        prefix_icon=ft.Icon(ft.Icons.SCIENCE_OUTLINED, color=ft.Colors.BLUE_700),
         on_blur=gerar_grafico, on_submit=gerar_grafico,
+        **ESTILO_CAIXA_SISTEMA,
     )
     campo_temperatura = ft.TextField(
         label="Temperatura (°C)",
         value="70",
         width=LARGURA_CAMPO_SISTEMA,
-        text_align=ft.TextAlign.CENTER,
+        prefix_icon=ft.Icon(ft.Icons.THERMOSTAT, color=ft.Colors.BLUE_700),
         keyboard_type=ft.KeyboardType.NUMBER,
         on_blur=gerar_grafico,
         on_submit=gerar_grafico,
+        **ESTILO_CAIXA_SISTEMA,
     )
     # `wrap=True` (mesmo padrão já usado nas linhas de botões do app): sem
     # quebra, campos de largura fixa ultrapassavam a borda da tela de um
