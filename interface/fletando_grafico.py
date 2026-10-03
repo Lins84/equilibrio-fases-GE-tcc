@@ -537,10 +537,15 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    def chip_legenda(cor, texto):
+    def chip_legenda(cor, texto, quadrado=False):
+        # `quadrado=True` só para o líquido dos dados experimentais — o chip
+        # acompanha a forma do marcador no gráfico.
         return ft.Row(
             controls=[
-                ft.Container(width=12, height=12, bgcolor=cor, border_radius=6),
+                ft.Container(
+                    width=12, height=12, bgcolor=cor,
+                    border_radius=2 if quadrado else 6,
+                ),
                 ft.Text(texto),
             ],
             tight=True,
@@ -596,7 +601,7 @@ def main(page: ft.Page):
 
     legenda = ft.Row(
         controls=[
-            chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)"),
+            chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)", quadrado=True),
             chip_legenda(ft.Colors.RED, "vapor — tabela (y)"),
             chip_legenda(ft.Colors.GREEN, "líquido — modelo"),
             chip_legenda(ft.Colors.ORANGE, "vapor — modelo"),
@@ -700,14 +705,22 @@ def main(page: ft.Page):
 
         if pontos_validos:
             liquido, vapor = pontos_para_series(pontos_validos)
+            # Dado experimental é ponto, modelo é linha (decisão de
+            # 2026-08-19; forma escolhida pelo autor em 2026-10-03, opção C):
+            # `stroke_width=0` esconde a linha e `point=` desenha só o
+            # marcador. Formas diferentes (quadrado = líquido, círculo =
+            # vapor) para as fases se distinguirem sem depender só da cor —
+            # projeção em sala, impressão em preto e branco.
             series.append(fch.LineChartData(
                 color=ft.Colors.BLUE,
-                stroke_width=3,
+                stroke_width=0,
+                point=fch.ChartSquarePoint(size=8, color=ft.Colors.BLUE, stroke_width=0),
                 points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido],
             ))
             series.append(fch.LineChartData(
                 color=ft.Colors.RED,
-                stroke_width=3,
+                stroke_width=0,
+                point=fch.ChartCirclePoint(radius=4.5, color=ft.Colors.RED, stroke_width=0),
                 points=[ponto_grafico(x, p, "y1", "P", "kPa") for x, p in vapor],
             ))
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]

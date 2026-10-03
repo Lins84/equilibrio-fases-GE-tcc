@@ -769,12 +769,18 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
 2. ~~Os dois gráficos não têm rótulo de eixo (`ChartAxis` aceita
    `title`).~~ **Feito em 2026-10-01** (commit `9eb6a0c`): rótulos nos
    eixos dos dois gráficos.
-3. O dado experimental é desenhado como linha, e mais grossa que a curva
-   do modelo (`stroke_width` 3 contra 2) — o inverso de "dado é ponto,
-   modelo é linha". É a pendência que a decisão de 2026-08-19 deixou
-   explicitamente em aberto para quando a curva do modelo dividisse o
-   gráfico com os pontos. Viável: `ChartCirclePoint`/`ChartSquarePoint`
-   para marcador e `dash_pattern` para tracejado.
+3. ~~O dado experimental é desenhado como linha, e mais grossa que a
+   curva do modelo (`stroke_width` 3 contra 2) — o inverso de "dado é
+   ponto, modelo é linha". É a pendência que a decisão de 2026-08-19
+   deixou explicitamente em aberto para quando a curva do modelo
+   dividisse o gráfico com os pontos.~~ **Feito em 2026-10-03** (opção C
+   escolhida pelo autor, ver "Decisões de engenharia do aluno"): só
+   marcadores, sem linha — quadrado azul = líquido (`ChartSquarePoint`,
+   8px), círculo vermelho = vapor (`ChartCirclePoint`, raio 4,5px) — com
+   `stroke_width=0` escondendo a linha; chip da legenda do líquido virou
+   quadrado. Verificado por captura de tela com o CSV de etanol/água,
+   inclusive o tooltip (continua aparecendo ao passar o cursor sobre os
+   marcadores, sem a linha).
 4. Seis cores de série sem relação entre si; e o vermelho, que no app já
    significa erro e exclusão, é também uma série de dados.
 5. O app não tem nome nem cabeçalho visível (`page.title` ainda é
@@ -1266,6 +1272,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   e a unidade, quebrar em duas linhas e alinhar à esquerda. O assistente só
   levantou que o padrão mostrava apenas o y e deixou a decisão de incluir x
   e unidade para ele.
+- **(2026-10-03) Como desenhar o dado experimental: só marcadores, com forma
+  diferente por fase (opção C).** Fechando a pendência que a decisão de
+  2026-08-19 deixou em aberto ("dado é ponto, modelo é linha", sem dizer
+  como desenhar o ponto). O assistente levou três opções, testadas no app
+  de verdade com o CSV de etanol/água e comparadas lado a lado: **A** só
+  círculos; **B** círculos mais linha fina tracejada; **C** quadrado para
+  o líquido e círculo para o vapor. O autor escolheu **C**. Argumentos
+  levantados na proposta: não sugere interpolação (o que B faria, e que a
+  decisão de 2026-08-19 recusou); as fases se distinguem sem depender só
+  da cor, útil em projeção em sala e impressão em preto e branco. O
+  tamanho dos marcadores (quadrado 8px, círculo raio 4,5px) é o testado na
+  proposta — o autor não pediu ajuste. Cores azul/vermelho e curva
+  comparativa (roxo/ciano) ficam para o item 4 da lista de estética.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
@@ -1299,7 +1318,10 @@ Consequências práticas:
 - Essa decisão não trata de como os pontos são desenhados (marcador,
   traço ligando-os, espessura) — isso segue como está e é assunto de UI,
   a ser revisto junto com a integração, quando a curva do modelo passar a
-  dividir o mesmo gráfico com os dados da tabela.
+  dividir o mesmo gráfico com os dados da tabela. **Resolvido em
+  2026-10-03:** só marcadores, sem linha ligando os pontos (ver item 3 da
+  lista de estética e a entrada correspondente em "Decisões de engenharia
+  do aluno").
 
 ## Notas
 
