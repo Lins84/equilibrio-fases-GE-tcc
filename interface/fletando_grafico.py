@@ -170,9 +170,9 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
     return f"{round(valor, casas):.{max(casas, 0)}f}"
 
 
-# Fundo do balão do tooltip dos gráficos (ver `ponto_grafico`).
+# Fundo do balão do tooltip dos gráficos (ver `ponto_grafico`): o azul claro
+# do cabeçalho da tabela.
 TOOLTIP_FUNDO = ft.Colors.BLUE_50
-TOOLTIP_TEXTO = ft.Colors.BLUE_800
 
 
 def ponto_grafico(
@@ -184,20 +184,16 @@ def ponto_grafico(
     o valor solto do tooltip padrão não diz de que eixo é; sem o x, não
     diz onde está."""
     sufixo = f" {unidade_y}" if unidade_y else ""
-    # Rótulos em negrito e valores em peso normal (pedido do autor,
-    # 2026-10-03): trechos separados via `text_spans`; o estilo-base do
-    # balão é o peso normal e só o rótulo ("x₁ =", "P =") sobe para negrito.
-    # Cores da tabela: texto BLUE_800 sobre fundo BLUE_50 (~5:1). Sem
-    # `text_style`, o Flet pintaria cada linha com a cor da própria série
-    # (azul/laranja) sobre o fundo cinza-azulado padrão — quase ilegível.
     texto = (
         f"{nome_x} = {formatar_valor(x)}\n"
         f"{nome_y} = {formatar_valor(y)}{sufixo}"
     )
-    # Cores da tabela (2026-10-03): texto BLUE_800 sobre fundo BLUE_50
-    # (~5:1). Sem `text_style`, o Flet pintaria cada linha com a cor da
-    # própria série (azul/laranja) sobre o fundo cinza-azulado padrão —
-    # quase ilegível (relatado pelo autor).
+    # Cor do texto: sem `color` no `text_style`, o Flet pinta o balão com a
+    # cor da própria série (azul no líquido, laranja no vapor) — escolha do
+    # autor (2026-10-03), que mostra a que fase cada linha pertence. Sobre
+    # o fundo BLUE_50 o contraste é ~4,0:1 (azul) e ~3,3:1 (laranja), abaixo
+    # dos 4,5:1 recomendados; sobre o fundo cinza-azulado padrão do Flet era
+    # bem pior (por isso o fundo foi trocado).
     # Um estilo só para o balão inteiro, de propósito: rótulo em negrito e
     # número normal exigiria `text_spans`, que no Flet 1.0.0 faz o balão
     # sumir (o cliente lê os trechos como controles, não como dados); o
@@ -210,8 +206,6 @@ def ponto_grafico(
         tooltip=fch.LineChartDataPointTooltip(
             text=texto,
             text_align=ft.TextAlign.START,
-            # TESTE (2026-10-03): sem `color`, o texto volta a herdar a cor
-            # da série (azul/laranja), agora sobre o fundo BLUE_50.
             text_style=ft.TextStyle(size=14, weight=ft.FontWeight.W_600),
         ),
     )

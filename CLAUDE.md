@@ -1639,18 +1639,25 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Verificado: captura a 1400px com o "Comparar" funcionando, e captura a
   360px idêntica à anterior (diferença nula); 4 testes passam.
 
-- **(2026-10-03) Tooltip dos gráficos nas cores da tabela.** Relatado pelo
-  autor: "as letras do tooltip do gráfico estão em uma cor pouco visível".
-  Causa, vista numa captura com o cursor sobre os pontos (`mouse.move` até o
-  marcador): sem `text_style`, o Flet pinta cada linha do balão com a cor da
-  própria série (azul/laranja) sobre o fundo cinza-azulado padrão —
-  contraste muito baixo. Uma primeira correção (texto branco sobre
-  `BLUE_GREY_900`) foi trocada a pedido do autor ("fundo azul claro como na
-  tabela e azul escuro da tabela"): balão `TOOLTIP_FUNDO = BLUE_50` com
-  moldura `BLUE_200` de 1,5px (`LineChartTooltip` nos dois `LineChart`) e
-  texto `TOOLTIP_TEXTO = BLUE_800` (~5:1), 14px, peso 600. Custo aceito: o
-  balão não colore mais cada linha pela cor da série; a identificação segue
-  pelo nome (`x₁ =`, `y₁ =`, `P =`).
+- **(2026-10-03) Tooltip dos gráficos: fundo da tabela, texto na cor da
+  série.** Relatado pelo autor: "as letras do tooltip do gráfico estão em
+  uma cor pouco visível". Causa, vista numa captura com o cursor sobre os
+  pontos (`mouse.move` até o marcador): o Flet pinta cada linha do balão com
+  a cor da própria série (azul/laranja) sobre o fundo cinza-azulado padrão —
+  contraste muito baixo. Caminho percorrido, sempre a pedido do autor: texto
+  branco sobre `BLUE_GREY_900`; depois fundo azul claro e texto azul-escuro
+  da tabela (`BLUE_50`/`BLUE_800`, 5,0:1); por fim, "já que mudamos a cor do
+  fundo, volte as cores anteriores pra ver se ainda ficam mal contrastadas"
+  — texto de novo na cor da série, só que sobre o novo fundo — e o autor
+  respondeu "Gostei assim". **Estado final:** balão `TOOLTIP_FUNDO =
+  BLUE_50` com moldura `BLUE_200` de 1,5px (`LineChartTooltip` nos dois
+  `LineChart`), texto 14px, peso 600, **sem `color`** (herda a cor da
+  série). Contraste medido: azul do líquido (`BLUE_700`) 4,0:1 e laranja do
+  vapor (`ORANGE_900`) 3,3:1 — **abaixo dos 4,5:1** que o projeto usa como
+  piso para texto (item 6 da lista de estética); aceito pelo autor, que
+  prefere ver a cor da fase na linha do balão. Se o laranja incomodar, a
+  alternativa levantada é um laranja mais escuro só no texto do vapor, ou
+  voltar ao azul-escuro da tabela (5,0:1).
   **Pedido não atendido: "letras em negrito e números normais".** Testado e
   descartado: (a) `text_spans` (trechos com estilo próprio) — no Flet 1.0.0
   o balão **simplesmente não aparece**, porque o cliente lê os trechos do
