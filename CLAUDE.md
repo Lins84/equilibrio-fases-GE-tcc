@@ -820,9 +820,11 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    espaçamento ≈ 272px) para caber no card do celular. Verificado por
    captura de tela a 1400px e a 390px, com "Comparar" ativo: os dois
    cards ficam do mesmo tamanho, sem espaço morto, e o rótulo do topo do
-   eixo vertical deixa de ser coberto. **Achado novo, não tratado:** a 390px
-   a linha "ΔP = … / Δy = …" do rodapé do card "Dados experimentais" passa
-   da borda direita do card (a `linha_erro_comparativo` não quebra linha).
+   eixo vertical deixa de ser coberto. **Achado novo, corrigido na
+   sequência (2026-10-03):** a 390px a linha "ΔP = … / Δy = …" do rodapé do
+   card "Dados experimentais" passava da borda direita do card; a
+   `linha_erro_comparativo` ganhou `wrap=True` e agora o Δy desce para a
+   linha de baixo, dentro do card.
 8. ~~Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com
    a escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
    cima do "0.00").~~ **Feito em 2026-10-03:** os limites do eixo vertical
@@ -833,7 +835,19 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    passo)` — novo a cada `gerar_grafico`, sem mutar eixo existente. Com os
    extremos sobre múltiplos do passo, o rótulo do extremo coincide com um
    marcador regular. Verificado por captura de tela: P de 0 a 80 de 10 em
-   10; ln γ de −0,10 a 0,60 de 0,10 em 0,10.
+   10; ln γ de −0,10 a 0,60 de 0,10 em 0,10. **Defeito residual achado e
+   corrigido no mesmo dia (relatado pelo autor como "o gamma não renderiza
+   correto"):** no gráfico de ln γ o rótulo "−0,10" quebrava em duas linhas
+   ("-0.1" / "0") porque a coluna de rótulos (40px) era estreita demais, e
+   o "0.60" do topo saía em negrito, desenhado duas vezes — o último
+   marcador sai como 0.6000000000000001 (ruído de `inicio + k·passo`),
+   diferente do máximo 0.6, então o extremo e o marcador regular não se
+   fundiam. Correção em `eixo_vertical`: `label_size` 52px para o ln γ
+   (`largura_rotulo`), `show_min`/`show_max` desligados, e
+   `margem_extremos` abre os limites em 0,2% do passo (invisível) para o
+   marcador exato do extremo cair dentro do intervalo e ser desenhado uma
+   vez só. Nota: ligar só `show_min`/`show_max` sem essa folga fazia os
+   rótulos dos extremos sumirem.
 9. ~~Achado nos prints: a mensagem laranja "10 linha(s) da tabela
    ignorada(s) por dado inválido" aparece **no carregamento, com a tabela
    vazia** — linha em branco está sendo contada como dado inválido.~~
@@ -928,10 +942,29 @@ verdadeiro; (c) o seletor de arquivo **dá para exercitar**:
 `page.waitForEvent('filechooser')` depois de um clique por coordenada,
 seguido de `chooser.setFiles(...)`. Isso atualiza o limite registrado em
 2026-09-30 ("não interage") — agora a importação de CSV pode ser testada de
-ponta a ponta, ainda por coordenada. O item 9 da lista acima (mensagem
+ponta a ponta, ainda por coordenada. **Correção da ferramenta, feita mais
+tarde no mesmo dia:** as capturas dessa sessão feitas sem servir as fontes
+reais (bloqueando `fonts.gstatic.com` em vez de baixá-las com `curl`)
+mostravam o "γ" como um quadrado e acentos trocados — artefato do ambiente
+de captura, não do app, e foi isso que gerou a dúvida sobre o γ. A
+ferramenta passou a baixar as fontes com `curl` (que confia no CA do proxy)
+e a servi-las do disco, como já registrado na sessão de 2026-09-30; com ela,
+o γ sai correto e dá para julgar índices e tipografia. O item 9 da lista acima (mensagem
 laranja "10 linha(s) ... ignorada(s)" com a tabela vazia no carregamento)
 aparecia nos prints desta sessão e foi **corrigido na sequência** (ver o
 próprio item 9).
+
+### 5. Índices como subscritos (2026-10-03)
+
+Pedido do autor: "os índices quero como índices, e não como apenas 1 e 2
+normal". Todo índice visível passou a usar os subscritos Unicode `₁` e `₂`
+(em vez de `1` e `2` na linha): `x₁`, `y₁` (cabeçalhos da tabela, títulos de
+eixo, tooltip), `ln γ₁`/`ln γ₂` (legenda e tooltip), rótulos dos sliders
+(`A₁₂`, `A₂₁`, `Λ₁₂`, `Λ₂₁`, `τ₁₂`, `τ₂₁`, `α₁₂`) e as duas notas de texto
+(`α₁₂`, `a₁₂/a₂₁`). Unicode, e não texto formatado, porque o tooltip e o
+título de eixo do gráfico são desenhados pelo Flutter como texto simples.
+Chaves internas (`"x1"`, `tau12`, `A12`…) não mudaram. Verificado por
+captura de tela com as fontes reais: os subscritos aparecem corretos.
 
 ## Decisões de engenharia do aluno na produção da aplicação
 
@@ -1363,6 +1396,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   "(x)"/"(y)" que dizia qual composição vai no eixo horizontal saiu da
   legenda; o título do eixo ("x1, y1 (fração molar)") e o tooltip
   (`x1 = …` / `y1 = …`) continuam dizendo.
+- **(2026-10-03) Índices como subscritos Unicode em todo o app.** O autor
+  pediu explicitamente que `x1`, `ln γ1`, `τ12` etc. aparecessem com o índice
+  abaixo da linha, não como dígito comum. A forma de implementar (subscritos
+  Unicode `₁`/`₂` em vez de texto formatado) foi escolha técnica do
+  assistente, porque o tooltip e o título de eixo do gráfico não aceitam
+  texto formatado; o pedido e o escopo ("todo índice") são do autor.
+- **(2026-10-03) Corrigir o rótulo quebrado do eixo do ln γ e a quebra do
+  ΔP/Δy no celular, sem nova proposta.** Eram defeitos de renderização (não
+  escolha de visual), levantados pelo próprio assistente e relatados pelo
+  autor ("o gamma não renderiza correto"); o autor autorizou a correção
+  ("Sim, corrija o defeito do celular, além do gamma").
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

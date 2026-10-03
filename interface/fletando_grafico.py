@@ -39,21 +39,21 @@ PARAM_SLIDERS = {
         {"chave": "A", "rotulo": "A", "min": -2.0, "max": 2.0, "inicial": 0.5},
     ],
     "Margules (2-P)": [
-        {"chave": "A12", "rotulo": "A12", "min": -2.0, "max": 2.0, "inicial": 0.6},
-        {"chave": "A21", "rotulo": "A21", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "A12", "rotulo": "A₁₂", "min": -2.0, "max": 2.0, "inicial": 0.6},
+        {"chave": "A21", "rotulo": "A₂₁", "min": -2.0, "max": 2.0, "inicial": 0.3},
     ],
     "Van Laar": [
-        {"chave": "A12", "rotulo": "A12", "min": -2.0, "max": 2.0, "inicial": 0.6},
-        {"chave": "A21", "rotulo": "A21", "min": -2.0, "max": 2.0, "inicial": 0.4},
+        {"chave": "A12", "rotulo": "A₁₂", "min": -2.0, "max": 2.0, "inicial": 0.6},
+        {"chave": "A21", "rotulo": "A₂₁", "min": -2.0, "max": 2.0, "inicial": 0.4},
     ],
     "Wilson": [
-        {"chave": "L12", "rotulo": "Λ12", "min": 0.01, "max": 3.0, "inicial": 0.8},
-        {"chave": "L21", "rotulo": "Λ21", "min": 0.01, "max": 3.0, "inicial": 0.6},
+        {"chave": "L12", "rotulo": "Λ₁₂", "min": 0.01, "max": 3.0, "inicial": 0.8},
+        {"chave": "L21", "rotulo": "Λ₂₁", "min": 0.01, "max": 3.0, "inicial": 0.6},
     ],
     "NRTL": [
-        {"chave": "tau12", "rotulo": "τ12", "min": -2.0, "max": 2.0, "inicial": 0.3},
-        {"chave": "tau21", "rotulo": "τ21", "min": -2.0, "max": 2.0, "inicial": 0.3},
-        {"chave": "alpha12", "rotulo": "α12", "min": 0.2, "max": 0.47, "inicial": 0.3},
+        {"chave": "tau12", "rotulo": "τ₁₂", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "tau21", "rotulo": "τ₂₁", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "alpha12", "rotulo": "α₁₂", "min": 0.2, "max": 0.47, "inicial": 0.3},
     ],
 }
 
@@ -89,14 +89,35 @@ def limites_redondos(vmin: float, vmax: float, alvo: int = 7) -> tuple[float, fl
     return round(inicio, 10), round(fim, 10), round(passo, 10)
 
 
-def eixo_vertical(titulo: str, passo: float) -> fch.ChartAxis:
+def margem_extremos(inicio: float, fim: float, passo: float) -> tuple[float, float]:
+    """Limites de eixo ligeiramente abertos (0,2% do passo, invisível no
+    gráfico) para que os marcadores exatos do primeiro e do último rótulo
+    caiam DENTRO do intervalo, mesmo com o ruído de ponto flutuante de
+    `inicio + k * passo` (ver `eixo_vertical`)."""
+    folga = passo * 0.002
+    return inicio - folga, fim + folga
+
+
+def eixo_vertical(titulo: str, passo: float, largura_rotulo: int = 40) -> fch.ChartAxis:
     """Eixo vertical dos gráficos, com o passo fixo vindo de
     `limites_redondos`. Criado NOVO a cada `gerar_grafico` em vez de mutar o
     `label_spacing` do eixo existente — este app não muta propriedade de
-    controle já criado."""
+    controle já criado.
+
+    `show_min`/`show_max` desligados: os rótulos dos extremos saem da
+    própria escala regular (os limites de `limites_redondos` são múltiplos do
+    passo — e `margem_extremos` abre uma folga mínima para o marcador do
+    extremo não ser descartado por ruído de ponto flutuante). Com os dois
+    ligados o extremo era desenhado duas vezes, uma por cima da outra: o
+    último marcador do ln γ sai como 0.6000000000000001, diferente do
+    máximo 0.6, e o "0.60" do topo aparecia em negrito.
+    `largura_rotulo`: o ln γ tem rótulos negativos de 5 caracteres ("-0.10"),
+    que quebravam em duas linhas ("-0.1" / "0") na coluna padrão de 40px."""
     return fch.ChartAxis(
-        label_size=40,
+        label_size=largura_rotulo,
         label_spacing=passo,
+        show_min=False,
+        show_max=False,
         title=ft.Text(titulo, size=13, weight=ft.FontWeight.BOLD),
         title_size=22,
     )
@@ -343,10 +364,10 @@ def main(page: ft.Page):
                 )
             ),
             ft.DataColumn(
-                label=ft.Text("x1", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text("x₁", width=largura_coluna, text_align=ft.TextAlign.CENTER)
             ),
             ft.DataColumn(
-                label=ft.Text("y1", width=largura_coluna, text_align=ft.TextAlign.CENTER)
+                label=ft.Text("y₁", width=largura_coluna, text_align=ft.TextAlign.CENTER)
             ),
             ft.DataColumn(label=ft.Text("", width=40)),  # Coluna vazia para a lixeira
         ],
@@ -589,7 +610,7 @@ def main(page: ft.Page):
         bottom_axis=fch.ChartAxis(
             label_size=32,
             label_spacing=0.1,
-            title=ft.Text("x1, y1 (fração molar)", size=13, weight=ft.FontWeight.BOLD),
+            title=ft.Text("x₁, y₁ (fração molar)", size=13, weight=ft.FontWeight.BOLD),
             title_size=22,
         ),
         visible=False,
@@ -681,6 +702,11 @@ def main(page: ft.Page):
             ft.Row([texto_dy_comparativo, icone_dy_comparativo], spacing=4, tight=True),
         ],
         spacing=20,
+        # `wrap=True`: no celular (~296px úteis) "ΔP = 90.41% (RMS) ⓘ" e
+        # "Δy = 0.0704 (RMS) ⓘ" juntos passavam da borda direita do card;
+        # com a quebra, o segundo vai para a linha de baixo.
+        wrap=True,
+        run_spacing=4,
         visible=False,
     )
 
@@ -730,7 +756,7 @@ def main(page: ft.Page):
         bottom_axis=fch.ChartAxis(
             label_size=32,
             label_spacing=0.1,
-            title=ft.Text("x1 (fração molar)", size=13, weight=ft.FontWeight.BOLD),
+            title=ft.Text("x₁ (fração molar)", size=13, weight=ft.FontWeight.BOLD),
             title_size=22,
         ),
         visible=False,
@@ -740,7 +766,7 @@ def main(page: ft.Page):
         controls=[
             coluna_legenda(
                 "",
-                [ft.Text("ln γ1", size=13), ft.Text("ln γ2", size=13)],
+                [ft.Text("ln γ₁", size=13), ft.Text("ln γ₂", size=13)],
                 56,
             ),
             coluna_legenda(
@@ -813,13 +839,13 @@ def main(page: ft.Page):
                 color=COR_LIQUIDO,
                 stroke_width=0,
                 point=fch.ChartSquarePoint(size=8, color=COR_LIQUIDO, stroke_width=0),
-                points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido],
+                points=[ponto_grafico(x, p, "x₁", "P", "kPa") for x, p in liquido],
             ))
             series.append(fch.LineChartData(
                 color=COR_VAPOR,
                 stroke_width=0,
                 point=fch.ChartCirclePoint(radius=4.5, color=COR_VAPOR, stroke_width=0),
-                points=[ponto_grafico(x, p, "y1", "P", "kPa") for x, p in vapor],
+                points=[ponto_grafico(x, p, "y₁", "P", "kPa") for x, p in vapor],
             ))
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]
 
@@ -842,12 +868,12 @@ def main(page: ft.Page):
             series.append(fch.LineChartData(
                 color=COR_LIQUIDO,
                 stroke_width=2,
-                points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido_calc],
+                points=[ponto_grafico(x, p, "x₁", "P", "kPa") for x, p in liquido_calc],
             ))
             series.append(fch.LineChartData(
                 color=COR_VAPOR,
                 stroke_width=2,
-                points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_calc],
+                points=[ponto_grafico(y, p, "y₁", "P", "kPa") for y, p in vapor_calc],
             ))
             valores_P += resultado["P_kPa"]
 
@@ -856,12 +882,12 @@ def main(page: ft.Page):
             series_gamma.append(fch.LineChartData(
                 color=COR_GAMMA1,
                 stroke_width=2,
-                points=[ponto_grafico(x, g, "x1", "ln γ1") for x, g in zip(resultado["x1"], ln_gamma1)],
+                points=[ponto_grafico(x, g, "x₁", "ln γ₁") for x, g in zip(resultado["x1"], ln_gamma1)],
             ))
             series_gamma.append(fch.LineChartData(
                 color=COR_GAMMA2,
                 stroke_width=2,
-                points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in zip(resultado["x1"], ln_gamma2)],
+                points=[ponto_grafico(x, g, "x₁", "ln γ₂") for x, g in zip(resultado["x1"], ln_gamma2)],
             ))
             valores_gamma += ln_gamma1 + ln_gamma2
             modelo_ok = True
@@ -892,7 +918,8 @@ def main(page: ft.Page):
         if min_y == max_y:
             min_y, max_y = min_y - 1, max_y + 1
         margem = (max_y - min_y) * 0.05
-        chart.min_y, chart.max_y, passo_y = limites_redondos(min_y - margem, max_y + margem)
+        inicio_y, fim_y, passo_y = limites_redondos(min_y - margem, max_y + margem)
+        chart.min_y, chart.max_y = margem_extremos(inicio_y, fim_y, passo_y)
         chart.left_axis = eixo_vertical("P (kPa)", passo_y)
         chart.visible = True
         legenda.visible = True
@@ -903,10 +930,11 @@ def main(page: ft.Page):
             if min_g == max_g:
                 min_g, max_g = min_g - 1, max_g + 1
             margem_g = (max_g - min_g) * 0.05
-            chart_gamma.min_y, chart_gamma.max_y, passo_g = limites_redondos(
+            inicio_g, fim_g, passo_g = limites_redondos(
                 min_g - margem_g, max_g + margem_g
             )
-            chart_gamma.left_axis = eixo_vertical("ln γ", passo_g)
+            chart_gamma.min_y, chart_gamma.max_y = margem_extremos(inicio_g, fim_g, passo_g)
+            chart_gamma.left_axis = eixo_vertical("ln γ", passo_g, largura_rotulo=52)
             chart_gamma.visible = True
             legenda_gamma.visible = True
         else:
@@ -992,13 +1020,13 @@ def main(page: ft.Page):
                 color=COR_LIQUIDO,
                 stroke_width=0,
                 point=marcador_vazado("quadrado", COR_LIQUIDO),
-                points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido_comp],
+                points=[ponto_grafico(x, p, "x₁", "P", "kPa") for x, p in liquido_comp],
             ),
             fch.LineChartData(
                 color=COR_VAPOR,
                 stroke_width=0,
                 point=marcador_vazado("circulo", COR_VAPOR),
-                points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_comp],
+                points=[ponto_grafico(y, p, "y₁", "P", "kPa") for y, p in vapor_comp],
             ),
         ]
         coluna_comparativo_pxy.visible = True
@@ -1010,13 +1038,13 @@ def main(page: ft.Page):
                 color=COR_GAMMA1,
                 stroke_width=0,
                 point=marcador_vazado("circulo", COR_GAMMA1),
-                points=[ponto_grafico(x, g, "x1", "ln γ1") for x, g in ln_gamma1_comp],
+                points=[ponto_grafico(x, g, "x₁", "ln γ₁") for x, g in ln_gamma1_comp],
             ),
             fch.LineChartData(
                 color=COR_GAMMA2,
                 stroke_width=0,
                 point=marcador_vazado("circulo", COR_GAMMA2),
-                points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in ln_gamma2_comp],
+                points=[ponto_grafico(x, g, "x₁", "ln γ₂") for x, g in ln_gamma2_comp],
             ),
         ]
         coluna_comparativo_gamma.visible = True
@@ -1250,7 +1278,7 @@ def main(page: ft.Page):
         controls=[
             ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color=ft.Colors.GREY_600),
             ft.Text(
-                "α12: quando não vier do banco IPDB, fica fixado por "
+                "α₁₂: quando não vier do banco IPDB, fica fixado por "
                 "convenção (não é ajustado pela regressão de Barker) — "
                 "valor de referência típico entre 0,2 e 0,47.",
                 size=11,
@@ -1310,7 +1338,7 @@ def main(page: ft.Page):
             else:  # UNIQUAC
                 atualizar_selo_origem(
                     "banco",
-                    "r/q estruturais via grupos UNIFAC; a12/a21 do banco "
+                    "r/q estruturais via grupos UNIFAC; a₁₂/a₂₁ do banco "
                     "IPDB/ChemSep (tabela 'ChemSep UNIQUAC') para o par "
                     "de componentes escolhido.",
                 )
