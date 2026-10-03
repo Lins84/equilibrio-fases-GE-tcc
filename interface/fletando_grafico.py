@@ -58,6 +58,33 @@ PARAM_SLIDERS = {
 }
 
 
+# Paleta dos gráficos (item 4 da lista de estética, 2026-10-03, opção A do
+# autor): a COR identifica a fase, o ESTILO identifica a origem do dado —
+# marcador cheio = tabela (experimental), linha contínua = modelo, marcador
+# vazado = modelo calculado nos x1 da tabela ("Comparar"). Azul/laranja é o
+# par que melhor se distingue em daltonismo, e o vermelho fica livre para o
+# que ele já significa no app (erro, exclusão). No gráfico de ln γ a
+# distinção é por componente (outra grandeza), com par de cores próprio.
+COR_LIQUIDO = ft.Colors.BLUE_700
+COR_VAPOR = ft.Colors.ORANGE_800
+COR_GAMMA1 = ft.Colors.GREEN_700
+COR_GAMMA2 = ft.Colors.PURPLE_600
+
+
+def marcador_vazado(forma: str, cor) -> fch.ChartPointShape:
+    """Marcador só com contorno (sem preenchimento) — o calculado nos pontos
+    da tabela, para ser lido contra o marcador cheio do dado experimental.
+    `forma`: "quadrado" (líquido) ou "circulo" (vapor e ln γ), as mesmas
+    formas dos marcadores cheios."""
+    if forma == "quadrado":
+        return fch.ChartSquarePoint(
+            size=8, color=ft.Colors.TRANSPARENT, stroke_color=cor, stroke_width=2
+        )
+    return fch.ChartCirclePoint(
+        radius=4.5, color=ft.Colors.TRANSPARENT, stroke_color=cor, stroke_width=2
+    )
+
+
 def parse_ponto(p_str: str, x_str: str, y_str: str) -> tuple[float, float, float]:
     """Converte as 3 strings de uma linha da tabela em (P, x1, y1) float.
     Levanta ValueError se algum campo estiver vazio ou não for numérico."""
@@ -537,34 +564,37 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    def chip_legenda(cor, texto, quadrado=False):
-        # `quadrado=True` só para o líquido dos dados experimentais — o chip
-        # acompanha a forma do marcador no gráfico.
-        return ft.Row(
-            controls=[
-                ft.Container(
-                    width=12, height=12, bgcolor=cor,
-                    border_radius=2 if quadrado else 6,
-                ),
-                ft.Text(texto),
-            ],
-            tight=True,
-        )
+    def chip_legenda(cor, texto, forma="circulo"):
+        # A forma do chip espelha o desenho da série no gráfico: "circulo" e
+        # "quadrado" (marcador cheio), "linha" (curva do modelo) e as
+        # variantes "_vazado" (modelo calculado nos pontos da tabela).
+        if forma == "linha":
+            glifo = ft.Container(width=22, height=3, bgcolor=cor, border_radius=1)
+        else:
+            vazado = forma.endswith("_vazado")
+            quadrado = forma.startswith("quadrado")
+            glifo = ft.Container(
+                width=12, height=12,
+                bgcolor=None if vazado else cor,
+                border=ft.Border.all(2, cor) if vazado else None,
+                border_radius=2 if quadrado else 6,
+            )
+        return ft.Row(controls=[glifo, ft.Text(texto)], tight=True)
 
     # Chips da comparação calculado-vs-experimental (item 4 do roadmap) —
     # controles próprios (não construídos por chip_legenda direto na lista)
     # porque precisam ligar/desligar sozinhos: só aparecem depois de
     # "Comparar" ser clicado, e são escondidos de novo sempre que
     # gerar_grafico() reconstrói o gráfico do zero (modelo/tabela mudou).
-    chip_liquido_comparativo = chip_legenda(ft.Colors.PURPLE, "líquido — comparativo")
-    chip_vapor_comparativo = chip_legenda(ft.Colors.CYAN, "vapor — comparativo")
+    chip_liquido_comparativo = chip_legenda(COR_LIQUIDO, "líquido — comparativo", forma="quadrado_vazado")
+    chip_vapor_comparativo = chip_legenda(COR_VAPOR, "vapor — comparativo", forma="circulo_vazado")
     chip_liquido_comparativo.visible = False
     chip_vapor_comparativo.visible = False
 
     # Mesma ideia, para o gráfico de ln γ (4b) — γ1/γ2 do modelo avaliados
     # exatamente nos x1 da tabela, junto com "Comparar".
-    chip_gamma1_comparativo = chip_legenda(ft.Colors.PURPLE, "ln γ1 — comparativo")
-    chip_gamma2_comparativo = chip_legenda(ft.Colors.CYAN, "ln γ2 — comparativo")
+    chip_gamma1_comparativo = chip_legenda(COR_GAMMA1, "ln γ1 — comparativo", forma="circulo_vazado")
+    chip_gamma2_comparativo = chip_legenda(COR_GAMMA2, "ln γ2 — comparativo", forma="circulo_vazado")
     chip_gamma1_comparativo.visible = False
     chip_gamma2_comparativo.visible = False
 
@@ -601,10 +631,10 @@ def main(page: ft.Page):
 
     legenda = ft.Row(
         controls=[
-            chip_legenda(ft.Colors.BLUE, "líquido — tabela (x)", quadrado=True),
-            chip_legenda(ft.Colors.RED, "vapor — tabela (y)"),
-            chip_legenda(ft.Colors.GREEN, "líquido — modelo"),
-            chip_legenda(ft.Colors.ORANGE, "vapor — modelo"),
+            chip_legenda(COR_LIQUIDO, "líquido — tabela (x)", forma="quadrado"),
+            chip_legenda(COR_VAPOR, "vapor — tabela (y)", forma="circulo"),
+            chip_legenda(COR_LIQUIDO, "líquido — modelo", forma="linha"),
+            chip_legenda(COR_VAPOR, "vapor — modelo", forma="linha"),
             chip_liquido_comparativo,
             chip_vapor_comparativo,
         ],
@@ -644,8 +674,8 @@ def main(page: ft.Page):
 
     legenda_gamma = ft.Row(
         controls=[
-            chip_legenda(ft.Colors.GREEN, "ln γ1 — modelo"),
-            chip_legenda(ft.Colors.ORANGE, "ln γ2 — modelo"),
+            chip_legenda(COR_GAMMA1, "ln γ1 — modelo", forma="linha"),
+            chip_legenda(COR_GAMMA2, "ln γ2 — modelo", forma="linha"),
             chip_gamma1_comparativo,
             chip_gamma2_comparativo,
         ],
@@ -712,15 +742,15 @@ def main(page: ft.Page):
             # vapor) para as fases se distinguirem sem depender só da cor —
             # projeção em sala, impressão em preto e branco.
             series.append(fch.LineChartData(
-                color=ft.Colors.BLUE,
+                color=COR_LIQUIDO,
                 stroke_width=0,
-                point=fch.ChartSquarePoint(size=8, color=ft.Colors.BLUE, stroke_width=0),
+                point=fch.ChartSquarePoint(size=8, color=COR_LIQUIDO, stroke_width=0),
                 points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido],
             ))
             series.append(fch.LineChartData(
-                color=ft.Colors.RED,
+                color=COR_VAPOR,
                 stroke_width=0,
-                point=fch.ChartCirclePoint(radius=4.5, color=ft.Colors.RED, stroke_width=0),
+                point=fch.ChartCirclePoint(radius=4.5, color=COR_VAPOR, stroke_width=0),
                 points=[ponto_grafico(x, p, "y1", "P", "kPa") for x, p in vapor],
             ))
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]
@@ -742,12 +772,12 @@ def main(page: ft.Page):
             liquido_calc = sorted(zip(resultado["x1"], resultado["P_kPa"]))
             vapor_calc = sorted(zip(resultado["y1"], resultado["P_kPa"]))
             series.append(fch.LineChartData(
-                color=ft.Colors.GREEN,
+                color=COR_LIQUIDO,
                 stroke_width=2,
                 points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido_calc],
             ))
             series.append(fch.LineChartData(
-                color=ft.Colors.ORANGE,
+                color=COR_VAPOR,
                 stroke_width=2,
                 points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_calc],
             ))
@@ -756,12 +786,12 @@ def main(page: ft.Page):
             ln_gamma1 = [math.log(g) for g in resultado["gamma1"]]
             ln_gamma2 = [math.log(g) for g in resultado["gamma2"]]
             series_gamma.append(fch.LineChartData(
-                color=ft.Colors.GREEN,
+                color=COR_GAMMA1,
                 stroke_width=2,
                 points=[ponto_grafico(x, g, "x1", "ln γ1") for x, g in zip(resultado["x1"], ln_gamma1)],
             ))
             series_gamma.append(fch.LineChartData(
-                color=ft.Colors.ORANGE,
+                color=COR_GAMMA2,
                 stroke_width=2,
                 points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in zip(resultado["x1"], ln_gamma2)],
             ))
@@ -889,13 +919,15 @@ def main(page: ft.Page):
 
         chart.data_series = chart.data_series + [
             fch.LineChartData(
-                color=ft.Colors.PURPLE,
-                stroke_width=2,
+                color=COR_LIQUIDO,
+                stroke_width=0,
+                point=marcador_vazado("quadrado", COR_LIQUIDO),
                 points=[ponto_grafico(x, p, "x1", "P", "kPa") for x, p in liquido_comp],
             ),
             fch.LineChartData(
-                color=ft.Colors.CYAN,
-                stroke_width=2,
+                color=COR_VAPOR,
+                stroke_width=0,
+                point=marcador_vazado("circulo", COR_VAPOR),
                 points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_comp],
             ),
         ]
@@ -906,13 +938,15 @@ def main(page: ft.Page):
         ln_gamma2_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma2"])))
         chart_gamma.data_series = chart_gamma.data_series + [
             fch.LineChartData(
-                color=ft.Colors.PURPLE,
-                stroke_width=2,
+                color=COR_GAMMA1,
+                stroke_width=0,
+                point=marcador_vazado("circulo", COR_GAMMA1),
                 points=[ponto_grafico(x, g, "x1", "ln γ1") for x, g in ln_gamma1_comp],
             ),
             fch.LineChartData(
-                color=ft.Colors.CYAN,
-                stroke_width=2,
+                color=COR_GAMMA2,
+                stroke_width=0,
+                point=marcador_vazado("circulo", COR_GAMMA2),
                 points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in ln_gamma2_comp],
             ),
         ]

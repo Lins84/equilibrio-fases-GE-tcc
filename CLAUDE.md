@@ -780,14 +780,33 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    `stroke_width=0` escondendo a linha; chip da legenda do líquido virou
    quadrado. Verificado por captura de tela com o CSV de etanol/água,
    inclusive o tooltip (continua aparecendo ao passar o cursor sobre os
-   marcadores, sem a linha).
-4. Seis cores de série sem relação entre si; e o vermelho, que no app já
-   significa erro e exclusão, é também uma série de dados.
+   marcadores, sem a linha). *(Cores revistas no item 4: o vapor deixou
+   de ser vermelho e passou a laranja.)*
+4. ~~Seis cores de série sem relação entre si; e o vermelho, que no app
+   já significa erro e exclusão, é também uma série de dados.~~ **Feito em
+   2026-10-03** (opção A com marcadores vazados, escolhida pelo autor — ver
+   "Decisões de engenharia do aluno"): **a cor identifica a fase e o estilo
+   identifica a origem.** P-x-y: líquido azul (`COR_LIQUIDO`, `BLUE_700`) e
+   vapor laranja (`COR_VAPOR`, `ORANGE_800`); marcador cheio = tabela
+   (quadrado/círculo), linha contínua = modelo, **marcador vazado** =
+   modelo calculado nos x1 da tabela ("Comparar", sem linha). ln γ: γ1
+   verde (`COR_GAMMA1`) e γ2 roxo (`COR_GAMMA2`), modelo em linha e
+   comparativo em círculos vazados. O vermelho ficou só para erro/exclusão.
+   `chip_legenda(cor, texto, forma=...)` espelha o estilo da série
+   (`circulo`, `quadrado`, `linha`, `quadrado_vazado`, `circulo_vazado`).
+   Verificado por captura de tela com o CSV de etanol/água: os marcadores
+   vazados caem sobre as curvas do modelo e a distância vertical até os
+   marcadores cheios é o erro. **Achado novo, vai para o item 7:** com a
+   comparação ativa a legenda do P-x-y tem três linhas e a terceira
+   encosta no "78" do topo do eixo vertical (altura fixa
+   `ALTURA_LEGENDA = 64` não comporta) — era o "S" solto visto antes.
 5. O app não tem nome nem cabeçalho visível (`page.title` ainda é
    "Fletando - Gráfico Dinâmico", nome de desenvolvimento).
 6. Tamanhos de fonte contra o requisito de projeção da seção 1.4: a nota
    do α12 é 11px, itálico, cinza sobre branco.
 7. `ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln γ.
+   Agravante achado no item 4: com "Comparar" ativo a legenda do P-x-y
+   passa a três linhas e invade o topo do eixo vertical.
 8. Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com a
    escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
    cima do "0.00").
@@ -1285,6 +1304,23 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   tamanho dos marcadores (quadrado 8px, círculo raio 4,5px) é o testado na
   proposta — o autor não pediu ajuste. Cores azul/vermelho e curva
   comparativa (roxo/ciano) ficam para o item 4 da lista de estética.
+- **(2026-10-03) Paleta dos gráficos: a cor é a fase, o estilo é a origem
+  (opção A), com o comparativo em marcadores vazados.** O assistente levou
+  duas opções com imagens do app rodando, mais a situação de hoje: **B**
+  (troca mínima — só tirar o vermelho dos dados, as seis cores continuam
+  sem relação) e **A** (azul = líquido, laranja = vapor; marcador cheio =
+  tabela, linha = modelo, tracejado = comparativo; no ln γ, verde/roxo por
+  componente). O autor escolheu **A** e, num segundo ponto, **marcadores
+  vazados em vez de tracejado para o comparativo** — alternativa que o
+  próprio assistente levantou ao ver que o comparativo, por ser o mesmo
+  modelo avaliado nos x1 da tabela, fica em cima da linha do modelo e o
+  tracejado quase some. Argumentos da proposta: de seis cores
+  independentes para duas; azul/laranja é o par que melhor se distingue em
+  daltonismo; o vermelho fica livre para erro e exclusão; e "o calculado
+  nos pontos da tabela também é ponto" é coerente com a decisão de
+  2026-10-03 sobre o dado experimental (opção C) e com "dado é ponto,
+  modelo é linha". Custo aceito: o laranja continua sendo a cor dos avisos
+  em texto e do selo "Calculado" (texto e fundo pastel, não linha).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
