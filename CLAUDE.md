@@ -792,8 +792,9 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    modelo calculado nos x1 da tabela ("Comparar", sem linha). ln γ: γ1
    verde (`COR_GAMMA1`) e γ2 roxo (`COR_GAMMA2`), modelo em linha e
    comparativo em círculos vazados. O vermelho ficou só para erro/exclusão.
-   `chip_legenda(cor, texto, forma=...)` espelha o estilo da série
-   (`circulo`, `quadrado`, `linha`, `quadrado_vazado`, `circulo_vazado`).
+   `glifo_legenda(cor, forma)` espelha o estilo da série (`circulo`,
+   `quadrado`, `linha`, `quadrado_vazado`, `circulo_vazado`) na legenda —
+   que, desde o item 7, é uma grade fase × origem.
    Verificado por captura de tela com o CSV de etanol/água: os marcadores
    vazados caem sobre as curvas do modelo e a distância vertical até os
    marcadores cheios é o erro. **Achado novo, vai para o item 7:** com a
@@ -804,9 +805,24 @@ Levantados por leitura de código e pelos prints, **sem autorização ainda**:
    "Fletando - Gráfico Dinâmico", nome de desenvolvimento).
 6. Tamanhos de fonte contra o requisito de projeção da seção 1.4: a nota
    do α12 é 11px, itálico, cinza sobre branco.
-7. `ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln γ.
-   Agravante achado no item 4: com "Comparar" ativo a legenda do P-x-y
-   passa a três linhas e invade o topo do eixo vertical.
+7. ~~`ALTURA_LEGENDA = 64` é paliativo e vira espaço morto no card do ln
+   γ. Agravante achado no item 4: com "Comparar" ativo a legenda do P-x-y
+   passa a três linhas e invade o topo do eixo vertical.~~ **Feito em
+   2026-10-03** (opção B escolhida pelo autor, ver "Decisões de engenharia
+   do aluno"): a legenda de chips que quebrava linha virou uma **grade**
+   — linhas = fase (líquido/vapor; ln γ1/ln γ2), colunas = origem (tabela,
+   modelo, comparativo) —, sempre com três linhas (cabeçalho + 2). Helpers
+   `glifo_legenda`, `celula_legenda` e `coluna_legenda`; a coluna
+   "comparativo" de cada gráfico (`coluna_comparativo_pxy`,
+   `coluna_comparativo_gamma`) só aparece depois de "Comparar".
+   `ALTURA_LEGENDA` passou de 64 para 72 e comporta as duas legendas em
+   qualquer largura. Larguras de coluna fixas (56+60+60+84 + 3×4 de
+   espaçamento ≈ 272px) para caber no card do celular. Verificado por
+   captura de tela a 1400px e a 390px, com "Comparar" ativo: os dois
+   cards ficam do mesmo tamanho, sem espaço morto, e o rótulo do topo do
+   eixo vertical deixa de ser coberto. **Achado novo, não tratado:** a 390px
+   a linha "ΔP = … / Δy = …" do rodapé do card "Dados experimentais" passa
+   da borda direita do card (a `linha_erro_comparativo` não quebra linha).
 8. ~~Achado nos prints: os rótulos de mínimo/máximo dos eixos colidem com
    a escala regular (claro no ln γ, onde "-0.05" quebra em duas linhas por
    cima do "0.00").~~ **Feito em 2026-10-03:** os limites do eixo vertical
@@ -1329,6 +1345,24 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   2026-10-03 sobre o dado experimental (opção C) e com "dado é ponto,
   modelo é linha". Custo aceito: o laranja continua sendo a cor dos avisos
   em texto e do selo "Calculado" (texto e fundo pastel, não linha).
+- **(2026-10-03) Legenda dos gráficos em grade (fase × origem), não em chips
+  com altura maior (opção B).** A causa do problema era a legenda de seis
+  chips com altura fixa de 64px: com "Comparar" ativo ela precisava de três
+  linhas e a terceira cobria o rótulo do topo do eixo vertical. O
+  assistente levou duas saídas testadas no app: **A** manter os chips e
+  subir a altura reservada para 96px (resolve a colisão, mas deixa um vão
+  no card do ln γ, que só usa duas linhas) e **B** uma grade de três linhas
+  fixas (cabeçalho + 2) com linhas = fase e colunas = origem. O autor
+  escolheu **B**. Argumentos da proposta: os dois cards ficam do mesmo
+  tamanho sem espaço morto; a grade ensina a regra "cor = fase, estilo =
+  origem" (o símbolo de cada coluna é o mesmo em todas as linhas); e,
+  segundo a estimativa do assistente, a legenda de chips quebraria em cerca
+  de seis linhas no celular e seria cortada pela altura fixa, enquanto a
+  grade tem a mesma altura em qualquer largura — a estimativa foi
+  conferida na implementação (grade cabe a 390px). Custo aceito: o rótulo
+  "(x)"/"(y)" que dizia qual composição vai no eixo horizontal saiu da
+  legenda; o título do eixo ("x1, y1 (fração molar)") e o tooltip
+  (`x1 = …` / `y1 = …`) continuam dizendo.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

@@ -595,39 +595,63 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    def chip_legenda(cor, texto, forma="circulo"):
-        # A forma do chip espelha o desenho da série no gráfico: "circulo" e
-        # "quadrado" (marcador cheio), "linha" (curva do modelo) e as
-        # variantes "_vazado" (modelo calculado nos pontos da tabela).
+    # Legenda em GRADE (item 7 da lista de estética, opção B do autor,
+    # 2026-10-03): linhas = a fase (ou o componente, no ln γ), colunas = a
+    # origem do dado (tabela, modelo, comparativo). O símbolo de cada coluna é
+    # o mesmo em todas as linhas — a grade ensina a regra "cor = fase, estilo
+    # = origem" em vez de repeti-la em seis rótulos longos. Tem sempre
+    # três linhas (cabeçalho + 2), em qualquer largura: a legenda de chips
+    # que quebrava linha estourava a altura fixa e cobria o topo do eixo.
+    # Larguras de coluna fixas, somando ~270px para caber no card do celular.
+    ALTURA_CELULA_LEGENDA = 22
+
+    def glifo_legenda(cor, forma):
+        # O símbolo espelha o desenho da série: "circulo" e "quadrado"
+        # (marcador cheio = tabela), "linha" (curva do modelo) e as variantes
+        # "_vazado" (modelo calculado nos pontos da tabela, via "Comparar").
         if forma == "linha":
-            glifo = ft.Container(width=22, height=3, bgcolor=cor, border_radius=1)
-        else:
-            vazado = forma.endswith("_vazado")
-            quadrado = forma.startswith("quadrado")
-            glifo = ft.Container(
-                width=12, height=12,
-                bgcolor=None if vazado else cor,
-                border=ft.Border.all(2, cor) if vazado else None,
-                border_radius=2 if quadrado else 6,
-            )
-        return ft.Row(controls=[glifo, ft.Text(texto)], tight=True)
+            return ft.Container(width=22, height=3, bgcolor=cor, border_radius=1)
+        vazado = forma.endswith("_vazado")
+        return ft.Container(
+            width=12, height=12,
+            bgcolor=None if vazado else cor,
+            border=ft.Border.all(2, cor) if vazado else None,
+            border_radius=2 if forma.startswith("quadrado") else 6,
+        )
 
-    # Chips da comparação calculado-vs-experimental (item 4 do roadmap) —
-    # controles próprios (não construídos por chip_legenda direto na lista)
-    # porque precisam ligar/desligar sozinhos: só aparecem depois de
-    # "Comparar" ser clicado, e são escondidos de novo sempre que
-    # gerar_grafico() reconstrói o gráfico do zero (modelo/tabela mudou).
-    chip_liquido_comparativo = chip_legenda(COR_LIQUIDO, "líquido — comparativo", forma="quadrado_vazado")
-    chip_vapor_comparativo = chip_legenda(COR_VAPOR, "vapor — comparativo", forma="circulo_vazado")
-    chip_liquido_comparativo.visible = False
-    chip_vapor_comparativo.visible = False
+    def celula_legenda(controle):
+        return ft.Container(
+            content=controle, height=ALTURA_CELULA_LEGENDA, alignment=ft.Alignment.CENTER
+        )
 
-    # Mesma ideia, para o gráfico de ln γ (4b) — γ1/γ2 do modelo avaliados
-    # exatamente nos x1 da tabela, junto com "Comparar".
-    chip_gamma1_comparativo = chip_legenda(COR_GAMMA1, "ln γ1 — comparativo", forma="circulo_vazado")
-    chip_gamma2_comparativo = chip_legenda(COR_GAMMA2, "ln γ2 — comparativo", forma="circulo_vazado")
-    chip_gamma1_comparativo.visible = False
-    chip_gamma2_comparativo.visible = False
+    def coluna_legenda(cabecalho, itens, largura):
+        return ft.Column(
+            controls=[
+                celula_legenda(ft.Text(cabecalho, size=12, color=ft.Colors.BLUE_GREY_700)),
+                *[celula_legenda(item) for item in itens],
+            ],
+            spacing=2,
+            width=largura,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        )
+
+    # Colunas da comparação calculado-vs-experimental (item 4 do roadmap):
+    # só aparecem depois de "Comparar" ser clicado, e são escondidas de novo
+    # sempre que gerar_grafico() reconstrói o gráfico do zero (modelo/tabela
+    # mudou). Uma coluna por gráfico (P-x-y e ln γ) — γ1/γ2 do modelo
+    # avaliados exatamente nos x1 da tabela, junto com "Comparar".
+    coluna_comparativo_pxy = coluna_legenda(
+        "comparativo",
+        [glifo_legenda(COR_LIQUIDO, "quadrado_vazado"), glifo_legenda(COR_VAPOR, "circulo_vazado")],
+        84,
+    )
+    coluna_comparativo_pxy.visible = False
+    coluna_comparativo_gamma = coluna_legenda(
+        "comparativo",
+        [glifo_legenda(COR_GAMMA1, "circulo_vazado"), glifo_legenda(COR_GAMMA2, "circulo_vazado")],
+        84,
+    )
+    coluna_comparativo_gamma.visible = False
 
     # Resultado numérico da comparação (ΔP/Δy, seção "Próximos passos" item
     # 4 do CLAUDE.md) — mesmo padrão selo+ícone ⓘ já usado para a origem do
@@ -662,16 +686,25 @@ def main(page: ft.Page):
 
     legenda = ft.Row(
         controls=[
-            chip_legenda(COR_LIQUIDO, "líquido — tabela (x)", forma="quadrado"),
-            chip_legenda(COR_VAPOR, "vapor — tabela (y)", forma="circulo"),
-            chip_legenda(COR_LIQUIDO, "líquido — modelo", forma="linha"),
-            chip_legenda(COR_VAPOR, "vapor — modelo", forma="linha"),
-            chip_liquido_comparativo,
-            chip_vapor_comparativo,
+            coluna_legenda(
+                "",
+                [ft.Text("líquido", size=13), ft.Text("vapor", size=13)],
+                56,
+            ),
+            coluna_legenda(
+                "tabela",
+                [glifo_legenda(COR_LIQUIDO, "quadrado"), glifo_legenda(COR_VAPOR, "circulo")],
+                60,
+            ),
+            coluna_legenda(
+                "modelo",
+                [glifo_legenda(COR_LIQUIDO, "linha"), glifo_legenda(COR_VAPOR, "linha")],
+                60,
+            ),
+            coluna_comparativo_pxy,
         ],
         alignment=ft.MainAxisAlignment.CENTER,
-        spacing=20,
-        wrap=True,
+        spacing=4,
         visible=False,
     )
 
@@ -705,14 +738,20 @@ def main(page: ft.Page):
 
     legenda_gamma = ft.Row(
         controls=[
-            chip_legenda(COR_GAMMA1, "ln γ1 — modelo", forma="linha"),
-            chip_legenda(COR_GAMMA2, "ln γ2 — modelo", forma="linha"),
-            chip_gamma1_comparativo,
-            chip_gamma2_comparativo,
+            coluna_legenda(
+                "",
+                [ft.Text("ln γ1", size=13), ft.Text("ln γ2", size=13)],
+                56,
+            ),
+            coluna_legenda(
+                "modelo",
+                [glifo_legenda(COR_GAMMA1, "linha"), glifo_legenda(COR_GAMMA2, "linha")],
+                60,
+            ),
+            coluna_comparativo_gamma,
         ],
         alignment=ft.MainAxisAlignment.CENTER,
-        spacing=20,
-        wrap=True,
+        spacing=4,
         visible=False,
     )
 
@@ -752,10 +791,8 @@ def main(page: ft.Page):
         # 2026-09-28. O clique apaga qualquer dado presente, digitado à mão
         # ou importado via CSV — `limpar_tabela` não distingue a origem.
         botao_limpar_tabela.disabled = not pontos_validos
-        chip_liquido_comparativo.visible = False
-        chip_vapor_comparativo.visible = False
-        chip_gamma1_comparativo.visible = False
-        chip_gamma2_comparativo.visible = False
+        coluna_comparativo_pxy.visible = False
+        coluna_comparativo_gamma.visible = False
         linha_erro_comparativo.visible = False
 
         series = []
@@ -964,8 +1001,7 @@ def main(page: ft.Page):
                 points=[ponto_grafico(y, p, "y1", "P", "kPa") for y, p in vapor_comp],
             ),
         ]
-        chip_liquido_comparativo.visible = True
-        chip_vapor_comparativo.visible = True
+        coluna_comparativo_pxy.visible = True
 
         ln_gamma1_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma1"])))
         ln_gamma2_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma2"])))
@@ -983,8 +1019,7 @@ def main(page: ft.Page):
                 points=[ponto_grafico(x, g, "x1", "ln γ2") for x, g in ln_gamma2_comp],
             ),
         ]
-        chip_gamma1_comparativo.visible = True
-        chip_gamma2_comparativo.visible = True
+        coluna_comparativo_gamma.visible = True
         chart_gamma.visible = True
         legenda_gamma.visible = True
 
@@ -1526,14 +1561,12 @@ def main(page: ft.Page):
     # Um card por gráfico (não mais um "Resultados" combinado) — no desktop
     # ficam lado a lado (ver montar_layout), cada um com `expand=True` pra
     # dividir a largura disponível ao meio.
-    # Altura fixa pra área da legenda — a legenda do P-x-y tem mais chips
-    # (4 a 6: tabela x/y + modelo + comparativo) que a do ln γ (2 a 4: só
-    # modelo + comparativo), então quebra em duas linhas mais cedo que a
-    # outra ao dividir a largura do desktop ao meio. Sem essa altura fixa,
-    # os dois cards ficavam com tamanhos diferentes (relatado pelo autor,
-    # 2026-09-28) — reservando espaço pra até duas linhas nos dois, os
-    # cards saem sempre do mesmo tamanho, quebre a legenda ou não.
-    ALTURA_LEGENDA = 64
+    # Altura fixa pra área da legenda, igual nos dois cards (relatado pelo
+    # autor, 2026-09-28: sem ela os cards saíam com tamanhos diferentes).
+    # Como a legenda agora é uma grade de sempre três linhas (cabeçalho +
+    # duas, ~70px — ver `coluna_legenda`), 72px comporta as duas legendas em
+    # qualquer largura, sem espaço morto e sem cobrir o topo do eixo.
+    ALTURA_LEGENDA = 72
 
     def construir_grafico_p_xy(altura, expand=False):
         return cartao(
