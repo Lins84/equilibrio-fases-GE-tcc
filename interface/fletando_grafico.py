@@ -96,11 +96,12 @@ def ponto_grafico(
 ) -> fch.LineChartDataPoint:
     """Ponto de série dos gráficos, com o tooltip (ao passar o cursor)
     mostrando os dois valores, nomeados e formatados por `formatar_valor`
-    — ex.: "x1 = 0.3500 · P = 45.23 kPa". Sem o nome, o valor solto do
-    tooltip padrão não diz de que eixo é; sem o x, não diz onde está."""
+    — em duas linhas, ex.: "x1 = 0.3500" e "P = 45.23 kPa". Sem o nome,
+    o valor solto do tooltip padrão não diz de que eixo é; sem o x, não
+    diz onde está."""
     sufixo = f" {unidade_y}" if unidade_y else ""
     texto = (
-        f"{nome_x} = {formatar_valor(x)} · "
+        f"{nome_x} = {formatar_valor(x)}\n"
         f"{nome_y} = {formatar_valor(y)}{sufixo}"
     )
     return fch.LineChartDataPoint(x, y, tooltip=texto)
