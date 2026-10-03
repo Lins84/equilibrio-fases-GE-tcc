@@ -181,8 +181,11 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
 
 
 # Fundo do balão do tooltip dos gráficos (ver `ponto_grafico`): o azul claro
-# do cabeçalho da tabela.
-TOOLTIP_FUNDO = ft.Colors.BLUE_50
+# do cabeçalho da tabela, semitransparente (pedido do autor, 2026-10-03) para
+# o gráfico aparecer por trás do balão. A moldura `BLUE_200` continua opaca e
+# delimita o balão.
+OPACIDADE_TOOLTIP = 0.55
+TOOLTIP_FUNDO = ft.Colors.with_opacity(OPACIDADE_TOOLTIP, ft.Colors.BLUE_50)
 
 
 def ponto_grafico(

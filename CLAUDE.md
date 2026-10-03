@@ -1728,6 +1728,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   ~1e‑16 não é controlável por coordenada); a reprodução e a verificação
   foram no nível da função e da varredura do modelo. Passam os 5 testes.
 
+- **(2026-10-03) Fundo do balão do tooltip semitransparente.** Pedido do
+  autor: "o balão do tooltip deve ser transparente pra poder visualizar o
+  gráfico atrás dele". `TOOLTIP_FUNDO` passou a `Colors.with_opacity(
+  OPACIDADE_TOOLTIP, BLUE_50)` com `OPACIDADE_TOOLTIP = 0.55` (a moldura
+  `BLUE_200` continua opaca e delimita o balão). Escolhi semitransparente e
+  não 100% transparente porque sem nenhum fundo o texto briga com as linhas
+  do gráfico; o valor está numa constante, de uma linha para ajustar.
+  **Custo visível na captura:** onde uma curva, o marcador destacado ou a
+  linha vertical do cursor passam por trás do texto, essa linha atravessa as
+  letras (ex.: `ln γ₂ = −0.06789` com a curva roxa por cima), o que reduz a
+  legibilidade naquelas linhas — o preço de ver o gráfico atrás. Verificado
+  por captura no P-x-y e no ln γ; 5 testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
