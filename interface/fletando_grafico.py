@@ -171,7 +171,8 @@ def formatar_valor(valor: float, algarismos: int = 4) -> str:
 
 
 # Fundo do balão do tooltip dos gráficos (ver `ponto_grafico`).
-TOOLTIP_FUNDO = ft.Colors.BLUE_GREY_900
+TOOLTIP_FUNDO = ft.Colors.BLUE_50
+TOOLTIP_TEXTO = ft.Colors.BLUE_800
 
 
 def ponto_grafico(
@@ -183,10 +184,24 @@ def ponto_grafico(
     o valor solto do tooltip padrão não diz de que eixo é; sem o x, não
     diz onde está."""
     sufixo = f" {unidade_y}" if unidade_y else ""
+    # Rótulos em negrito e valores em peso normal (pedido do autor,
+    # 2026-10-03): trechos separados via `text_spans`; o estilo-base do
+    # balão é o peso normal e só o rótulo ("x₁ =", "P =") sobe para negrito.
+    # Cores da tabela: texto BLUE_800 sobre fundo BLUE_50 (~5:1). Sem
+    # `text_style`, o Flet pintaria cada linha com a cor da própria série
+    # (azul/laranja) sobre o fundo cinza-azulado padrão — quase ilegível.
     texto = (
         f"{nome_x} = {formatar_valor(x)}\n"
         f"{nome_y} = {formatar_valor(y)}{sufixo}"
     )
+    # Cores da tabela (2026-10-03): texto BLUE_800 sobre fundo BLUE_50
+    # (~5:1). Sem `text_style`, o Flet pintaria cada linha com a cor da
+    # própria série (azul/laranja) sobre o fundo cinza-azulado padrão —
+    # quase ilegível (relatado pelo autor).
+    # Um estilo só para o balão inteiro, de propósito: rótulo em negrito e
+    # número normal exigiria `text_spans`, que no Flet 1.0.0 faz o balão
+    # sumir (o cliente lê os trechos como controles, não como dados); o
+    # negrito em letras Unicode (𝐱, 𝐏) sai em fonte serifada de fallback.
     # `text_align` padrão do Flet é CENTER: as duas linhas saíam centradas
     # uma em relação à outra. START alinha o início das duas à esquerda.
     return fch.LineChartDataPoint(
@@ -195,13 +210,8 @@ def ponto_grafico(
         tooltip=fch.LineChartDataPointTooltip(
             text=texto,
             text_align=ft.TextAlign.START,
-            # Texto branco (2026-10-03): sem `text_style` o Flet pinta cada
-            # linha com a cor da própria série (azul/laranja) sobre o fundo
-            # cinza-azulado do balão — contraste muito baixo, quase ilegível
-            # (relatado pelo autor). Branco sobre o fundo escuro de
-            # TOOLTIP_FUNDO dá ~14:1.
             text_style=ft.TextStyle(
-                color=ft.Colors.WHITE, size=14, weight=ft.FontWeight.W_500
+                color=TOOLTIP_TEXTO, size=14, weight=ft.FontWeight.W_600
             ),
         ),
     )
@@ -722,7 +732,10 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
-        tooltip=fch.LineChartTooltip(bgcolor=TOOLTIP_FUNDO),
+        tooltip=fch.LineChartTooltip(
+            bgcolor=TOOLTIP_FUNDO,
+            border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
+        ),
         # Rótulos de eixo (2026-10-01): até aqui os dois gráficos mostravam
         # só números soltos, sem dizer o que era cada eixo — num material
         # didático, exatamente o que o aluno não decifra sozinho. O eixo
@@ -878,7 +891,10 @@ def main(page: ft.Page):
         min_y=0,
         max_y=1,
         expand=True,
-        tooltip=fch.LineChartTooltip(bgcolor=TOOLTIP_FUNDO),
+        tooltip=fch.LineChartTooltip(
+            bgcolor=TOOLTIP_FUNDO,
+            border_side=ft.BorderSide(1.5, ft.Colors.BLUE_200),
+        ),
         left_axis=fch.ChartAxis(
             label_size=40,
             title=ft.Text("ln γ", size=14, weight=ft.FontWeight.BOLD),

@@ -1639,19 +1639,30 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Verificado: captura a 1400px com o "Comparar" funcionando, e captura a
   360px idêntica à anterior (diferença nula); 4 testes passam.
 
-- **(2026-10-03) Tooltip dos gráficos com texto branco sobre fundo
-  escuro.** Relatado pelo autor: "as letras do tooltip do gráfico estão em
-  uma cor pouco visível". Causa, vista numa captura com o cursor sobre os
-  pontos (agora dá para fazer: `mouse.move` até o marcador): sem
-  `text_style`, o Flet pinta cada linha do balão com a cor da própria série
-  (azul/laranja) sobre o fundo cinza-azulado padrão — contraste muito baixo.
-  Correção (escolha do assistente, a pedido de legibilidade): texto branco,
-  14px, peso médio, em `LineChartDataPointTooltip`; e fundo do balão
-  `TOOLTIP_FUNDO = BLUE_GREY_900` via `LineChartTooltip(bgcolor=...)` nos
-  dois `LineChart` (P-x-y e ln γ). Custo aceito: o balão deixa de colorir
-  cada linha pela cor da série (azul/laranja); a identificação continua pelo
-  nome da grandeza (`x₁ =`, `y₁ =`, `P =`). Verificado por captura antes e
-  depois, com o CSV de etanol/água; 4 testes passam.
+- **(2026-10-03) Tooltip dos gráficos nas cores da tabela.** Relatado pelo
+  autor: "as letras do tooltip do gráfico estão em uma cor pouco visível".
+  Causa, vista numa captura com o cursor sobre os pontos (`mouse.move` até o
+  marcador): sem `text_style`, o Flet pinta cada linha do balão com a cor da
+  própria série (azul/laranja) sobre o fundo cinza-azulado padrão —
+  contraste muito baixo. Uma primeira correção (texto branco sobre
+  `BLUE_GREY_900`) foi trocada a pedido do autor ("fundo azul claro como na
+  tabela e azul escuro da tabela"): balão `TOOLTIP_FUNDO = BLUE_50` com
+  moldura `BLUE_200` de 1,5px (`LineChartTooltip` nos dois `LineChart`) e
+  texto `TOOLTIP_TEXTO = BLUE_800` (~5:1), 14px, peso 600. Custo aceito: o
+  balão não colore mais cada linha pela cor da série; a identificação segue
+  pelo nome (`x₁ =`, `y₁ =`, `P =`).
+  **Pedido não atendido: "letras em negrito e números normais".** Testado e
+  descartado: (a) `text_spans` (trechos com estilo próprio) — no Flet 1.0.0
+  o balão **simplesmente não aparece**, porque o cliente lê os trechos do
+  tooltip como controles filhos (`eg(0,"spans")`) e o Python os envia como
+  dados; sem erro no log nem no console; reproduzido com `text` vazio, com
+  `text` preenchido e com estilos completos nos trechos; (b) letras em
+  negrito Unicode (𝐱, 𝐲, 𝐏) — aparece, mas essas letras saem numa fonte
+  serifada de fallback, destoando do resto, e dependem de baixar fonte
+  extra (frágil sem internet). Ficou um estilo só para o balão inteiro
+  (peso 600), com o motivo comentado em `ponto_grafico`. Alternativas a
+  decidir pelo autor: tudo em negrito, tudo normal, ou esperar correção do
+  Flet. Verificado por captura antes/depois; 4 testes passam.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
