@@ -210,9 +210,9 @@ def ponto_grafico(
         tooltip=fch.LineChartDataPointTooltip(
             text=texto,
             text_align=ft.TextAlign.START,
-            text_style=ft.TextStyle(
-                color=TOOLTIP_TEXTO, size=14, weight=ft.FontWeight.W_600
-            ),
+            # TESTE (2026-10-03): sem `color`, o texto volta a herdar a cor
+            # da série (azul/laranja), agora sobre o fundo BLUE_50.
+            text_style=ft.TextStyle(size=14, weight=ft.FontWeight.W_600),
         ),
     )
 
