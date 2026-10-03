@@ -190,11 +190,9 @@ def ponto_grafico(
     diz onde está.
 
     `negrito=False` deixa o texto do balão em peso normal; o padrão é
-    negrito. Usado para diferenciar, no balão, séries de origens diferentes:
-    no P-x-y, os pontos da tabela (experimentais) saem normais e o resto
-    (modelo e comparativo, calculados) em negrito; no ln γ, que não tem dado
-    experimental, os marcadores vazados (comparativo) saem normais e a
-    curva do modelo em negrito."""
+    negrito. Regra nos dois gráficos: só a curva do modelo sai em negrito;
+    os pontos da tabela (experimentais) e os marcadores vazados (comparativo,
+    o modelo calculado nos x1 da tabela) saem em peso normal."""
     sufixo = f" {unidade_y}" if unidade_y else ""
     texto = (
         f"{nome_x} = {formatar_valor(x)}\n"
@@ -1191,13 +1189,13 @@ def main(page: ft.Page):
                 color=COR_LIQUIDO,
                 stroke_width=0,
                 point=marcador_vazado("quadrado", COR_LIQUIDO),
-                points=[ponto_grafico(x, p, "x₁", "P", "kPa") for x, p in liquido_comp],
+                points=[ponto_grafico(x, p, "x₁", "P", "kPa", negrito=False) for x, p in liquido_comp],
             ),
             fch.LineChartData(
                 color=COR_VAPOR,
                 stroke_width=0,
                 point=marcador_vazado("circulo", COR_VAPOR),
-                points=[ponto_grafico(y, p, "y₁", "P", "kPa") for y, p in vapor_comp],
+                points=[ponto_grafico(y, p, "y₁", "P", "kPa", negrito=False) for y, p in vapor_comp],
             ),
         ]
         coluna_comparativo_pxy.visible = True

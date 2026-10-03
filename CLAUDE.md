@@ -1699,10 +1699,13 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   mudam (notação). **(2)** `ponto_grafico` trocou o parâmetro `experimental`
   por `negrito: bool = True`: no **ln γ**, os marcadores vazados
   (Comparativo, o modelo calculado nos x₁ da tabela) saem em peso normal e a
-  curva do modelo em negrito; no **P-x-y** segue como antes — pontos da
-  tabela normais, modelo e comparativo em negrito (o autor pediu a mudança
-  só para o ln γ; no P-x-y o comparativo continua em negrito, o que deixa as
-  duas regras diferentes entre os gráficos). Verificado por captura; 4 testes
+  curva do modelo em negrito. **Ajuste na sequência:** o autor viu na
+  captura do P-x-y que o laranja do comparativo ainda saía em negrito;
+  passou a valer a mesma regra nos dois gráficos — só a curva do **modelo**
+  em negrito; pontos da **tabela** e marcadores vazados do **comparativo**
+  em peso normal (interpretação do assistente do "o outro laranja também
+  ficou bold"; se a intenção era outra, a mudança é de uma linha em
+  `ponto_grafico(..., negrito=False)`). Verificado por captura; 4 testes
   passam.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
