@@ -967,10 +967,13 @@ o log do servidor (`flet run -vv`):
 (`await ft.FilePicker().pick_files(...)`, padrão do Flet 1.0), sem
 `page.services.append`. Validada na nuvem com servidor recém-iniciado: o
 seletor abre e o CSV de etanol/água carrega (14 pontos, tabela e gráfico).
-O `except` com a mensagem de F5 permanece como segunda proteção. **A
-confirmar pelo autor** no Chrome/Windows, na primeira carga após subir o
-servidor; se o erro voltar, o console do navegador (F12) deve mostrar a
-linha "dropped a patch…".
+O `except` com a mensagem de F5 permanece como segunda proteção.
+**Confirmado pelo autor** no Chrome/Windows (2026-10-03): "resolvido de
+primeira" — o import funcionou na primeira carga, sem F5. A causa raiz
+(por que o navegador perdia a mensagem de registro) segue não provada; o
+que está confirmado é que criar o seletor no clique elimina o sintoma. Se
+o erro voltar, o console do navegador (F12) deve mostrar a linha "dropped
+a patch…".
 
 ### 4. Atualização da ferramenta de captura de tela da nuvem
 
