@@ -38,6 +38,29 @@ Isso é o que dá o **caráter crítico humano especializado** aos rumos do
 projeto e torna o uso de IA aqui auditável. Detalhamento na seção 5.2 de
 `Docs/mapeamento_e_plano_TCC-1.md`.
 
+## Como rodar o app — usar o `.venv` do projeto
+
+O ambiente válido é o **`.venv` do projeto** (Flet 1.0 + flet-charts 1.0,
+numpy e thermo, conforme `pyproject.toml`/`uv.lock`). Rodar sempre com ele:
+
+```
+PYTHONPATH=. .venv/bin/flet run interface/fletando_grafico.py --web --port 5000
+```
+
+(No Windows: `uv run flet run interface/fletando_grafico.py --web --port 5000`.)
+
+- **Não usar o `flet` do PATH no Termux** (`/data/data/com.termux/files/usr/bin/flet`):
+  é a 0.84.0, desatualizada, e não tem `flet_charts`, `numpy` nem `thermo`.
+  Usá-lo gera erros em cascata (`ModuleNotFoundError`) e leva à tentação de
+  instalar pacotes no Python global — que é o erro a evitar.
+- **Não rodar `pip install` no Python global nem criar ambientes novos.** O
+  que vale é o que está commitado (`pyproject.toml`, `uv.lock`) e o `.venv`
+  existente. Dependência nova segue a regra central: propor e aguardar.
+- Conferir a versão antes de rodar, se houver dúvida:
+  `.venv/bin/python -c "import flet; print(flet.__version__)"` → `1.0.0`.
+- `--web` carrega o CanvasKit de `www.gstatic.com` no navegador; sem internet
+  a tela trava na splash (ver "Estado atual").
+
 ## Estrutura do projeto
 
 Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
