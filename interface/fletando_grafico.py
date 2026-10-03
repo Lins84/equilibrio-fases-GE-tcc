@@ -405,11 +405,25 @@ def main(page: ft.Page):
     page.services.append(seletor_arquivo)
 
     async def importar_csv(e):
-        arquivos = await seletor_arquivo.pick_files(
-            dialog_title="Selecionar CSV (colunas P, x, y)",
-            allowed_extensions=["csv"],
-            with_data=True,
-        )
+        try:
+            arquivos = await seletor_arquivo.pick_files(
+                dialog_title="Selecionar CSV (colunas P, x, y)",
+                allowed_extensions=["csv"],
+                with_data=True,
+            )
+        except (RuntimeError, TimeoutError):
+            # O navegador não respondeu ao pedido de abrir o seletor — visto
+            # em PC Windows (2026-10-03): "TimeoutException ... Timeout
+            # waiting for invoke method listener for FilePicker(...)". O
+            # lado do navegador não tinha o serviço do seletor registrado.
+            # Sem este except, o Flet mostra a tela de erro da aplicação.
+            mensagem_status.value = (
+                "Não foi possível abrir o seletor de arquivos (o navegador "
+                "não respondeu). Recarregue a página (F5) e tente de novo."
+            )
+            mensagem_status.color = ft.Colors.RED
+            page.update()
+            return
         if not arquivos:
             return  # usuário cancelou a seleção
 
