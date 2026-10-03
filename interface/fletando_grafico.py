@@ -289,8 +289,17 @@ def main(page: ft.Page):
             texto_quebrado = "\n".join(textwrap.wrap(obter_texto(), width=42))
             page.show_dialog(
                 ft.AlertDialog(
-                    title=ft.Text(titulo),
-                    content=ft.Text(texto_quebrado),
+                    # Cabeçalho e corpo em cores diferentes, da paleta do app
+                    # (pedido do autor, 2026-10-03): título em azul escuro
+                    # (a cor da faixa e da nota do α₁₂), texto em verde-azulado
+                    # escuro (a cor do texto da nota). Ambos > 4,5:1 no fundo
+                    # do diálogo.
+                    title=ft.Text(
+                        titulo,
+                        color=ft.Colors.BLUE_800,
+                        weight=ft.FontWeight.BOLD,
+                    ),
+                    content=ft.Text(texto_quebrado, color=ft.Colors.TEAL_900),
                     actions=[ft.TextButton("Ok", on_click=lambda e: page.pop_dialog())],
                 )
             )

@@ -1520,6 +1520,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   técnica do assistente, não pedida — registrada aqui e a confirmar pelo
   autor.
 
+- **(2026-10-03) Diálogo dos ⓘ com cabeçalho e texto em cores diferentes.**
+  Pedido do autor: "o texto ao clicar, cabeçalho de uma cor e texto de outra
+  dentro da nossa paleta de cores". Escolha do assistente, reaproveitando
+  cores já presentes no app: título em `BLUE_800` negrito (o azul da faixa e
+  do "α₁₂" da nota) e texto em `TEAL_900` (a cor do texto da nota). Vale
+  para os três diálogos criados por `icone_info` (origem do parâmetro, ΔP e
+  Δy). O botão "Ok" ficou no estilo padrão. Verificado por captura de tela.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
