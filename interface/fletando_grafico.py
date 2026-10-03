@@ -480,22 +480,25 @@ def main(page: ft.Page):
     # tabela pelos do arquivo. Ficam editáveis depois de importados, como
     # os digitados manualmente (decisão em aberto na seção 2.2 do
     # mapeamento; assim ficou mais simples, sem um segundo modo travado).
-    seletor_arquivo = ft.FilePicker()
-    page.services.append(seletor_arquivo)
+    # O seletor é criado NO CLIQUE (2026-10-03), não na inicialização: criado
+    # no início, o Flet o registra no navegador por uma mensagem avulsa,
+    # enviada antes de a tela existir e nunca reenviada — se o navegador a
+    # perde (visto no Chrome/Windows, sempre na primeira sessão do servidor,
+    # FilePicker(112)), o clique estoura "Timeout waiting for invoke method
+    # listener" e só o F5 conserta. Criado no clique, o navegador já está
+    # carregado. É o padrão do Flet 1.0 (`ft.FilePicker().pick_files(...)`).
 
     async def importar_csv(e):
         try:
-            arquivos = await seletor_arquivo.pick_files(
+            arquivos = await ft.FilePicker().pick_files(
                 dialog_title="Selecionar CSV (colunas P, x, y)",
                 allowed_extensions=["csv"],
                 with_data=True,
             )
         except (RuntimeError, TimeoutError):
-            # O navegador não respondeu ao pedido de abrir o seletor — visto
-            # em PC Windows (2026-10-03): "TimeoutException ... Timeout
-            # waiting for invoke method listener for FilePicker(...)". O
-            # lado do navegador não tinha o serviço do seletor registrado.
-            # Sem este except, o Flet mostra a tela de erro da aplicação.
+            # O navegador não respondeu ao pedido de abrir o seletor (ver o
+            # comentário acima). Segunda proteção: sem este except, o Flet
+            # mostra a tela de erro da aplicação.
             mensagem_status.value = (
                 "Não foi possível abrir o seletor de arquivos (o navegador "
                 "não respondeu). Recarregue a página (F5) e tente de novo."

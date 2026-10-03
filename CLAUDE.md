@@ -943,6 +943,35 @@ arquivos (o navegador não respondeu). Recarregue a página (F5) e tente de
 novo." — em vez da tela de erro. Não corrige a causa; só troca um erro
 assustador por uma instrução. Validado por simulação da falha.
 
+**Investigação da causa e correção (2026-10-03, mais tarde no mesmo dia):**
+o autor pediu para descobrir por que o import só funcionava após o F5.
+Achados, lendo o código do Flet 1.0.0 (Python e o cliente Dart compilado) e
+o log do servidor (`flet run -vv`):
+1. O `FilePicker(112)` do erro é o seletor da **primeira sessão** do
+   processo do servidor (ids são um contador global: 112, depois 798,
+   1484…). O F5 abre uma sessão nova ou reconecta a anterior, que reenvia a
+   árvore completa.
+2. Um seletor criado na inicialização é registrado no navegador por **uma
+   única mensagem avulsa** (`PATCH_CONTROL` no `ServiceRegistry`), enviada
+   logo depois do `REGISTER_CLIENT` e antes de a tela existir. Os
+   `page.update()` seguintes só mandam a árvore de views, nunca reenviam o
+   registro. Se o navegador não monta o serviço, nada o repara; o cliente
+   espera 10 s por um ouvinte e dá "Timeout waiting for invoke method
+   listener". O cliente também descarta patches de controle desconhecido
+   ("dropped a patch for unknown control… needs a reload").
+3. **Não reproduzido** na nuvem (Chromium, Python 3.11/3.13, CPU limitada
+   até 20×, perfil persistente com F5): o seletor sempre abriu. Por que o
+   Chrome/Windows do autor perde aquela mensagem na primeira carga **não
+   foi provado**; a explicação acima é a mais provável, não confirmada.
+**Correção aplicada:** o seletor passou a ser criado **no clique**
+(`await ft.FilePicker().pick_files(...)`, padrão do Flet 1.0), sem
+`page.services.append`. Validada na nuvem com servidor recém-iniciado: o
+seletor abre e o CSV de etanol/água carrega (14 pontos, tabela e gráfico).
+O `except` com a mensagem de F5 permanece como segunda proteção. **A
+confirmar pelo autor** no Chrome/Windows, na primeira carga após subir o
+servidor; se o erro voltar, o console do navegador (F12) deve mostrar a
+linha "dropped a patch…".
+
 ### 4. Atualização da ferramenta de captura de tela da nuvem
 
 Reaproveitada nesta sessão, com três achados novos: (a) o Chromium
@@ -1418,6 +1447,13 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   escolha de visual), levantados pelo próprio assistente e relatados pelo
   autor ("o gamma não renderiza correto"); o autor autorizou a correção
   ("Sim, corrija o defeito do celular, além do gamma").
+- **(2026-10-03) Investigar por que o import de CSV só funcionava após o
+  F5 e aplicar a correção proposta (seletor criado no clique).** O autor
+  pediu a investigação ("descubra pq o import só funciona após atualizar
+  página"); o assistente levou a causa mais provável, deixando claro que
+  não foi reproduzida, e a correção, validada numa cópia descartável; o
+  autor autorizou aplicá-la ("Sim, aplique a correção"). Origem da ideia
+  de correção: o padrão da documentação do Flet 1.0.
 - **(2026-10-03) Nome e cabeçalho do app: faixa de cabeçalho (H2), "VLE
   Interativo".** O assistente levou duas disposições (H1: título solto à
   esquerda com o botão de modo à direita; H2: faixa colorida) e quatro
