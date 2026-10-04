@@ -558,6 +558,49 @@ continuar sendo mantido.
   Adiado para depois da entrega do piloto; **não implementar sem pedido
   explícito do autor**.
 
+- **Sessão compartilhada em tempo real (modo "aula": professor no desktop,
+  alunos em celular e desktop).** Levantada pelo autor em 2026-10-04: usar
+  uma sessão em que os dados e os controles fossem compartilhados
+  simultaneamente entre o professor e os alunos presentes. **Registrada
+  como ideia, sem implementação, a pedido do autor ("Registre a ideia em
+  Atualizações futuras") — não implementar sem pedido explícito.**
+  *Estado atual:* cada navegador que abre o app é uma sessão Flet
+  independente (tabela, sliders e gráficos próprios); ninguém vê o que o
+  outro faz. O servidor já atende vários clientes de uma vez (o `flet run
+  --web` escuta em `0.0.0.0`).
+  *Viabilidade (verificada em 2026-10-04):* o Flet 1.0.0 tem `page.pubsub`
+  (`send_all`, `send_others`, tópicos, `subscribe`) para comunicar as
+  sessões de um mesmo processo — é o mecanismo natural. Desenho esboçado:
+  um **estado único da aula** no servidor (tabela, modelo, componentes,
+  temperatura, parâmetros dos sliders); cada ação do professor (digitar
+  ponto, mover slider, "Comparar", "Calcular por Regressão") é transmitida
+  às demais sessões, que aplicam a mesma mudança e redesenham (evitando o
+  eco da própria mensagem); quem entra depois recebe o estado atual; cada
+  aluno vê o layout do seu aparelho, porque a detecção celular/desktop já é
+  por largura da tela.
+  *Três níveis levantados:* **(1) aula guiada** — só o professor controla,
+  os alunos veem ao vivo sem editar, com senha de professor (o mais viável,
+  e o ponto de partida sugerido); **(2) aula guiada com exploração** — cada
+  aluno pode "soltar" e mexer no próprio gráfico e depois voltar à aula
+  (dois estados por aluno, mais código); **(3) controle de todos** —
+  qualquer um altera o estado comum (**não recomendado**: dois sliders
+  simultâneos se atropelam).
+  *Pontos de atenção:* (a) **rede** — todos precisam alcançar o servidor;
+  numa rede de sala funciona, mas redes de universidade costumam isolar os
+  aparelhos entre si, exigindo hospedagem fora ou túnel (o túnel gratuito
+  já se mostrou instável); (b) **internet nos clientes** — o app carrega o
+  CanvasKit de `www.gstatic.com` no navegador de cada aluno; sem internet a
+  tela trava na splash (o build offline `flet build web --no-cdn` é outro
+  fluxo); (c) **carga** — se cada sessão recalcula o modelo, dezenas de
+  recálculos simultâneos chegam juntos ao servidor (viável, mas pede
+  teste; o Termux como servidor de uma turma inteira parece fraco);
+  (d) **segurança** — sem login, qualquer pessoa com o endereço entra; o
+  nível 1 exige ao menos uma senha de professor; (e) **escopo** — é um
+  segundo modo de uso do app, por isso fica aqui e não no piloto.
+  *Se for antecipado:* sugestão de **protótipo mínimo** antes de qualquer
+  coisa maior — professor e aluno compartilhando só a escolha do modelo e um
+  slider, para medir latência e carga.
+
 ## Sessão de estética e bug de renderização intermitente (2026-09-28/29)
 
 Sessão longa dedicada à "fase de estética" (autorizada em 2026-09-28, ver
