@@ -1,3 +1,4 @@
+import glob
 import os
 import xml.etree.ElementTree as ET
 from functools import lru_cache
@@ -417,19 +418,43 @@ def uniquac_rq_from_groups(groups):
     return r, q
 
 
+def _caminho_xml_chemsep():
+    """Caminho do XML de compostos puros do ChemSep dentro do pacote
+    `chemicals`, ou None se não houver. Procura por padrão de nome
+    (`Misc/ChemSep*.xml`, o mais recente por ordem alfabética) em vez de fixar
+    `ChemSep8.32.xml`, porque o número da versão do ChemSep está no nome do
+    arquivo e muda se o pacote for atualizado."""
+    candidatos = sorted(glob.glob(os.path.join(os.path.dirname(chemicals.__file__), "Misc", "ChemSep*.xml")))
+    return candidatos[-1] if candidatos else None
+
+
 @lru_cache(maxsize=1)
 def _tabela_rq_chemsep():
     """Lê UMA vez o banco de compostos puros do ChemSep que acompanha o pacote
-    `chemicals` (Misc/ChemSep8.32.xml, licença Artistic 2.0) e devolve
-    {CAS: (r, q)} do UNIQUAC — 429 dos 431 compostos têm os dois valores."""
-    caminho = os.path.join(os.path.dirname(chemicals.__file__), "Misc", "ChemSep8.32.xml")
+    `chemicals` (Misc/ChemSep*.xml, licença Artistic 2.0) e devolve
+    {CAS: (r, q)} do UNIQUAC — 429 dos 431 compostos têm os dois valores.
+
+    Arquivo ausente ou ilegível (ex.: uma versão futura do `chemicals` que o
+    mova ou remova — ele não é usado pelo código do pacote, só empacotado)
+    devolve tabela vazia: `montar_parametros_automaticos` então cai nos grupos
+    UNIFAC, em vez de o UNIQUAC inteiro falhar."""
+    caminho = _caminho_xml_chemsep()
+    if caminho is None:
+        return {}
     tabela = {}
-    for composto in ET.parse(caminho).getroot().iter("compound"):
+    try:
+        raiz = ET.parse(caminho).getroot()
+    except (OSError, ET.ParseError):
+        return {}
+    for composto in raiz.iter("compound"):
         cas = composto.find("CAS")
         r = composto.find("UniquacR")
         q = composto.find("UniquacQ")
         if cas is not None and r is not None and q is not None:
-            tabela[cas.get("value")] = (float(r.get("value")), float(q.get("value")))
+            try:
+                tabela[cas.get("value")] = (float(r.get("value")), float(q.get("value")))
+            except (TypeError, ValueError):
+                continue
     return tabela
 
 

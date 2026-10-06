@@ -98,6 +98,26 @@ def main():
     print(f"  [UNIQUAC sem r/q ChemSep] volta para grupos UNIFAC (r1={sem['r1']}) -> {'OK' if ok else 'FALHA'}")
     todos_ok &= ok
 
+    # Arquivo do ChemSep ausente (ex.: versao futura do chemicals que o mova):
+    # o UNIQUAC nao pode quebrar, deve cair nos grupos UNIFAC.
+    original_caminho = gemini._caminho_xml_chemsep
+    gemini._caminho_xml_chemsep = lambda: "/caminho/que/nao/existe.xml"
+    gemini._tabela_rq_chemsep.cache_clear()
+    try:
+        ausente = montar_parametros_automaticos("UNIQUAC", "ethanol", "water")
+        ok = abs(ausente["r1"] - 2.5755) < 1e-9
+    except Exception as exc:
+        ok = False
+        print(f"    excecao inesperada: {type(exc).__name__}: {exc}")
+    finally:
+        gemini._caminho_xml_chemsep = original_caminho
+        gemini._tabela_rq_chemsep.cache_clear()
+    print(f"  [UNIQUAC com XML ChemSep ausente] cai nos grupos UNIFAC sem quebrar -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+    ok = uniquac_rq_from_chemsep("64-17-5") == (2.11, 1.97)
+    print(f"  [r/q ChemSep] tabela volta ao normal depois do teste -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+
     # Casos de erro esperados.
     try:
         buscar_parametros_banco("Van Laar", "ethanol", "water", T_K)

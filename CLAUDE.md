@@ -2070,6 +2070,20 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   arquivo XML é dado interno do `chemicals`; a versão está travada no
   `uv.lock`, mas uma atualização do pacote pode mudar o caminho; (b) a
   regressão de Barker não ajusta r/q (são estruturais), então não muda.
+  **Endurecido no mesmo dia, a partir de uma pergunta do autor ("isso é um
+  problema?").** Verificado: o código do `chemicals` não usa esse XML em lugar
+  nenhum (é só dado empacotado) e o nome traz a versão do ChemSep (`8.32`), então
+  pode ser renomeado ou removido numa atualização; e, pior, com o arquivo
+  ausente o UNIQUAC **quebrava por inteiro** (`FileNotFoundError`) em vez de
+  cair nos grupos UNIFAC como a regra prevê. Agora: o arquivo é achado por
+  padrão (`Misc/ChemSep*.xml`, `_caminho_xml_chemsep`); arquivo ausente,
+  ilegível ou com valor malformado vira "sem dados" (`_tabela_rq_chemsep`
+  devolve `{}`) e o UNIQUAC usa os grupos UNIFAC. Teste novo em
+  `teste_banco_ipdb.py` (caminho inexistente → cai nos grupos, sem exceção).
+  Risco que sobra: se o arquivo sumir, o UNIQUAC volta silenciosamente aos
+  r/q do UNIFAC (menos coerente com os a₁₂/a₂₁ do banco, como no achado
+  anterior) — sem aviso na tela; o selo de origem diz "do ChemSep (ou, se
+  faltarem, UNIFAC)" mas não informa qual valeu em cada caso.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
