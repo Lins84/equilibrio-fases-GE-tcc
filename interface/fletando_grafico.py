@@ -4,7 +4,6 @@ import io
 import math
 import re
 import textwrap
-from pathlib import Path
 
 import flet as ft
 import flet_charts as fch
@@ -406,16 +405,6 @@ def importar_pontos_texto(
         except (ValueError, TypeError, IndexError):
             ignoradas += 1
     return pontos, ignoradas
-
-
-# Exemplos prontos do botão "Importar dados" → "Exemplo" (2026-10-06): CSVs
-# de referência do repositório, para a aula não depender de cada aluno ter
-# um arquivo. O CSV só traz P, x, y — componentes e temperatura continuam
-# sendo escolhidos na tela, por isso o rótulo diz de que sistema se trata.
-PASTA_EXEMPLOS = Path(__file__).resolve().parent.parent / "referencias"
-EXEMPLOS_CSV = {
-    "Etanol/água, 50 °C": "etanol_agua_50C_isotermico.csv",
-}
 
 
 # Escala de espaçamento única para o app inteiro (2026-09-28, passada de
@@ -845,19 +834,6 @@ def main(page: ft.Page):
             return
         aplicar_importacao(pontos, ignoradas, "arquivo CSV")
 
-    def importar_exemplo(nome_arquivo, rotulo):
-        def acao(e):
-            page.pop_dialog()
-            try:
-                texto = (PASTA_EXEMPLOS / nome_arquivo).read_text(encoding="utf-8")
-                pontos, ignoradas = importar_pontos_csv(texto)
-            except (OSError, ValueError, UnicodeDecodeError) as exc:
-                falha_importacao(exc)
-                return
-            aplicar_importacao(pontos, ignoradas, f"exemplo: {rotulo}")
-
-        return acao
-
     def abrir_colar_texto(e):
         page.pop_dialog()
         campo = ft.TextField(
@@ -865,7 +841,7 @@ def main(page: ft.Page):
             width=largura_dialogo(),
             min_lines=6,
             max_lines=10,
-            hint_text="P  x  y\n12.33  0.0000  0.0000\n16.51  0.0100  0.0910",
+            hint_text="P  x  y\n(uma linha por ponto)",
             border_color=ft.Colors.BLUE_200,
             focused_border_color=ft.Colors.BLUE_700,
             border_radius=12,
@@ -941,9 +917,6 @@ def main(page: ft.Page):
         opcoes = [
             opcao(ft.Icons.UPLOAD_FILE, "Arquivo CSV do dispositivo", importar_arquivo),
             opcao(ft.Icons.CONTENT_PASTE, "Colar texto", abrir_colar_texto),
-        ] + [
-            opcao(ft.Icons.SCIENCE, f"Exemplo: {rotulo}", importar_exemplo(arquivo, rotulo))
-            for rotulo, arquivo in EXEMPLOS_CSV.items()
         ]
         page.show_dialog(
             ft.AlertDialog(

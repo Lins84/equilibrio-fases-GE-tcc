@@ -139,8 +139,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   `teste_limites_redondos.py` (2026-10-03 — regressão do passo do eixo
   vertical dos gráficos: nunca zero, mesmo com ln γ quase constante) e
   `teste_importar_texto.py` (2026-10-06 — leitura de texto colado: separadores,
-  vírgula decimal, cabeçalho opcional, linhas inválidas contadas e o exemplo
-  embutido; roda com `PYTHONPATH=. .venv/bin/python testes/<arquivo>.py`).
+  vírgula decimal, cabeçalho opcional, linhas inválidas contadas e leitura de
+  CSV; roda com `PYTHONPATH=. .venv/bin/python testes/<arquivo>.py`).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -516,12 +516,17 @@ Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
    compilações DECHEMA/Gmehling) — cada grandeza testa uma parte
    diferente da física (P testa o desvio da idealidade como um todo; y
    é mais sensível a erro em componente individual). Um resíduo
-   combinado esconde esse tipo de nuance — confirmado ao validar com o
-   dataset real etanol/água a 50°C
-   (`referencias/etanol_agua_50C_isotermico.csv`): NRTL com parâmetros-
-   chute deu ΔP=29,4%/Δy=0,065; os mesmos parâmetros ajustados por
-   Barker deram ΔP=6,2%/Δy=0,106 — Barker melhora P mas piora um pouco
-   y, porque otimiza o resíduo combinado, não y sozinho. Esse trade-off
+   combinado esconde esse tipo de nuance — verificado, na época, com um
+   CSV de etanol/água a 50 °C (`referencias/etanol_agua_50C_isotermico.csv`):
+   NRTL com parâmetros-chute deu ΔP=29,4%/Δy=0,065; os mesmos parâmetros
+   ajustados por Barker deram ΔP=6,2%/Δy=0,106 — Barker melhora P mas
+   piora um pouco y, porque otimiza o resíduo combinado, não y sozinho.
+   **Ressalva (2026-10-06): esse CSV era de origem desconhecida e foi
+   removido do repositório (ver "Decisões de engenharia do aluno") por não
+   passar em checagens de consistência física; os números acima não valem
+   como validação. O argumento de reportar P e y separados continua de pé
+   por razão teórica (literatura DECHEMA/Gmehling), mas a demonstração
+   numérica precisa ser refeita com dado de fonte citável.** Esse trade-off
    só fica visível porque os dois números são reportados separados, não
    combinados num só.
    Posicionamento fino/estilo visual do botão e da exibição do erro
@@ -658,9 +663,9 @@ continuar sendo mantido.
   o autor escolher**: (1) **fora do app** — o professor manda o arquivo antes
   da aula (WhatsApp, Drive, e-mail) e o aluno baixa e importa; zero código,
   mas depende de cada um achar o arquivo no celular; (2) **exemplos embutidos**
-  — um seletor "Carregar exemplo" no app com os CSVs de referência (ex.:
-  `referencias/etanol_agua_50C_isotermico.csv`), sem arquivo nenhum para
-  compartilhar; só serve para dados que o professor deixou previamente no
+  — um seletor "Carregar exemplo" no app com os CSVs de referência (a opção
+  foi implementada e **retirada em 2026-10-06**, por falta de dataset com
+  fonte), sem arquivo nenhum para compartilhar; só serve para dados que o professor deixou previamente no
   repositório; (3) **colar texto** — campo para colar as linhas P, x₁, y₁
   (o professor manda o texto por mensagem e o aluno cola); funciona com qualquer
   dado novo na hora; (4) **link/QR** — importar de um endereço (ex.: arquivo
@@ -1926,6 +1931,47 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   linha inválida de propósito, avisada como "1 linha(s) ignorada(s)") e a
   360px (menu e diálogo de colar); testes passam, com o novo
   `teste_importar_texto.py`. Não conferido no aparelho real (Termux).
+  **Superada em parte no mesmo dia: a opção "Exemplo" foi removida** (entrada
+  seguinte); o diálogo ficou com *Arquivo CSV* e *Colar texto*.
+
+- **(2026-10-06) Remover o exemplo "Etanol/água, 50 °C" por falta de fonte
+  confiável; buscar dataset de fonte aberta.** O autor perguntou a origem do
+  CSV de exemplo. Resposta: não identificada. O arquivo entrou em `0cce3f8`
+  (2026-09-27) vindo de uma busca no Google, sem autor, artigo ou referência;
+  o próprio autor confirmou que era "apenas pra testes" e "não possui grau de
+  confiança aceitável por não definir a fonte". **Checagens feitas pelo
+  assistente (física, sem apontar fonte):** (a) as pontas batem com a pressão
+  de vapor pura do `thermo` (12,33 kPa e 29,35 kPa contra 12,35 e 29,41 kPa a
+  50 °C), logo o arquivo é plausível nos extremos; (b) mas o azeótropo do
+  arquivo está em P = 34,42 kPa, quando o azeótropo etanol/água a 50 °C fica
+  perto de 29,7 kPa; (c) P cai de 34,21 para 29,35 kPa entre x₁ = 0,941 e 1,
+  um degrau que o par real não tem; (d) γ₁ implícito pela Raoult modificada em
+  x₁ ≈ 0,9 sai 1,17, contra ≈ 1,0 esperado perto do azeótropo; (e) o teste da
+  área (Redlich-Kister) deu D ≈ 24,5 %, contra o critério D < 10 %; (f) os
+  modelos do banco (NRTL/UNIQUAC) erram P em 17–18 % contra ele. Conclusão: o
+  dado não é confiável como validação. **Decisão do autor: "Remova o exemplo e
+  procure um dataset com fonte aberta".** **Feito:** o botão "Exemplo" saiu do
+  diálogo "Importar dados" (`EXEMPLOS_CSV`, `PASTA_EXEMPLOS` e
+  `importar_exemplo` removidos de `fletando_grafico.py`; a opção de exemplos
+  embutidos deixa de existir até haver dado com fonte), o teste de exemplos
+  foi trocado por um teste de leitura de CSV em `teste_importar_texto.py`, o
+  texto-dica do campo "Colar texto" deixou de usar números do arquivo, e o
+  arquivo `referencias/etanol_agua_50C_isotermico.csv` foi apagado (continua
+  no histórico do git, no commit `0cce3f8`). **Efeitos em registros
+  anteriores:** os números de ΔP/Δy do item 4 de "Próximos passos" (NRTL
+  chute × Barker) não valem como validação — ver a ressalva lá —, e as
+  capturas de tela de estética feitas "com o CSV de etanol/água" serviram só
+  para ver o layout, não para conferir valores. **Escolha do assistente, a
+  confirmar:** apagar o arquivo em vez de mantê-lo marcado "sem fonte"; se o
+  autor preferir guardá-lo, é recuperar do commit citado. **Busca do dataset
+  aberto: em andamento.** Fontes verificadas até aqui: o arquivo público do
+  NIST ThermoML (`doi:10.18434/mds2-2422`, dados públicos, extraídos de
+  artigos de JCED, J. Chem. Thermodyn., Fluid Phase Equilib., Thermochim. Acta
+  e Int. J. Thermophys., 2003–2019, com DOI do artigo de origem por entrada)
+  parece o candidato mais citável; o servidor `trc.nist.gov` é bloqueado para
+  `curl` neste ambiente (só a ferramenta de busca acessa as páginas), então a
+  extração dos números e a checagem de consistência ainda não foram feitas.
+  Nenhum dataset foi incorporado.
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado

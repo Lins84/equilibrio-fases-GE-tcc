@@ -1,5 +1,5 @@
 """
-Testes da leitura de pontos P/x/y por texto colado e do exemplo embutido
+Testes da leitura de pontos P/x/y por texto colado e por CSV
 (botão "Importar dados", 2026-10-06). Lógica pura, mas vive em
 `interface/fletando_grafico.py`, então exige flet instalado.
 
@@ -12,12 +12,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "interface"))
 
-from fletando_grafico import (
-    EXEMPLOS_CSV,
-    PASTA_EXEMPLOS,
-    importar_pontos_csv,
-    importar_pontos_texto,
-)
+from fletando_grafico import importar_pontos_csv, importar_pontos_texto
 
 ESPERADO = [(12.33, 0.0, 0.0), (16.51, 0.01, 0.091)]
 
@@ -58,18 +53,15 @@ def teste_erros():
     print("OK: erros de cabeçalho e linhas inválidas contadas.")
 
 
-def teste_exemplos_existem_e_leem():
-    assert EXEMPLOS_CSV
-    for rotulo, arquivo in EXEMPLOS_CSV.items():
-        texto = (PASTA_EXEMPLOS / arquivo).read_text(encoding="utf-8")
-        pontos, ignoradas = importar_pontos_csv(texto)
-        assert len(pontos) == 14 and ignoradas == 0, (rotulo, len(pontos), ignoradas)
-    print("OK: exemplos embutidos carregam.")
+def teste_csv():
+    pontos, ignoradas = importar_pontos_csv("P,x,y\n12.33,0.0,0.0\n16.51,0.01,0.091\n")
+    assert pontos == ESPERADO and ignoradas == 0, (pontos, ignoradas)
+    print("OK: leitura de CSV.")
 
 
 if __name__ == "__main__":
     teste_formatos_aceitos()
     teste_cabecalho()
     teste_erros()
-    teste_exemplos_existem_e_leem()
+    teste_csv()
     print("Todos os testes passaram.")
