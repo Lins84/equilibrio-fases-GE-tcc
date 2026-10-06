@@ -1945,6 +1945,39 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   (texto com folga, lista aberta e troca para Margules 2-P com os sliders
   A₁₂/A₂₁); os 5 testes passam. Não conferido no aparelho real.
 
+- **(2026-10-06) Valor do parâmetro digitável, além do slider.** Pedido do
+  autor: "quero que o valor do parâmetro também seja digitável". O texto fixo
+  "A = 0.5" ao lado de cada slider virou um **campo de texto** com o rótulo do
+  parâmetro (A, A₁₂, Λ₁₂, τ₁₂, α₁₂…) flutuando na borda, no estilo das caixas
+  do card "Sistema" (`ESTILO_CAIXA_SISTEMA`, 100px). Confirma com Enter ou ao
+  sair do campo; vírgula decimal aceita; só entram dígitos, `.`, `,` e `-`.
+  O slider acompanha (a posição do botão é limitada ao intervalo do slider, o
+  **valor usado no cálculo não** — mesmo critério de banco e regressão, cujos
+  valores podem cair fora dele), o selo de origem passa a "Fornecido"
+  ("digitado manualmente") e o gráfico é redesenhado. Arrastar o slider
+  continua atualizando o campo. **Regras de validação (escolhas do
+  assistente, a confirmar):** valor não numérico ou infinito é recusado e o
+  campo volta ao anterior, com aviso vermelho na mensagem de status; **Λ₁₂ e
+  Λ₂₁ (Wilson) só aceitam valor maior que zero** (log de Λ); α₁₂ do NRTL
+  não tem limite além de ser número (o intervalo 0,2–0,47 é só do slider) e,
+  como no slider, não muda o selo. Sair do campo **sem editar** não reescreve
+  o valor: o campo mostra 4 algarismos (`formatar_parametro`, antes eram 3 no
+  texto fixo) e o parâmetro vindo da regressão ou do banco pode ter mais —
+  sem essa guarda, só clicar e sair trocaria o valor preciso pelo
+  arredondado e o selo "Calculado"/"Banco de dados" por "Fornecido". Digitar
+  não empilha no histórico do "Desfazer" (mesma regra do slider: é o próprio
+  usuário no controle). Verificado por captura de tela a 1400px (digitar
+  `1,2` + Enter: slider e gráficos mudam; `-0.5` confirmado ao sair do campo;
+  campo vazio volta ao valor com aviso) e a 360px (Wilson: Λ = 0 recusado;
+  "Buscar do Banco" preenche 0.1759/0.7991 com selo "Banco de dados"; entrar
+  e sair do campo sem editar não altera nada); os 5 testes passam.
+  **Achados, não tratados:** (a) o aviso de valor inválido aparece na
+  mensagem de status do card "Dados experimentais", longe do campo no
+  celular, onde os cards ficam empilhados; (b) no gráfico de ln γ com valores
+  negativos o rótulo do zero sai como "-0.00" (ruído de ponto flutuante no
+  marcador). Não conferido no aparelho real (teclado numérico do Android
+  com vírgula e sinal de menos).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

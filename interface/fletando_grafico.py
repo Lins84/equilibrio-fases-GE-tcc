@@ -149,6 +149,12 @@ def marcador_vazado(forma: str, cor) -> fch.ChartPointShape:
     )
 
 
+def formatar_parametro(valor: float) -> str:
+    """Texto do campo de valor de um parâmetro (4 algarismos significativos,
+    sem rótulo — o rótulo fica no próprio campo)."""
+    return f"{valor:.4g}"
+
+
 def parse_ponto(p_str: str, x_str: str, y_str: str) -> tuple[float, float, float]:
     """Converte as 3 strings de uma linha da tabela em (P, x1, y1) float.
     Levanta ValueError se algum campo estiver vazio ou não for numérico."""
@@ -1789,7 +1795,7 @@ def main(page: ft.Page):
                 continue
             slider, valor_texto, rotulo = sliders_por_chave[chave]
             slider.value = max(slider.min, min(slider.max, valor))
-            valor_texto.value = f"{rotulo} = {valor:.3g}"
+            valor_texto.value = formatar_parametro(valor)
             parametros_atuais[chave] = valor
         if estado["tipo_origem"] is not None:
             atualizar_selo_origem(estado["tipo_origem"], estado["detalhe_origem"])
@@ -1903,15 +1909,70 @@ def main(page: ft.Page):
 
         for spec in specs:
             parametros_atuais[spec["chave"]] = spec["inicial"]
-            valor_texto = ft.Text(
-                f"{spec['rotulo']} = {spec['inicial']:.3g}",
-                width=110,
-                color=ft.Colors.BLUE_GREY_900,
-                weight=ft.FontWeight.W_500,
+            # Campo de valor digitável (2026-10-06, pedido do autor): além de
+            # arrastar o slider, dá para digitar o número exato. O rótulo do
+            # parâmetro fica no próprio campo. Aceita vírgula decimal; valor
+            # inválido volta ao anterior com aviso. O valor digitado não fica
+            # preso ao intervalo do slider (que é só um recorte para
+            # arrastar): só a posição do botão é limitada, como já acontece
+            # com os valores vindos do banco e da regressão.
+            def filtrar_valor(e):
+                filtrado = re.sub(r"[^0-9.,\-]", "", e.control.value or "")
+                if filtrado != e.control.value:
+                    e.control.value = filtrado
+                    e.control.update()
+
+            def confirmar_valor(e, spec=spec):
+                chave = spec["chave"]
+                campo = e.control
+                texto = (campo.value or "").strip().replace(",", ".")
+                # Perder o foco sem editar não pode reescrever o valor: o
+                # campo mostra 4 algarismos, e o parâmetro (ex.: vindo da
+                # regressão) pode ter mais.
+                if texto == formatar_parametro(parametros_atuais[chave]):
+                    return
+                try:
+                    valor = float(texto)
+                    if not math.isfinite(valor):
+                        raise ValueError
+                    if chave in ("L12", "L21") and valor <= 0:
+                        raise ValueError
+                except ValueError:
+                    campo.value = formatar_parametro(parametros_atuais[chave])
+                    exigencia = " maior que zero" if chave in ("L12", "L21") else ""
+                    mensagem_status.value = (
+                        f"Valor inválido para {spec['rotulo']}: digite um "
+                        f"número{exigencia}."
+                    )
+                    mensagem_status.color = ft.Colors.RED_800
+                    page.update()
+                    return
+                if valor == parametros_atuais[chave]:
+                    return
+                parametros_atuais[chave] = valor
+                slider_par = sliders_por_chave[chave][0]
+                slider_par.value = max(slider_par.min, min(slider_par.max, valor))
+                if chave != "alpha12":
+                    atualizar_selo_origem(
+                        "fornecido",
+                        f"{spec['rotulo']} digitado manualmente pelo usuário.",
+                    )
+                gerar_grafico()
+
+            valor_texto = ft.TextField(
+                value=formatar_parametro(spec["inicial"]),
+                label=spec["rotulo"],
+                width=100,
+                keyboard_type=ft.KeyboardType.NUMBER,
+                on_change=filtrar_valor,
+                on_blur=confirmar_valor,
+                on_submit=confirmar_valor,
+                key=ft.ValueKey(f"valor_{nome_modelo}_{spec['chave']}"),
+                **{**ESTILO_CAIXA_SISTEMA, "content_padding": ft.Padding(10, 10, 10, 10)},
             )
 
-            def on_change(e, spec=spec, valor_texto=valor_texto):
-                valor_texto.value = f"{spec['rotulo']} = {e.control.value:.3g}"
+            def on_change(e, valor_texto=valor_texto):
+                valor_texto.value = formatar_parametro(e.control.value)
                 page.update()
 
             def on_change_end(e, spec=spec):
@@ -1944,7 +2005,11 @@ def main(page: ft.Page):
                 key=ft.ValueKey(f"slider_{chave_unica}"),
             )
             sliders_area.controls.append(
-                ft.Row([valor_texto, slider], key=ft.ValueKey(f"linha_{chave_unica}"))
+                ft.Row(
+                    [valor_texto, slider],
+                    spacing=ESPACO_PEQUENO,
+                    key=ft.ValueKey(f"linha_{chave_unica}"),
+                )
             )
             sliders_por_chave[spec["chave"]] = (slider, valor_texto, spec["rotulo"])
 
@@ -1984,7 +2049,7 @@ def main(page: ft.Page):
             # slider.value fora de [min, max]. Só a posição visual é limitada;
             # o cálculo do gráfico usa o valor real, sem truncar.
             slider.value = max(slider.min, min(slider.max, valor))
-            valor_texto.value = f"{rotulo} = {valor:.3g}"
+            valor_texto.value = formatar_parametro(valor)
             parametros_atuais[chave] = valor
 
         atualizar_selo_origem(
@@ -2066,7 +2131,7 @@ def main(page: ft.Page):
             # slider.value fora de [min, max]. Só a posição visual é
             # limitada; o cálculo do gráfico usa o valor regredido real.
             slider.value = max(slider.min, min(slider.max, valor))
-            valor_texto.value = f"{rotulo} = {valor:.3g}"
+            valor_texto.value = formatar_parametro(valor)
             parametros_atuais[chave] = valor
 
         poucos_pontos = resultado["graus_liberdade"] == 1
