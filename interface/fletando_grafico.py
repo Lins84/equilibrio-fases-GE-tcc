@@ -16,6 +16,7 @@ from calculos.gemini import (
     calculate_vle_isothermal,
     montar_parametros_automaticos,
     regress_params_barker,
+    uniquac_fonte_rq,
 )
 
 # Selo de origem do parâmetro (seção 2.8 do mapeamento): cor de fundo, cor
@@ -27,6 +28,10 @@ ORIGENS_SELO = {
     "calculado": (ft.Colors.ORANGE_100, "#7A3300", "Calculado"),
     "calculado_poucos_pontos": (ft.Colors.RED_100, ft.Colors.RED_900, "Calculado (poucos pontos)"),
     "preditivo": (ft.Colors.PURPLE_100, ft.Colors.PURPLE_900, "Preditivo"),
+    # UNIQUAC com a₁₂/a₂₁ do banco mas r/q pelos grupos UNIFAC (o ChemSep não
+    # tem r/q para o par): variante de menor confiança, mesmo padrão e mesmas
+    # cores do "Calculado". 2026-10-06.
+    "banco_rq_unifac": (ft.Colors.ORANGE_100, "#7A3300", "Banco, r/q via UNIFAC"),
 }
 
 # Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
@@ -1413,6 +1418,8 @@ def main(page: ft.Page):
                 params_modelo = dict(parametros_atuais)
             else:
                 params_modelo = montar_parametros_automaticos(nome_modelo, comp1, comp2)
+                if nome_modelo == "UNIQUAC":
+                    atualizar_selo_uniquac(comp1, comp2)
 
             T_C = float(campo_temperatura.value)
             resultado = calculate_vle_isothermal(
@@ -1814,6 +1821,29 @@ def main(page: ft.Page):
         detalhe_selo_origem["texto"] = detalhe
         selo_origem.visible = True
 
+    def atualizar_selo_uniquac(comp1, comp2):
+        """Selo do UNIQUAC dizendo de onde vieram os r/q do par atual (2026-10-06,
+        pedido do autor). Chamado a cada cálculo, porque a fonte depende dos
+        componentes escolhidos — não só do modelo."""
+        banco = (
+            "a₁₂/a₂₁ do banco IPDB/ChemSep (tabela 'ChemSep UNIQUAC') para "
+            f"{comp1}/{comp2}."
+        )
+        if uniquac_fonte_rq(comp1, comp2) == "chemsep":
+            atualizar_selo_origem(
+                "banco",
+                "r/q estruturais do banco ChemSep — os mesmos com que os "
+                f"parâmetros de interação foram ajustados; {banco}",
+            )
+        else:
+            atualizar_selo_origem(
+                "banco_rq_unifac",
+                "r/q estruturais calculados pelos grupos UNIFAC, porque o "
+                "banco ChemSep não tem r/q para este par. Os parâmetros de "
+                "interação foram ajustados com os r/q do ChemSep, então o "
+                f"resultado pode se afastar do esperado; {banco}",
+            )
+
     # Desfazer (2026-09-28, pedido do autor: "cliquei no Barker e me
     # arrependi") — histórico dos últimos MAX_HISTORICO_PARAMETROS estados
     # dos parâmetros do modelo (valores dos sliders + selo de origem),
@@ -1964,10 +1994,10 @@ def main(page: ft.Page):
             else:  # UNIQUAC
                 atualizar_selo_origem(
                     "banco",
-                    "r/q estruturais do banco ChemSep (os mesmos com que os "
-                    "parâmetros foram ajustados; se faltarem, via grupos "
-                    "UNIFAC); a₁₂/a₂₁ do banco IPDB/ChemSep (tabela "
-                    "'ChemSep UNIQUAC') para o par de componentes escolhido.",
+                    "r/q estruturais do banco ChemSep (ou, se faltarem, dos "
+                    "grupos UNIFAC) e a₁₂/a₂₁ do banco IPDB/ChemSep. A fonte "
+                    "que valeu para o par escolhido aparece aqui assim que o "
+                    "gráfico é calculado.",
                 )
             return
 

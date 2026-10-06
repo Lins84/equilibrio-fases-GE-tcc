@@ -491,6 +491,31 @@ def uniquac_params_from_ipdb(cas1, cas2):
     return {'a12': -bij[0][1], 'a21': -bij[1][0]}
 
 
+def _uniquac_rq_do_par(component1_id, component2_id):
+    """((r1, q1), (r2, q2), fonte) do UNIQUAC para o par. `fonte` é "chemsep"
+    ou "unifac".
+
+    r/q do ChemSep (2026-10-06, decisão do autor), quando os DOIS componentes
+    constam lá — são os r/q com que os a12/a21 do banco foram ajustados.
+    Senão, cai para os grupos UNIFAC (decisão de 2026-09-27), nos dois, para
+    não misturar fontes dentro do par."""
+    rq1 = uniquac_rq_from_chemsep(Chemical(component1_id).CAS)
+    rq2 = uniquac_rq_from_chemsep(Chemical(component2_id).CAS)
+    if rq1 is not None and rq2 is not None:
+        return rq1, rq2, "chemsep"
+    return (
+        uniquac_rq_from_groups(unifac_groups_from_name(component1_id)),
+        uniquac_rq_from_groups(unifac_groups_from_name(component2_id)),
+        "unifac",
+    )
+
+
+def uniquac_fonte_rq(component1_id, component2_id):
+    """De onde vêm os r/q do UNIQUAC para este par: "chemsep" ou "unifac".
+    Usada pela UI para o selo de origem dizer a fonte que de fato valeu."""
+    return _uniquac_rq_do_par(component1_id, component2_id)[2]
+
+
 def montar_parametros_automaticos(model_name, component1_id, component2_id):
     """Resolve automaticamente os parâmetros de um modelo Gᴱ a partir dos
     componentes escolhidos, para os modelos cuja origem hoje é banco de
@@ -509,19 +534,9 @@ def montar_parametros_automaticos(model_name, component1_id, component2_id):
         }
 
     if model_name == "UNIQUAC":
+        (r1, q1), (r2, q2), _ = _uniquac_rq_do_par(component1_id, component2_id)
         cas1 = Chemical(component1_id).CAS
         cas2 = Chemical(component2_id).CAS
-        # r/q do ChemSep (2026-10-06, decisão do autor), quando os DOIS
-        # componentes constam lá — são os r/q com que os a12/a21 do banco
-        # foram ajustados. Senão, cai para os grupos UNIFAC (decisão de
-        # 2026-09-27), nos dois, para não misturar fontes dentro do par.
-        rq1 = uniquac_rq_from_chemsep(cas1)
-        rq2 = uniquac_rq_from_chemsep(cas2)
-        if rq1 is not None and rq2 is not None:
-            (r1, q1), (r2, q2) = rq1, rq2
-        else:
-            r1, q1 = uniquac_rq_from_groups(unifac_groups_from_name(component1_id))
-            r2, q2 = uniquac_rq_from_groups(unifac_groups_from_name(component2_id))
         return {
             "r1": r1, "q1": q1, "r2": r2, "q2": q2,
             **uniquac_params_from_ipdb(cas1, cas2),

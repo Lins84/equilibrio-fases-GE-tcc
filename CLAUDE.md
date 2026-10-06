@@ -2084,6 +2084,25 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   r/q do UNIFAC (menos coerente com os a₁₂/a₂₁ do banco, como no achado
   anterior) — sem aviso na tela; o selo de origem diz "do ChemSep (ou, se
   faltarem, UNIFAC)" mas não informa qual valeu em cada caso.
+  **Resolvido no mesmo dia (autor: "Sim, o selo deve dizer a fonte"):**
+  `uniquac_fonte_rq(comp1, comp2)` devolve `"chemsep"` ou `"unifac"`, pela mesma
+  lógica (`_uniquac_rq_do_par`) que monta os parâmetros — não duplica a regra. O
+  app chama `atualizar_selo_uniquac` **a cada cálculo** do UNIQUAC (a fonte
+  depende dos componentes escolhidos, não só do modelo). **Fonte ChemSep:** chip
+  verde "Banco de dados" e, no ⓘ, "r/q do banco ChemSep — os mesmos com que os
+  parâmetros de interação foram ajustados; a₁₂/a₂₁ do banco IPDB/ChemSep para
+  etanol/água". **Fonte UNIFAC (reserva):** chip laranja próprio, **"Banco, r/q
+  via UNIFAC"** (`ORIGENS_SELO["banco_rq_unifac"]`, mesmas cores e mesmo padrão
+  do "Calculado (poucos pontos)": a variante menos confiável ganha cor
+  diferente, não só texto), e no ⓘ o aviso de que os parâmetros foram ajustados
+  com os r/q do ChemSep e o resultado pode se afastar do esperado. **Escolha do
+  assistente, a confirmar:** o chip próprio laranja para o caso de reserva (o
+  autor pediu que o selo "diga a fonte"; poderia ser só o texto do ⓘ). Teste
+  novo em `teste_banco_ipdb.py` (fonte `chemsep` para etanol/água e `unifac`
+  quando a tabela não tem r/q). Verificado por captura a 1400px nos dois casos;
+  o de reserva foi simulado num processo à parte com a tabela do ChemSep
+  esvaziada (nenhum par real do app cai nele hoje: etanol, água, metanol e
+  dioxano constam no ChemSep).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

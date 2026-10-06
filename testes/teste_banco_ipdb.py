@@ -20,6 +20,7 @@ from calculos.gemini import (
     model_uniquac,
     model_wilson,
     montar_parametros_automaticos,
+    uniquac_fonte_rq,
     uniquac_params_from_ipdb,
     uniquac_rq_from_chemsep,
 )
@@ -96,6 +97,20 @@ def main():
         gemini.uniquac_rq_from_chemsep = original
     ok = abs(sem["r1"] - 2.5755) < 1e-9 and abs(sem["q1"] - 2.588) < 1e-9
     print(f"  [UNIQUAC sem r/q ChemSep] volta para grupos UNIFAC (r1={sem['r1']}) -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+
+    # Fonte dos r/q (para o selo de origem dizer qual valeu).
+    ok = uniquac_fonte_rq("ethanol", "water") == "chemsep"
+    print(f"  [fonte r/q] etanol/agua -> chemsep -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+    original = gemini.uniquac_rq_from_chemsep
+    gemini.uniquac_rq_from_chemsep = lambda cas: None
+    try:
+        fonte = uniquac_fonte_rq("ethanol", "water")
+    finally:
+        gemini.uniquac_rq_from_chemsep = original
+    ok = fonte == "unifac"
+    print(f"  [fonte r/q] sem r/q no ChemSep -> unifac -> {'OK' if ok else 'FALHA'}")
     todos_ok &= ok
 
     # Arquivo do ChemSep ausente (ex.: versao futura do chemicals que o mova):
