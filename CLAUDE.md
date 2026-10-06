@@ -1971,7 +1971,25 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   parece o candidato mais citável; o servidor `trc.nist.gov` é bloqueado para
   `curl` neste ambiente (só a ferramenta de busca acessa as páginas), então a
   extração dos números e a checagem de consistência ainda não foram feitas.
-  Nenhum dataset foi incorporado.
+  **Primeira rodada de busca (2026-10-06), sem dataset aproveitável:**
+  descartados — tabelas em Scribd/Chegg/Studocu/ResearchGate (reproduções sem
+  rastreio da fonte, mesmo problema do CSV removido); a tabela de metanol/água
+  do livro da Cambridge (copyright, e isobárica, 1 atm); o artigo da UFRN
+  sobre acetato de etila + metanol/etanol (isobárico a 70 kPa, copyright
+  Elsevier, e a extração do PDF trouxe pontos lidos de gráfico, não a tabela
+  original); o artigo MDPI sobre THF (CC BY, mas as tabelas estão como
+  imagem). Revisão MDPI *Chemistry* 2023, 5(4), 165 (CC BY) lista as fontes
+  primárias de etanol/água isotérmico (Pemberton & Mash 1978 a 303–363 K; Vu et
+  al. a 313,15 K; Mertl 1972 a 313–343 K; Dalmolin et al., só P-x) e as
+  qualifica pelo teste de consistência, mas não reproduz os números. Caminhos
+  em aberto, **a escolher pelo autor:** (1) escolher no arquivo NIST ThermoML
+  um artigo isotérmico de par suportado pelo app e extrair os pontos (precisa
+  de um DOI; o servidor do NIST só responde à ferramenta de busca); (2) o
+  autor indicar uma tabela de livro/artigo a que tenha acesso (o exemplo
+  citaria a referência completa); (3) exemplo **sintético**, gerado por um
+  modelo com parâmetros do banco IPDB e rotulado como tal — não é dado
+  experimental, mas é transparente e serve para demonstrar o app; (4) ficar
+  sem exemplo. Nenhum dataset foi incorporado.
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado
