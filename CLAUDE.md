@@ -140,7 +140,10 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   vertical dos gráficos: nunca zero, mesmo com ln γ quase constante) e
   `teste_importar_texto.py` (2026-10-06 — leitura de texto colado: separadores,
   vírgula decimal, cabeçalho opcional, linhas inválidas contadas e leitura de
-  CSV; roda com `PYTHONPATH=. .venv/bin/python testes/<arquivo>.py`).
+  CSV; roda com `PYTHONPATH=. .venv/bin/python testes/<arquivo>.py`) e
+  `teste_validacao_nist_etanol_agua.py` (2026-10-06 — modelos do banco e
+  regressão de Barker contra dado experimental com fonte citável, NIST
+  ThermoML/Cristino 2013; sai com código 1 se algo fugir da tolerância).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -148,7 +151,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   o rascunho original do autor que embasou a seção 2.2 do mapeamento;
   mostra também um elemento perto do gráfico P-x-y, anotado "P"/"y exp"
   com um quadro "Salva" ao lado, ainda não implementado — ver pendência
-  em "Próximos passos").
+  em "Próximos passos"), e `nist_thermoml_cristino2013_etanol_agua_isotermas.csv`
+  (2026-10-06 — dado experimental etanol/água, T-P-x-y, com fonte citada no
+  cabeçalho; usado só por teste, não é exemplo da UI).
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
   gerenciado com `uv`.
 
@@ -2028,6 +2033,90 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   repositório (escopo da sessão). **Aguarda decisão do autor:** incorporar (e
   qual isoterma: 363,3 K tem 12 pontos e é a mais didática; 381,4 K tem 26 e é
   a mais densa) ou buscar outro par/temperatura mais baixa.
+  **Auditoria do que foi "calibrado" com o CSV removido (2026-10-06, a
+  pedido do autor: "minha preocupação não é o exemplo em si, mas o que foi
+  calibrado através dele").** Método: histórico do git desde `0cce3f8`
+  (2026-09-27, commit que trouxe o CSV), diff das constantes de ajuste e
+  leitura das mensagens de commit. **Resultado: nenhum parâmetro, limite,
+  chute inicial ou regra do motor de cálculo foi ajustado com esse dado.**
+  (1) *Regressão de Barker* (`REGRESSAO_MODELOS`: chutes iniciais, limites,
+  α₁₂ = 0,3) foi escrita em `59786e5` (2026-09-26), **um dia antes** do CSV, e
+  testada só com dados sintéticos (`teste_regressao_barker.py`); essas
+  constantes **não mudaram** desde então. (2) *Sliders* (faixas e valores
+  iniciais) vêm de `19c3ae2` (2026-09-26); desde então só os rótulos ganharam
+  subscritos. (3) *`gemini.py`* depois do CSV só mudou nos UNIQUAC (sinal do
+  banco, r/q do ChemSep, selo) e em `x1_values`, validados contra o
+  `thermo.UNIQUAC`, não contra o CSV. (4) *Testes automatizados*: nenhum
+  lia o CSV, exceto o teste de "exemplos embutidos", já removido.
+  **O que o CSV influenciou, e fica sem lastro:** (a) **o argumento empírico
+  da métrica ΔP/Δy** (`048f03e`): "Barker melhora P mas piora y" era
+  artefato de dado inconsistente; com o dado do NIST (Cristino 2013) o Barker
+  reduz **os dois** (Wilson a 363,3 K: Δy 0,024 → 0,009, ΔP ≈ 1 %). A
+  **fórmula** da métrica (ΔP relativo, Δy absoluto, RMS, separados) foi
+  decidida por argumento teórico e não depende do dado — mas o exemplo
+  numérico usado para ilustrá-la deve sair do texto do TCC; (b) a
+  **"validação" visual** da comparação, da legenda, dos marcadores, dos
+  tooltips, da lupa e do layout no celular: serviu para ver forma e
+  legibilidade, **não** para conferir valores — essas decisões são de
+  apresentação, não de física; (c) as capturas com "ΔP = 90,41 %"
+  (Margules 1P com A = 0,5 contra esse CSV) não significam nada; (d) o
+  `CLAUDE.md` e o mapeamento (seção 3, `referencias/`) citavam o CSV como
+  "dataset real" — o mapeamento foi corrigido hoje. **Achado a favor:** o
+  bug do slider fora do intervalo (`64567d6`) apareceu testando CSV + Barker,
+  mas é real independentemente do dado (valores do banco e da regressão
+  podem cair fora do recorte do slider). **Risco que sobra, não resolvido:**
+  nenhum dado experimental confiável **dentro do repositório** valida a
+  regressão e a métrica — **resolvido logo abaixo**.
+  **Recalibração com dado confiável (2026-10-06, ordem do autor: "o que
+  tiver sido calibrado tem que recalibrar com dados confiáveis").** Como a
+  auditoria acima não achou constante do motor ajustada ao CSV removido, a
+  recalibração foi **verificar cada constante e cada alegação contra o dado
+  do NIST (Cristino 2013, 5 isotermas, 76 pontos)** e contra dados sintéticos
+  de parâmetro conhecido. O dado foi para `referencias/nist_thermoml_cristino2013_etanol_agua_isotermas.csv`
+  (fonte e ressalvas no cabeçalho) e a verificação virou
+  `testes/teste_validacao_nist_etanol_agua.py` (reprodutível; passa). **Isso
+  é fixture de teste, não exemplo da UI** — incorporar à UI continua
+  aguardando decisão do autor. Resultados:
+  1. **Métrica ΔP/Δy (item 4 de "Próximos passos"): refeita.** Com dado
+     confiável o Barker reduz **os dois** erros (ex.: 363,3 K, Wilson: Δy 0,024
+     → 0,009, ΔP 0,5 % → 1,0 %, ou seja, ΔP ≈ constante); a alegação antiga
+     ("Barker melhora P mas piora y") **era artefato** do CSV sem fonte e deve
+     ser **descartada** do texto do TCC. A fórmula (dois números separados,
+     RMS) segue válida por razão teórica.
+  2. **Modelos do banco sem ajuste** reproduzem o dado: ΔP 0,5–3,5 % e Δy
+     0,016–0,038 (NRTL, Wilson, UNIQUAC); UNIFAC chega a ΔP 4,7 % a 150 °C
+     (esperado: preditivo, sem parâmetro por par). Contra 17–18 % no CSV removido.
+  3. **Regressão de Barker**: todas as 5 isotermas × 5 modelos convergem, sem
+     parâmetro preso no limite, resíduo 0,007–0,023. **α₁₂ = 0,3 do NRTL**:
+     resíduo praticamente insensível a α₁₂ ∈ {0,2; 0,3; 0,47} (diferenças ≤
+     0,0022) — a decisão de fixar é sustentada pelo dado. **Sensibilidade ao
+     chute inicial** (30 chutes aleatórios por isoterma): Margules 2P, Wilson,
+     NRTL e UNIQUAC chegam ao mesmo mínimo em 150/150; **o Van Laar não**.
+  4. **Bug achado e corrigido (Van Laar com desvio negativo).** Testando
+     recuperação com dado sintético (o teste só cobria Margules 1P, NRTL e
+     UNIQUAC; Margules 2P, Van Laar e Wilson **nunca tinham sido testados**),
+     o Van Laar com A₁₂, A₂₁ < 0 (desvio negativo da idealidade, como
+     acetona/clorofórmio) **não recuperava os parâmetros** do chute inicial
+     positivo [0,5; 0,3]: terminava em solução espúria (resíduo ≈ 0,08), num
+     caso com `sucesso=True` e parâmetro colado no limite (A₁₂ = 5) — resposta
+     errada com selo "Calculado". Causa: o Van Laar é singular com A₁₂ e A₂₁ de
+     sinais opostos. **Correção** em `regress_params_barker`: chutes extras por
+     modelo (`chutes_extras`; Van Laar ganhou [−0,5; −0,3]) e fica o de menor
+     resíduo. Testes novos em `teste_regressao_barker.py` (Margules 2P, Van
+     Laar e Wilson, desvio + e −, em etanol/água e acetona/clorofórmio — Van
+     Laar − **falhava antes e passa agora**). Os dados reais de etanol/água
+     (desvio +) não eram afetados. Correção de corretude aplicada sem
+     proposta (mesmo critério do bug do UNIQUAC); escolha de chute extra em
+     vez de restringir o sinal é do assistente, **a confirmar**.
+  5. **Faixas dos sliders (só recorte de exploração, não limite físico):**
+     valores ajustados ao dado real passam do intervalo [−2, 2] em **Van Laar
+     A₁₂ (2,06 a 150 °C)** e **NRTL τ₂₁ (até 2,49)**; `64567d6` já impede que
+     isso quebre a tela (a posição do botão é limitada, o cálculo usa o valor
+     real). **Proposta, não aplicada (decisão de UI do autor):** ampliar para
+     [−3, 3] nesses dois parâmetros. Chutes iniciais e limites da regressão
+     ([−5, 5] etc.) acomodam todos os valores obtidos.
+  **Nada mais foi alterado**: os chutes, limites e α₁₂ = 0,3 ficaram como
+  estavam, porque o dado confiável os confirmou.
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado

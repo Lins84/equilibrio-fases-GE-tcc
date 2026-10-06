@@ -90,6 +90,27 @@ def main():
     todos_ok &= verificar_recuperacao("UNIQUAC", params_verdadeiros, resultado["params"])
     assert resultado["sucesso"], "otimizador não convergiu para UNIQUAC"
 
+    # Casos 4-8 (2026-10-06): modelos que não tinham teste de recuperação
+    # (Margules 2P, Van Laar, Wilson), com desvio positivo e NEGATIVO da
+    # idealidade. O Van Laar com A12, A21 < 0 falhava no chute inicial
+    # positivo (convergia para solução espúria, ou ficava no limite).
+    x1_amostra = [0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 0.95]
+    casos_extra = [
+        ("Margules (2-P) +", "Margules (2-P)", {"A12": 1.6, "A21": 0.7}),
+        ("Margules (2-P) -", "Margules (2-P)", {"A12": -0.8, "A21": -0.4}),
+        ("Van Laar +", "Van Laar", {"A12": 1.7, "A21": 0.8}),
+        ("Van Laar -", "Van Laar", {"A12": -0.8, "A21": -0.5}),
+        ("Van Laar - (assimétrico)", "Van Laar", {"A12": -0.3, "A21": -1.5}),
+        ("Wilson +", "Wilson", {"L12": 0.18, "L21": 0.95}),
+        ("Wilson -", "Wilson", {"L12": 1.6, "L21": 1.4}),
+    ]
+    for rotulo, modelo, params_verdadeiros in casos_extra:
+        for c1, c2, T in (("ethanol", "water", 80.0), ("acetone", "chloroform", 50.0)):
+            pontos = amostrar_pontos(c1, c2, T, modelo, params_verdadeiros, x1_amostra)
+            resultado = regress_params_barker(modelo, c1, c2, T, pontos)
+            todos_ok &= verificar_recuperacao(f"{rotulo} {c1}/{c2}", params_verdadeiros, resultado["params"])
+            assert resultado["sucesso"], f"otimizador não convergiu para {rotulo} {c1}/{c2}"
+
     # Casos de erro esperados (seção 2.8 do mapeamento).
     try:
         regress_params_barker("Margules (2-P)", "ethanol", "water", 70.0, [(50.0, 0.2, 0.4), (60.0, 0.5, 0.6)])

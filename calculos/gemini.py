@@ -674,6 +674,11 @@ REGRESSAO_MODELOS = {
     "Van Laar": {
         "livres": ["A12", "A21"],
         "chute_inicial": [0.5, 0.3],
+        # O Van Laar é singular quando A12 e A21 têm sinais opostos (denominador
+        # A12·x1 + A21·x2 passa por zero), então só tem solução com A12·A21 > 0.
+        # Do chute positivo, desvio NEGATIVO (A < 0) não converge: parte-se
+        # também de um chute negativo e fica o de menor resíduo (2026-10-06).
+        "chutes_extras": [[-0.5, -0.3]],
         "limites": ([-5.0, -5.0], [5.0, 5.0]),
         "params_fixos_obrigatorios": [],
     },
@@ -792,11 +797,18 @@ def regress_params_barker(
         residuo_y = y_calc - y_exp
         return np.concatenate([residuo_P, residuo_y])
 
-    resultado = least_squares(
-        residuos,
-        x0=spec["chute_inicial"],
-        bounds=spec["limites"],
-    )
+    resultado = None
+    for chute in [spec["chute_inicial"], *spec.get("chutes_extras", [])]:
+        try:
+            tentativa = least_squares(residuos, x0=chute, bounds=spec["limites"])
+        except ValueError:
+            continue  # resíduo não finito já no chute (ex.: singularidade)
+        if resultado is None or (tentativa.success, -tentativa.cost) > (
+            resultado.success, -resultado.cost
+        ):
+            resultado = tentativa
+    if resultado is None:
+        raise ValueError(f"a regressão de {model_name} não convergiu de nenhum chute inicial")
 
     params_finais = {
         **params_fixos,
