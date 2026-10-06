@@ -2009,6 +2009,42 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   5 testes passam. Os dois avisos (valor inválido e deltas) agora vivem no
   card de parâmetros.
 
+- **(2026-10-06) Bug de sinal no UNIQUAC via banco IPDB (achado pela
+  pergunta do autor).** O autor perguntou: "o gráfico do modelo UNIQUAC parece
+  ser invertido em relação aos demais, isso é esperado?". **Não era esperado.**
+  Calculado à mão para etanol/água a 70 °C, o UNIQUAC dava ln γ **negativo**
+  nos dois componentes (γ < 1 em toda a faixa) — fisicamente errado: esse par
+  tem desvio positivo forte da idealidade (azeótropo de mínimo ponto de
+  ebulição; γ∞ do etanol em água em torno de 5). **Causa:** convenção de sinal
+  na ponte com o banco. O IPDB (fonte ChemSep) guarda `bij = −A_ij/R` e o
+  `thermo` usa `τ = exp(+bij/T)` (Exemplo 3 da docstring de
+  `thermo.uniquac.UNIQUAC`); o `model_uniquac` usa a forma clássica
+  `τ = exp(−a/T)`. O adaptador `uniquac_params_from_ipdb` passava `bij` direto
+  como `a`, invertendo o sinal de τ. **Correção:** `a12 = −bij[0][1]`,
+  `a21 = −bij[1][0]` (uma linha, com comentário). **Verificação:** com o sinal
+  trocado, o `model_uniquac` reproduz o exemplo do `thermo` (γ = [1,977; 1,140]
+  em x₁ = 0,252) e bate com `thermo.UNIQUAC` em x₁ de 0,01 a 0,99 com erro
+  máximo de 1,6e-14; sem a correção o mesmo teste dá γ₁ = 0,93 e erro de 4,08.
+  Teste novo em `testes/teste_banco_ipdb.py` (os dois casos acima), que
+  **falha no código antigo e passa no corrigido**. No app (etanol/água, 70 °C):
+  ln γ₁ de ≈1,5 em x₁=0 e ln γ₂ de ≈0,7 em x₁=1, P-x-y com o líquido acima do
+  vapor. **Por que a auditoria de 2026-07-27 não pegou:** ela validou a
+  **fórmula** do `model_uniquac` contra `UNIQUAC_gammas` com parâmetros dados,
+  mas não a **ponte** que traduz o banco para os parâmetros do modelo — o teste
+  do adaptador cobria só Wilson e NRTL (os dois conferidos e corretos: NRTL
+  usa `τ = bij/T`, Wilson reproduz a referência da docstring). **Nota da
+  correção:** foi aplicada sem pedido explícito, por ser defeito de corretude
+  (não escolha de rumo); se o autor preferir outra coisa, a mudança é de uma
+  linha. **Achado relacionado, NÃO tratado e a decidir pelo autor:** o app
+  calcula r/q do UNIQUAC pelos grupos UNIFAC (decisão de 2026-09-27), mas os
+  parâmetros do ChemSep foram ajustados com os r/q **originais** do UNIQUAC
+  (etanol 2,11/1,97; água 0,92/1,40). Para o etanol os valores do app são
+  2,5755/2,588 (≈22%/31% maiores), o que dá γ₁ = 1,66 em x₁ = 0,252 contra
+  1,98 da referência `thermo`/ChemSep — o sinal agora está certo, mas a
+  quantidade ainda difere por essa mistura de fontes. Opções: manter (r/q
+  UNIFAC, coerente com o resto do app), ou usar r/q do banco do ChemSep quando
+  existirem.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

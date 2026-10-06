@@ -426,8 +426,14 @@ def uniquac_params_from_ipdb(cas1, cas2):
             f"par ({cas1}, {cas2}) sem parâmetros UNIQUAC na tabela ChemSep do IPDB"
         )
 
+    # Sinal (corrigido em 2026-10-06): o IPDB guarda bij = -A_ij/R e o `thermo`
+    # usa tau = exp(+bij/T) (ver o Exemplo 3 da docstring de
+    # `thermo.uniquac.UNIQUAC`). O `model_uniquac` usa a convenção clássica
+    # tau = exp(-a/T); logo a = -bij. Passar `bij` direto como `a` invertia o
+    # sinal de tau e o UNIQUAC saía com γ < 1 (ln γ negativo) para o par
+    # etanol/água, que tem desvio positivo forte da idealidade.
     bij = IPDB.get_ip_asymmetric_matrix('ChemSep UNIQUAC', [cas1, cas2], 'bij')
-    return {'a12': bij[0][1], 'a21': bij[1][0]}
+    return {'a12': -bij[0][1], 'a21': -bij[1][0]}
 
 
 def montar_parametros_automaticos(model_name, component1_id, component2_id):
