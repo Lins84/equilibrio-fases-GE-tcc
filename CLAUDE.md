@@ -564,6 +564,15 @@ continuar sendo mantido.
   simultaneamente entre o professor e os alunos presentes. **Registrada
   como ideia, sem implementação, a pedido do autor ("Registre a ideia em
   Atualizações futuras") — não implementar sem pedido explícito.**
+  **DECIDIDO em 2026-10-06: o co-op está descartado.** Depois de discutir
+  servidor, senha e chave de sessão (abaixo, mantido como registro), o autor
+  repensou: "o mais prático seria sem cooperações automatizadas. Melhor cada
+  um com o seu. Na hora da aula o professor pede para o aluno ir fazendo o
+  que for necessário." Cada aluno usa o app sozinho, em sessão própria — que
+  é como o app já funciona hoje. Nada do desenho de `pubsub`, sala, senha ou
+  chave será implementado; a análise abaixo fica só como histórico. **Única
+  dificuldade reconhecida pelo autor:** compartilhar um CSV no momento da
+  aula (ver "Distribuição de CSV na aula" logo após esta entrada).
   *Estado atual:* cada navegador que abre o app é uma sessão Flet
   independente (tabela, sliders e gráficos próprios); ninguém vê o que o
   outro faz. O servidor já atende vários clientes de uma vez (o `flet run
@@ -636,6 +645,23 @@ continuar sendo mantido.
   por aluno a cada movimento de slider (alternativa: só a sessão do professor
   calcula e transmite as curvas, com mais tráfego). Nada disso foi
   implementado nem testado.
+
+- **Distribuição de CSV na aula (pendência levantada em 2026-10-06, sem
+  decisão).** Com cada aluno no seu próprio app (co-op descartado), o único
+  atrito apontado pelo autor é fazer todos terem o mesmo CSV na hora da aula.
+  Hoje o app só importa por seletor de arquivo (`importar_csv`), então o aluno
+  precisa ter o arquivo no aparelho. Opções levantadas pelo assistente, **para
+  o autor escolher**: (1) **fora do app** — o professor manda o arquivo antes
+  da aula (WhatsApp, Drive, e-mail) e o aluno baixa e importa; zero código,
+  mas depende de cada um achar o arquivo no celular; (2) **exemplos embutidos**
+  — um seletor "Carregar exemplo" no app com os CSVs de referência (ex.:
+  `referencias/etanol_agua_50C_isotermico.csv`), sem arquivo nenhum para
+  compartilhar; só serve para dados que o professor deixou previamente no
+  repositório; (3) **colar texto** — campo para colar as linhas P, x₁, y₁
+  (o professor manda o texto por mensagem e o aluno cola); funciona com qualquer
+  dado novo na hora; (4) **link/QR** — importar de um endereço (ex.: arquivo
+  público no repositório), em que o professor projeta um QR code. Nenhuma foi
+  implementada nem escolhida.
 
 ## Sessão de estética e bug de renderização intermitente (2026-09-28/29)
 
@@ -1855,6 +1881,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   tamanho grande, não zoom de região. Verificado por captura a 1400px com o
   CSV de etanol/água e "Comparar" ativo (P-x-y e ln γ, inclusive o tooltip
   dentro do diálogo); 5 testes passam.
+
+- **(2026-10-06) Modo aula: sem co-op, cada aluno com o seu app.** Depois
+  de levar ao autor as opções de servidor e a análise de senha + chave de
+  sessão (ideia registrada em "Atualizações futuras"), o autor repensou e
+  decidiu que o mais prático é **sem cooperação automatizada**: o professor
+  pede para cada aluno ir fazendo o que for necessário, cada um no próprio
+  app. Descartados servidor compartilhado, `pubsub`, chave de sessão e senha
+  de professor. Motivo dado: praticidade, diante da rede instável da
+  universidade e do custo de manter um modo compartilhado. Ponto que sobra,
+  levantado por ele mesmo: compartilhar um CSV na hora da aula — opções
+  registradas em "Distribuição de CSV na aula", sem escolha ainda.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
