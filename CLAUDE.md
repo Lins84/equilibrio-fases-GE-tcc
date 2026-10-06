@@ -1971,12 +1971,26 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   campo vazio volta ao valor com aviso) e a 360px (Wilson: Λ = 0 recusado;
   "Buscar do Banco" preenche 0.1759/0.7991 com selo "Banco de dados"; entrar
   e sair do campo sem editar não altera nada); os 5 testes passam.
-  **Achados, não tratados:** (a) o aviso de valor inválido aparece na
-  mensagem de status do card "Dados experimentais", longe do campo no
-  celular, onde os cards ficam empilhados; (b) no gráfico de ln γ com valores
-  negativos o rótulo do zero sai como "-0.00" (ruído de ponto flutuante no
-  marcador). Não conferido no aparelho real (teclado numérico do Android
-  com vírgula e sinal de menos).
+  **Dois achados, tratados no mesmo dia (autor: "sim"; depois pediu
+  expressamente "o erro agora no card de parâmetros"):** (a) o aviso de valor
+  inválido aparecia na mensagem de status do card "Dados experimentais",
+  longe do campo no celular, onde os cards ficam empilhados. Agora é um texto
+  vermelho (`aviso_parametro`) **dentro do card "Parâmetros do modelo"**, logo
+  abaixo dos campos; some quando um valor válido é aceito, quando o slider é
+  movido e ao trocar de modelo. Criado uma vez e reaproveitado entre
+  montagens (só `value`/`visible` mudam, como no selo de origem). Verificado a
+  360px (Wilson, Λ₁₂ = 0 → aviso no card; `0,5` + Enter → aviso some).
+  (b) o "-0.00" do eixo do ln γ: o Flet gera os marcadores somando o passo a
+  cada volta, e o ruído de ponto flutuante fazia o zero sair como −2e-16.
+  Reproduzido num app de teste isolado e corrigido com **rótulos explícitos**
+  (`rotulos_eixo`, usado por `eixo_vertical` nos dois gráficos e na lupa):
+  cada rótulo é `k × passo` e o zero é escrito "0". Efeito visível: os rótulos
+  passam a ter o número mínimo de casas do passo (0,1 → "0.1", antes "0.10";
+  0,25 → "0.25"). Testado em A = −0.5, 1.2, 0.35 e −2 e na lupa: todos os
+  marcadores aparecem e o zero sai "0". Risco conhecido: se o Flet deixasse
+  de casar um rótulo com o marcador gerado, o rótulo some — não ocorreu em
+  nenhuma faixa testada. Não conferido no aparelho real (teclado numérico do
+  Android com vírgula e sinal de menos).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

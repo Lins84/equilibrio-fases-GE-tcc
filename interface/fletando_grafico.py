@@ -110,11 +110,51 @@ def margem_extremos(inicio: float, fim: float, passo: float) -> tuple[float, flo
     return inicio - folga, fim + folga
 
 
-def eixo_vertical(titulo: str, passo: float, largura_rotulo: int = 40) -> fch.ChartAxis:
+def casas_do_passo(passo: float) -> int:
+    """Casas decimais necessárias para escrever o passo do eixo sem perdê-lo
+    (0,1 → 1; 0,25 → 2; 10 → 0)."""
+    for casas in range(7):
+        if abs(round(passo, casas) - passo) < 1e-9:
+            return casas
+    return 6
+
+
+def rotulos_eixo(min_y: float, max_y: float, passo: float) -> list[fch.ChartAxisLabel]:
+    """Rótulos explícitos do eixo vertical, nos múltiplos exatos do passo
+    dentro de [min_y, max_y] (os limites já trazem a folga de
+    `margem_extremos`, que não muda quais múltiplos entram).
+
+    Por que explícitos (2026-10-06): o Flet gera os marcadores somando o passo
+    a cada volta, e o ruído de ponto flutuante faz o zero sair como -2e-16 —
+    escrito como "-0.00" no ln γ quando o eixo passa por zero vindo de
+    valores negativos. Calculando cada valor como `k * passo` e escrevendo o
+    zero como "0", o rótulo fica certo qualquer que seja o ruído."""
+    casas = casas_do_passo(passo)
+    k_ini = math.ceil(min_y / passo - 1e-9)
+    k_fim = math.floor(max_y / passo + 1e-9)
+    rotulos = []
+    for k in range(k_ini, k_fim + 1):
+        valor = round(k * passo, 10)
+        texto = "0" if k == 0 else f"{valor:.{casas}f}"
+        rotulos.append(fch.ChartAxisLabel(value=valor, label=ft.Text(texto, size=14)))
+    return rotulos
+
+
+def eixo_vertical(
+    titulo: str,
+    passo: float,
+    largura_rotulo: int = 40,
+    min_y: float | None = None,
+    max_y: float | None = None,
+) -> fch.ChartAxis:
     """Eixo vertical dos gráficos, com o passo fixo vindo de
     `limites_redondos`. Criado NOVO a cada `gerar_grafico` em vez de mutar o
     `label_spacing` do eixo existente — este app não muta propriedade de
     controle já criado.
+
+    `min_y`/`max_y` (os limites do gráfico): quando informados, os rótulos
+    são escritos por `rotulos_eixo` (ver o motivo lá); sem eles, o Flet gera
+    os rótulos automáticos.
 
     `show_min`/`show_max` desligados: os rótulos dos extremos saem da
     própria escala regular (os limites de `limites_redondos` são múltiplos do
@@ -125,9 +165,15 @@ def eixo_vertical(titulo: str, passo: float, largura_rotulo: int = 40) -> fch.Ch
     máximo 0.6, e o "0.60" do topo aparecia em negrito.
     `largura_rotulo`: o ln γ tem rótulos negativos de 5 caracteres ("-0.10"),
     que quebravam em duas linhas ("-0.1" / "0") na coluna padrão de 40px."""
+    rotulos = (
+        rotulos_eixo(min_y, max_y, passo)
+        if min_y is not None and max_y is not None
+        else []
+    )
     return fch.ChartAxis(
         label_size=largura_rotulo,
         label_spacing=passo,
+        labels=rotulos,
         show_min=False,
         show_max=False,
         title=ft.Text(titulo, size=14, weight=ft.FontWeight.BOLD),
@@ -1201,7 +1247,11 @@ def main(page: ft.Page):
             expand=True,
             tooltip=novo_tooltip(),
             left_axis=eixo_vertical(
-                titulo_eixo_y, grafico.left_axis.label_spacing, largura_rotulo_y
+                titulo_eixo_y,
+                grafico.left_axis.label_spacing,
+                largura_rotulo_y,
+                grafico.min_y,
+                grafico.max_y,
             ),
             # Mais largo = cabe o passo de 0,1 sem os rótulos se encostarem.
             bottom_axis=fch.ChartAxis(
@@ -1425,7 +1475,7 @@ def main(page: ft.Page):
         margem = (max_y - min_y) * 0.05
         inicio_y, fim_y, passo_y = limites_redondos(min_y - margem, max_y + margem)
         chart.min_y, chart.max_y = margem_extremos(inicio_y, fim_y, passo_y)
-        chart.left_axis = eixo_vertical("P (kPa)", passo_y)
+        chart.left_axis = eixo_vertical("P (kPa)", passo_y, 40, chart.min_y, chart.max_y)
         chart.visible = True
         legenda.visible = True
         botao_lupa_pxy.disabled = False
@@ -1440,7 +1490,9 @@ def main(page: ft.Page):
                 min_g - margem_g, max_g + margem_g
             )
             chart_gamma.min_y, chart_gamma.max_y = margem_extremos(inicio_g, fim_g, passo_g)
-            chart_gamma.left_axis = eixo_vertical("ln γ", passo_g, largura_rotulo=52)
+            chart_gamma.left_axis = eixo_vertical(
+                "ln γ", passo_g, 52, chart_gamma.min_y, chart_gamma.max_y
+            )
             chart_gamma.visible = True
             legenda_gamma.visible = True
             botao_lupa_gamma.disabled = False
@@ -1855,8 +1907,19 @@ def main(page: ft.Page):
         visible=False,
     )
 
+    # Aviso de valor inválido digitado num campo de parâmetro (2026-10-06):
+    # fica dentro do próprio card "Parâmetros do modelo", logo abaixo dos
+    # campos — a mensagem de status geral mora no card "Dados experimentais",
+    # que no celular (cards empilhados) fica longe, fora da vista. Criado uma
+    # vez e reaproveitado entre montagens de layout (como `selo_origem`); só
+    # `value` e `visible` mudam.
+    aviso_parametro = ft.Text(
+        "", color=ft.Colors.RED_800, size=14, visible=False
+    )
+
     def construir_sliders(nome_modelo):
         sliders_area.controls.clear()
+        aviso_parametro.visible = False
         parametros_atuais.clear()
         sliders_por_chave.clear()
         # Histórico não atravessa troca de modelo — os parâmetros de um
@@ -1940,14 +2003,16 @@ def main(page: ft.Page):
                 except ValueError:
                     campo.value = formatar_parametro(parametros_atuais[chave])
                     exigencia = " maior que zero" if chave in ("L12", "L21") else ""
-                    mensagem_status.value = (
+                    aviso_parametro.value = (
                         f"Valor inválido para {spec['rotulo']}: digite um "
                         f"número{exigencia}."
                     )
-                    mensagem_status.color = ft.Colors.RED_800
+                    aviso_parametro.visible = True
                     page.update()
                     return
+                aviso_parametro.visible = False
                 if valor == parametros_atuais[chave]:
+                    page.update()
                     return
                 parametros_atuais[chave] = valor
                 slider_par = sliders_por_chave[chave][0]
@@ -1976,6 +2041,7 @@ def main(page: ft.Page):
                 page.update()
 
             def on_change_end(e, spec=spec):
+                aviso_parametro.visible = False
                 parametros_atuais[spec["chave"]] = e.control.value
                 if spec["chave"] != "alpha12":
                     atualizar_selo_origem(
@@ -2192,6 +2258,7 @@ def main(page: ft.Page):
         return cartao(
             "Parâmetros do modelo",
             sliders_area,
+            aviso_parametro,
             selo_origem,
             nota_alpha_fixo,
             ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
