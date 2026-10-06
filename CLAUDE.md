@@ -98,7 +98,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   com adição/remoção de linhas via `ft.DataTable`.
 - `interface/fletando_grafico.py` (~1525 linhas) — **a linha viva da UI,
   já integrada ao motor de cálculo**: tabela editável de pontos
-  experimentais P/x/y (com importação de CSV, "Desfazer" e "Limpar
+  experimentais P/x/y (com botão "Importar dados" — arquivo CSV, exemplo
+  embutido ou texto colado —, "Desfazer" e "Limpar
   Tabela"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
   parâmetros, gráfico P-x-y com a curva do modelo
   (`calculate_vle_isothermal`) sobreposta aos pontos, e gráfico de ln γ vs
@@ -136,7 +137,10 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   Wilson via nome/sinônimo em vez de CAS, além dos erros esperados:
   modelo sem tabela no IPDB e par ausente na tabela) e
   `teste_limites_redondos.py` (2026-10-03 — regressão do passo do eixo
-  vertical dos gráficos: nunca zero, mesmo com ln γ quase constante).
+  vertical dos gráficos: nunca zero, mesmo com ln γ quase constante) e
+  `teste_importar_texto.py` (2026-10-06 — leitura de texto colado: separadores,
+  vírgula decimal, cabeçalho opcional, linhas inválidas contadas e o exemplo
+  embutido; roda com `PYTHONPATH=. .venv/bin/python testes/<arquivo>.py`).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -646,8 +650,8 @@ continuar sendo mantido.
   calcula e transmite as curvas, com mais tráfego). Nada disso foi
   implementado nem testado.
 
-- **Distribuição de CSV na aula (pendência levantada em 2026-10-06, sem
-  decisão).** Com cada aluno no seu próprio app (co-op descartado), o único
+- **Distribuição de CSV na aula (levantada em 2026-10-06; ~~sem decisão~~
+  **feita no mesmo dia**, ver "Decisões de engenharia do aluno").** Com cada aluno no seu próprio app (co-op descartado), o único
   atrito apontado pelo autor é fazer todos terem o mesmo CSV na hora da aula.
   Hoje o app só importa por seletor de arquivo (`importar_csv`), então o aluno
   precisa ter o arquivo no aparelho. Opções levantadas pelo assistente, **para
@@ -1892,6 +1896,36 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   universidade e do custo de manter um modo compartilhado. Ponto que sobra,
   levantado por ele mesmo: compartilhar um CSV na hora da aula — opções
   registradas em "Distribuição de CSV na aula", sem escolha ainda.
+
+- **(2026-10-06) Botão "Importar dados" com diálogo de três opções: arquivo
+  CSV, colar texto e exemplo.** Fecha a pendência de distribuir dados na aula
+  sem co-op. O autor escolheu reaproveitar o botão de importação existente,
+  abrindo uma caixa de decisão ("importar exemplo ou a partir do
+  dispositivo") e, entre as opções que o assistente levou, **gostou também de
+  "colar texto de dados"**; ficaram de fora o link/QR e a distribuição só
+  fora do app. **Implementação:** o botão "Importar CSV" virou "Importar
+  dados" e abre um `AlertDialog` (estilo dos demais diálogos) com: *Arquivo CSV
+  do dispositivo* (o seletor de antes, ainda criado no clique); *Colar texto*
+  (segundo diálogo com campo multilinha; uma linha por ponto, na ordem P, x₁,
+  y₁; separador espaço, tab, `;` ou vírgula; vírgula decimal aceita; cabeçalho
+  opcional em qualquer ordem; erro mostrado no próprio diálogo, que continua
+  aberto); *Exemplo: Etanol/água, 50 °C* (lê `referencias/
+  etanol_agua_50C_isotermico.csv`, 14 pontos; o CSV só traz P, x, y, então
+  componentes e temperatura continuam sendo escolhidos na tela — o rótulo diz
+  de que sistema se trata). As três origens passam pela mesma
+  `aplicar_importacao` (substitui a tabela, redesenha e avisa quantos pontos
+  entraram e quantas linhas foram ignoradas). Para a lista de exemplos
+  crescer, basta acrescentar uma linha em `EXEMPLOS_CSV`. Mensagens passaram a
+  dizer a origem ("arquivo CSV", "texto colado", "exemplo: …"). **Escolhas do
+  assistente, a confirmar:** rótulo do exemplo curto para caber a 360px
+  (versão com "(14 pontos)" transbordava o botão); largura do diálogo
+  limitada a 420px no desktop e `largura da página − 120` no celular; os
+  diálogos são criados novos a cada clique (regra de não mutar controle já
+  criado). Verificado por captura de tela a 1400px (os três caminhos,
+  inclusive o seletor de arquivo e o texto colado com vírgula decimal e uma
+  linha inválida de propósito, avisada como "1 linha(s) ignorada(s)") e a
+  360px (menu e diálogo de colar); testes passam, com o novo
+  `teste_importar_texto.py`. Não conferido no aparelho real (Termux).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

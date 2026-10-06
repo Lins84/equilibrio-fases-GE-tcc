@@ -4,6 +4,7 @@ import io
 import math
 import re
 import textwrap
+from pathlib import Path
 
 import flet as ft
 import flet_charts as fch
@@ -296,6 +297,68 @@ def importar_pontos_csv(
         except (ValueError, TypeError):
             ignoradas += 1
     return pontos, ignoradas
+
+
+def _separar_linha(linha: str) -> list[str]:
+    """Divide uma linha de texto colado em campos. Aceita ponto e vírgula,
+    tabulação (colagem do Excel), espaços ou vírgula como separador; com
+    ponto e vírgula, tabulação ou espaços, a vírgula é lida como decimal."""
+    if ";" in linha:
+        return [c.strip().replace(",", ".") for c in linha.split(";")]
+    if "\t" in linha:
+        return [c.strip().replace(",", ".") for c in linha.split("\t")]
+    por_espaco = linha.split()
+    if len(por_espaco) == 3:
+        return [c.replace(",", ".") for c in por_espaco]
+    return [c.strip() for c in linha.split(",")]
+
+
+def importar_pontos_texto(
+    texto: str,
+) -> tuple[list[tuple[float, float, float]], int]:
+    """Lê pontos (P, x, y) de um texto colado — uma linha por ponto, na
+    ordem P, x, y. A primeira linha pode ser um cabeçalho (P, x, y em
+    qualquer ordem, como no CSV); sem cabeçalho, vale a ordem P, x, y.
+    Retorna (pontos válidos, nº de linhas ignoradas). Levanta ValueError se
+    o texto estiver vazio ou o cabeçalho não tiver as colunas P, x, y."""
+    linhas = [l for l in texto.splitlines() if l.strip()]
+    if not linhas:
+        raise ValueError("nenhum texto para importar")
+
+    ordem = (0, 1, 2)
+    campos = _separar_linha(linhas[0])
+    try:
+        [float(c) for c in campos]
+    except ValueError:
+        # Primeira linha não numérica: é cabeçalho.
+        nomes = [c.lower() for c in campos]
+        if sorted(nomes) != ["p", "x", "y"]:
+            raise ValueError(
+                "cabeçalho precisa ter as colunas P, x, y, ou não ter "
+                "cabeçalho nenhum (ordem P, x, y)"
+            )
+        ordem = (nomes.index("p"), nomes.index("x"), nomes.index("y"))
+        linhas = linhas[1:]
+
+    pontos = []
+    ignoradas = 0
+    for linha in linhas:
+        campos = _separar_linha(linha)
+        try:
+            pontos.append(parse_ponto(*(campos[i] for i in ordem)))
+        except (ValueError, TypeError, IndexError):
+            ignoradas += 1
+    return pontos, ignoradas
+
+
+# Exemplos prontos do botão "Importar dados" → "Exemplo" (2026-10-06): CSVs
+# de referência do repositório, para a aula não depender de cada aluno ter
+# um arquivo. O CSV só traz P, x, y — componentes e temperatura continuam
+# sendo escolhidos na tela, por isso o rótulo diz de que sistema se trata.
+PASTA_EXEMPLOS = Path(__file__).resolve().parent.parent / "referencias"
+EXEMPLOS_CSV = {
+    "Etanol/água, 50 °C": "etanol_agua_50C_isotermico.csv",
+}
 
 
 # Escala de espaçamento única para o app inteiro (2026-09-28, passada de
@@ -673,7 +736,30 @@ def main(page: ft.Page):
     # listener" e só o F5 conserta. Criado no clique, o navegador já está
     # carregado. É o padrão do Flet 1.0 (`ft.FilePicker().pick_files(...)`).
 
-    async def importar_csv(e):
+    # Aplica à tabela os pontos vindos de qualquer das três origens (arquivo,
+    # exemplo, texto colado): substitui as linhas, redesenha e avisa.
+    # `rotulo` diz a origem na mensagem de status.
+    def aplicar_importacao(pontos, ignoradas, rotulo):
+        if not pontos:
+            mensagem_status.value = f"Nenhum ponto válido encontrado ({rotulo})."
+            mensagem_status.color = ft.Colors.RED_800
+            page.update()
+            return
+
+        dt.rows.clear()
+        for ponto in pontos:
+            adicionar_linha(valores=ponto, atualizar=False)
+
+        aviso = f" {ignoradas} linha(s) ignorada(s) por dado inválido." if ignoradas else ""
+        gerar_grafico(mensagem_extra=f"{len(pontos)} ponto(s) importado(s) ({rotulo}).{aviso}")
+
+    def falha_importacao(exc):
+        mensagem_status.value = f"Falha ao importar: {exc}."
+        mensagem_status.color = ft.Colors.RED_800
+        page.update()
+
+    async def importar_arquivo(e):
+        page.pop_dialog()
         try:
             arquivos = await ft.FilePicker().pick_files(
                 dialog_title="Selecionar CSV (colunas P, x, y)",
@@ -696,33 +782,133 @@ def main(page: ft.Page):
 
         try:
             texto = arquivos[0].bytes.decode("utf-8")
-            pontos, ignoradas_csv = importar_pontos_csv(texto)
+            pontos, ignoradas = importar_pontos_csv(texto)
         except (ValueError, UnicodeDecodeError) as exc:
-            mensagem_status.value = f"Falha ao importar CSV: {exc}."
-            mensagem_status.color = ft.Colors.RED_800
-            page.update()
+            falha_importacao(exc)
             return
+        aplicar_importacao(pontos, ignoradas, "arquivo CSV")
 
-        if not pontos:
-            mensagem_status.value = "Nenhum ponto válido encontrado no CSV."
-            mensagem_status.color = ft.Colors.RED_800
-            page.update()
-            return
+    def importar_exemplo(nome_arquivo, rotulo):
+        def acao(e):
+            page.pop_dialog()
+            try:
+                texto = (PASTA_EXEMPLOS / nome_arquivo).read_text(encoding="utf-8")
+                pontos, ignoradas = importar_pontos_csv(texto)
+            except (OSError, ValueError, UnicodeDecodeError) as exc:
+                falha_importacao(exc)
+                return
+            aplicar_importacao(pontos, ignoradas, f"exemplo: {rotulo}")
 
-        dt.rows.clear()
-        for ponto in pontos:
-            adicionar_linha(valores=ponto, atualizar=False)
+        return acao
 
-        aviso = f" {ignoradas_csv} linha(s) do CSV ignorada(s) por dado inválido." if ignoradas_csv else ""
-        gerar_grafico(mensagem_extra=f"{len(pontos)} ponto(s) importado(s) do CSV.{aviso}")
+    def abrir_colar_texto(e):
+        page.pop_dialog()
+        campo = ft.TextField(
+            multiline=True,
+            width=largura_dialogo(),
+            min_lines=6,
+            max_lines=10,
+            hint_text="P  x  y\n12.33  0.0000  0.0000\n16.51  0.0100  0.0910",
+            border_color=ft.Colors.BLUE_200,
+            focused_border_color=ft.Colors.BLUE_700,
+            border_radius=12,
+            text_size=14,
+        )
+        erro = ft.Text("", color=ft.Colors.RED_800, size=14)
+
+        def confirmar(e):
+            try:
+                pontos, ignoradas = importar_pontos_texto(campo.value or "")
+            except ValueError as exc:
+                erro.value = f"{exc}."
+                page.update()
+                return
+            if not pontos:
+                erro.value = "Nenhuma linha válida (esperado: P, x, y numéricos)."
+                page.update()
+                return
+            page.pop_dialog()
+            aplicar_importacao(pontos, ignoradas, "texto colado")
+
+        page.show_dialog(
+            ft.AlertDialog(
+                bgcolor=ft.Colors.WHITE,
+                shape=ft.RoundedRectangleBorder(
+                    radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
+                ),
+                title=ft.Text(
+                    "Colar texto", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800
+                ),
+                content=ft.Container(
+                    width=largura_dialogo(),
+                    content=ft.Column(
+                        controls=[
+                            ft.Text(
+                                "Uma linha por ponto, na ordem P (kPa), x\u2081, "
+                                "y\u2081. Separador: espaço, tab, ; ou vírgula. "
+                                "O cabeçalho é opcional.",
+                                size=14,
+                                color=ft.Colors.TEAL_900,
+                            ),
+                            campo,
+                            erro,
+                        ],
+                        tight=True,
+                        spacing=ESPACO_PEQUENO,
+                    ),
+                ),
+                actions=[
+                    ft.TextButton("Cancelar", on_click=lambda e: page.pop_dialog()),
+                    ft.TextButton("Importar", on_click=confirmar),
+                ],
+            )
+        )
+
+    def largura_dialogo():
+        # No celular o diálogo tem margem lateral; 420px é o teto no desktop.
+        return max(220, min(420, (page.width or 420) - 120))
+
+    def abrir_importar(e):
+        def opcao(icone, texto, ao_clicar):
+            return ft.Button(
+                content=ft.Row(
+                    controls=[ft.Icon(icone), ft.Text(texto)],
+                    tight=True,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                on_click=ao_clicar,
+                style=estilo_botao(),
+                width=largura_dialogo(),
+            )
+
+        opcoes = [
+            opcao(ft.Icons.UPLOAD_FILE, "Arquivo CSV do dispositivo", importar_arquivo),
+            opcao(ft.Icons.CONTENT_PASTE, "Colar texto", abrir_colar_texto),
+        ] + [
+            opcao(ft.Icons.SCIENCE, f"Exemplo: {rotulo}", importar_exemplo(arquivo, rotulo))
+            for rotulo, arquivo in EXEMPLOS_CSV.items()
+        ]
+        page.show_dialog(
+            ft.AlertDialog(
+                bgcolor=ft.Colors.WHITE,
+                shape=ft.RoundedRectangleBorder(
+                    radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
+                ),
+                title=ft.Text(
+                    "Importar dados", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800
+                ),
+                content=ft.Column(controls=opcoes, tight=True, spacing=ESPACO_MEDIO),
+                actions=[ft.TextButton("Cancelar", on_click=lambda e: page.pop_dialog())],
+            )
+        )
 
     botao_importar_csv = ft.Button(
         content=ft.Row(
-            controls=[ft.Icon(ft.Icons.UPLOAD_FILE), ft.Text("Importar CSV")],
+            controls=[ft.Icon(ft.Icons.UPLOAD_FILE), ft.Text("Importar dados")],
             tight=True,
             alignment=ft.MainAxisAlignment.CENTER,
         ),
-        on_click=importar_csv,
+        on_click=abrir_importar,
         style=estilo_botao(),
     )
 
@@ -755,7 +941,7 @@ def main(page: ft.Page):
     # um ponto válido, sem recalcular o modelo nem redesenhar os gráficos
     # (isso só acontece em "Gerar Gráfico"). `botao_comparar` é definido
     # mais abaixo; resolvido por closure, sem problema (mesmo padrão já
-    # usado em `importar_csv`/`gerar_grafico`).
+    # usado em `aplicar_importacao`/`gerar_grafico`).
     def tabela_tem_ponto_valido():
         for linha in dt.rows:
             p_field, x_field, y_field = (linha.cells[i].content for i in range(3))
@@ -2027,7 +2213,7 @@ def main(page: ft.Page):
 
     # Guarda o modo atual ("mobile"/"desktop") para só reconstruir o layout
     # quando ele realmente muda — não a cada pixel de resize. Sem isso, abrir
-    # o seletor de arquivo nativo (botão "Importar CSV") no celular dispara
+    # o seletor de arquivo nativo (botão "Importar dados") no celular dispara
     # um evento de resize (mudança de viewport ao abrir aquele painel), que
     # reconstrói `page.controls` inteiro no meio da espera do
     # `FilePicker.pick_files()`, derruba o listener que ele aguardava, e
