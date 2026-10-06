@@ -2262,6 +2262,10 @@ def main(page: ft.Page):
             selo_origem,
             nota_alpha_fixo,
             ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
+            # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
+            # parâmetros"): o erro do modelo fica junto dos parâmetros que o
+            # produzem, em vez de no fim do card "Dados experimentais".
+            linha_erro_comparativo,
             expand=expand,
         )
 
@@ -2297,14 +2301,11 @@ def main(page: ft.Page):
             )
             mensagens = [
                 ft.Container(content=mensagem_status, alignment=ft.Alignment.CENTER_LEFT),
-                ft.Container(
-                    content=linha_erro_comparativo, alignment=ft.Alignment.CENTER_LEFT
-                ),
             ]
         else:
             acoes_topo = []
             botoes = linha_botoes_tabela
-            mensagens = [mensagem_status, linha_erro_comparativo]
+            mensagens = [mensagem_status]
         return cartao(
             "Dados experimentais",
             *acoes_topo,

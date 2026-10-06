@@ -1992,6 +1992,23 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   nenhuma faixa testada. Não conferido no aparelho real (teclado numérico do
   Android com vírgula e sinal de menos).
 
+- **(2026-10-06) ΔP/Δy no card "Parâmetros do modelo", não em "Dados
+  experimentais".** Pedido do autor: "quero que o erro agora apareça no card
+  de parâmetros". **Mal-entendido registrado:** o assistente leu "o erro"
+  como o aviso de valor inválido dos campos de parâmetro (que então passou a
+  aparecer dentro do card de parâmetros — ver entrada anterior) e só depois o
+  autor esclareceu ("falo dos deltas"): era o resultado da comparação,
+  `ΔP = …% (RMS)` / `Δy = … (RMS)`, com os ⓘ. **Implementação:** a
+  `linha_erro_comparativo` saiu do fim do card "Dados experimentais" (nos dois
+  layouts) e passou a ser o último item do card "Parâmetros do modelo", abaixo
+  dos botões; o texto, os ícones ⓘ e a regra de aparecer só depois de "Comparar"
+  não mudaram. Mantém o `wrap=True`: no celular o Δy desce para a linha de
+  baixo, dentro do card. Racional dado: o erro fica junto dos parâmetros que o
+  produzem. Verificado por captura a 1400px (exemplo etanol/água + Comparar:
+  `ΔP = 90.41% (RMS)`, `Δy = 0.0704 (RMS)` no card de parâmetros) e a 360px; os
+  5 testes passam. Os dois avisos (valor inválido e deltas) agora vivem no
+  card de parâmetros.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
