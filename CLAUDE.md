@@ -1990,6 +1990,44 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   modelo com parâmetros do banco IPDB e rotulado como tal — não é dado
   experimental, mas é transparente e serve para demonstrar o app; (4) ficar
   sem exemplo. Nenhum dataset foi incorporado.
+  **Segunda rodada, caminho (1) tentado a pedido do autor ("Tente o ThermoML
+  do NIST") — 2026-10-06.** O `trc.nist.gov` segue bloqueado para `curl`, mas
+  a ferramenta de raspagem (Firecrawl) alcança a API de busca
+  (`/ThermoML-API/objects?query=…`, Lucene, só metadados) e o JSON de cada
+  artigo (`/ThermoML/<DOI>.json`, com os pontos). **Etanol + água no arquivo:**
+  só dois artigos binários — Voutsas et al., *Fluid Phase Equilib.* 308 (2011)
+  135–141 (`10.1016/j.fluid.2011.06.009`, **isobárico**, fora do modo atual) e
+  Cristino et al., *Fluid Phase Equilib.* 341 (2013) 48–53
+  (`10.1016/j.fluid.2012.12.014`, T, P, x, y, 76 pontos). Outros pares
+  testados (metanol/carbonato de dimetila, `10.1016/j.fluid.2005.05.002`) têm
+  só P-x, sem y, e não servem para a tabela do app. **Candidato extraído:**
+  Cristino, flow apparatus, composições por calibração de densidade, em cinco
+  temperaturas nominais (363,3 K — 12 pontos; 381,4 K — 26; 403,5 K — 9;
+  423,2 K — 16; 423,7 K — 13). x e y são do **etanol** (componente 1 no app).
+  Pontos de checagem, com as funções do próprio app (não com o CSV removido):
+  (a) γ implícito por Raoult modificada varia suavemente com x₁ e tende a 1
+  para o componente em excesso; (b) os modelos com parâmetros do banco IPDB,
+  **sem ajuste aos dados**, reproduzem os pontos — a 363,3 K: Wilson
+  ΔP 0,5 %/Δy 0,024, UNIFAC 0,9 %/0,021, NRTL 1,1 %/0,029, UNIQUAC
+  1,3 %/0,030; a 381,4 K: Wilson 0,8 %/0,017, NRTL 1,4 %/0,022, UNIQUAC
+  1,6 %/0,022, UNIFAC 2,3 %/0,020 — contra 17–18 % do CSV removido; (c) a
+  regressão de Barker converge com resíduo ≈ 0,011–0,014 (Van Laar, NRTL com
+  α₁₂ = 0,3, Wilson) e, ajustando só P e y, o Barker reduz o Δy (ex.: 363,3 K,
+  Wilson 0,024 → 0,009) com ΔP ≈ 1 % — o oposto do que aquele CSV mostrava.
+  **Limites a declarar:** a faixa de x₁ não é completa (363,3 K: 0,16–0,99, sem
+  pontos abaixo de 0,16 nem entre 0,79 e 0,997; 381,4 K: 0,017–0,79 mais um
+  ponto em 0,997), então o teste da área (Redlich-Kister) **não é conclusivo**
+  nessas faixas parciais (deu D ≈ 37 % e 21 %, mas sobre meia faixa); as
+  temperaturas são altas (90–108 °C, P de 125 a 296 kPa), bem acima das de
+  aula típicas; a T a informar no app é 90,15 °C ou 108,25 °C; o ThermoML
+  avisa que os números foram extraídos pelo TRC e **não avaliados
+  criticamente**. **Citação a usar se incorporado:** Cristino, A. F. et al.
+  *Fluid Phase Equilib.* **341**, 48–53 (2013), doi:10.1016/j.fluid.2012.12.014,
+  via NIST/TRC ThermoML Archive (Riccardi et al., doi:10.18434/mds2-2422;
+  *J. Comput. Chem.* **43**, 879, 2022; dados públicos). CSVs-rascunho fora do
+  repositório (escopo da sessão). **Aguarda decisão do autor:** incorporar (e
+  qual isoterma: 363,3 K tem 12 pontos e é a mais didática; 381,4 K tem 26 e é
+  a mais densa) ou buscar outro par/temperatura mais baixa.
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado
