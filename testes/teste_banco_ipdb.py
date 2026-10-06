@@ -19,8 +19,11 @@ from calculos.gemini import (
     buscar_parametros_banco,
     model_uniquac,
     model_wilson,
+    montar_parametros_automaticos,
     uniquac_params_from_ipdb,
+    uniquac_rq_from_chemsep,
 )
+import calculos.gemini as gemini
 
 TOLERANCIA_ABSOLUTA = 0.001
 
@@ -69,6 +72,30 @@ def main():
         erro_max = max(erro_max, abs(g[0] - ref[0]), abs(g[1] - ref[1]))
     ok = erro_max < 1e-9
     print(f"  [UNIQUAC via banco] erro maximo contra thermo.UNIQUAC em x1 de 0.01 a 0.99 = {erro_max:.2e} -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+
+    # r/q do ChemSep (2026-10-06): etanol/agua devem sair com os valores
+    # originais do UNIQUAC e reproduzir de ponta a ponta (montar_parametros_
+    # automaticos -> model_uniquac) a referencia do thermo.
+    ok = uniquac_rq_from_chemsep("64-17-5") == (2.11, 1.97) and uniquac_rq_from_chemsep("7732-18-5") == (0.92, 1.4)
+    print(f"  [r/q ChemSep] etanol (2.11, 1.97) e agua (0.92, 1.4) -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+
+    auto = montar_parametros_automaticos("UNIQUAC", "ethanol", "water")
+    g1, g2 = model_uniquac(0.252, {**auto, "T_K": T_K_uq})
+    ok = abs(g1 - g1_ref) < TOLERANCIA_ABSOLUTA and abs(g2 - g2_ref) < TOLERANCIA_ABSOLUTA
+    print(f"  [UNIQUAC automatico] gamma1={g1:.4f} (ref {g1_ref}), gamma2={g2:.4f} (ref {g2_ref}) -> {'OK' if ok else 'FALHA'}")
+    todos_ok &= ok
+
+    # Sem r/q no ChemSep, cai para os grupos UNIFAC nos dois componentes.
+    original = gemini.uniquac_rq_from_chemsep
+    gemini.uniquac_rq_from_chemsep = lambda cas: None
+    try:
+        sem = montar_parametros_automaticos("UNIQUAC", "ethanol", "water")
+    finally:
+        gemini.uniquac_rq_from_chemsep = original
+    ok = abs(sem["r1"] - 2.5755) < 1e-9 and abs(sem["q1"] - 2.588) < 1e-9
+    print(f"  [UNIQUAC sem r/q ChemSep] volta para grupos UNIFAC (r1={sem['r1']}) -> {'OK' if ok else 'FALHA'}")
     todos_ok &= ok
 
     # Casos de erro esperados.

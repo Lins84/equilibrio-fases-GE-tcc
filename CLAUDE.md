@@ -2043,7 +2043,33 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   1,98 da referência `thermo`/ChemSep — o sinal agora está certo, mas a
   quantidade ainda difere por essa mistura de fontes. Opções: manter (r/q
   UNIFAC, coerente com o resto do app), ou usar r/q do banco do ChemSep quando
-  existirem.
+  existirem. **Decidido pelo autor no mesmo dia: "Use os r e q do ChemSep
+  quando existirem"** — ver a entrada seguinte.
+
+- **(2026-10-06) UNIQUAC: r/q do ChemSep quando existirem, grupos UNIFAC como
+  reserva.** Decisão do autor, fechando o achado acima (reverte, para o
+  UNIQUAC, o "r/q via grupos UNIFAC" de 2026-09-27). **Fonte:** o banco de
+  compostos puros do ChemSep (`Misc/ChemSep8.32.xml`, licença Artistic 2.0)
+  que já acompanha o pacote `chemicals` — nenhuma dependência nova; 429 dos
+  431 compostos têm `UniquacR`/`UniquacQ`. `_tabela_rq_chemsep()` lê o XML uma
+  vez (≈0,3 s, guardado em cache) e `uniquac_rq_from_chemsep(cas)` devolve
+  (r, q) ou `None`. **Regra em `montar_parametros_automaticos`:** se os **dois**
+  componentes constam no ChemSep, usa os r/q dele; senão, usa os grupos UNIFAC
+  nos **dois** (não mistura fontes dentro do par — os a₁₂/a₂₁ foram ajustados
+  com o par de r/q do ChemSep). Efeito colateral bom: pares cujos componentes
+  não estão na tabela de grupos UNIFAC do projeto passam a funcionar no
+  UNIQUAC, desde que haja a₁₂/a₂₁ no IPDB. **Verificação:** etanol sai 2,11/1,97
+  e água 0,92/1,40 (os originais; antes 2,5755/2,588 para o etanol); de ponta
+  a ponta, `montar_parametros_automaticos("UNIQUAC", "ethanol", "water")` →
+  `model_uniquac` reproduz a referência do `thermo` (γ = 1,9775/1,1398 em
+  x₁ = 0,252, antes 1,66/1,13). No app: P-x-y de etanol/água com o azeótropo
+  (líquido e vapor se encontram em x₁ ≈ 0,85) e ln γ∞ ≈ 1,7 (etanol) e ≈ 1,0
+  (água). Testes novos em `teste_banco_ipdb.py` (r/q, ponta a ponta contra o
+  `thermo`, e o retorno aos grupos UNIFAC quando o ChemSep não tem r/q). Textos
+  do selo de origem e da nota do UNIQUAC atualizados. **Ressalvas:** (a) o
+  arquivo XML é dado interno do `chemicals`; a versão está travada no
+  `uv.lock`, mas uma atualização do pacote pode mudar o caminho; (b) a
+  regressão de Barker não ajusta r/q (são estruturais), então não muda.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

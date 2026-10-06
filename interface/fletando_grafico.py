@@ -34,8 +34,8 @@ ORIGENS_SELO = {
 # modelos cujos parâmetros são números de interação livres, fornecidos
 # manualmente. UNIQUAC e UNIFAC não entram aqui — seus parâmetros são
 # resolvidos automaticamente a partir dos componentes escolhidos, via
-# montar_parametros_automaticos (grupos UNIFAC clássicos + banco IPDB para
-# o UNIQUAC), sem slider manual.
+# montar_parametros_automaticos (grupos UNIFAC clássicos no UNIFAC; r/q do
+# ChemSep e banco IPDB no UNIQUAC), sem slider manual.
 PARAM_SLIDERS = {
     "Margules (1-P)": [
         {"chave": "A", "rotulo": "A", "min": -2.0, "max": 2.0, "inicial": 0.5},
@@ -1938,9 +1938,9 @@ def main(page: ft.Page):
                 ft.Text(
                     "Este modelo resolve os parâmetros automaticamente a "
                     "partir dos componentes escolhidos (grupos UNIFAC "
-                    "clássicos e, para UNIQUAC, o banco de interação "
-                    "binária IPDB/ChemSep) — sem sliders manuais por "
-                    "enquanto.",
+                    "clássicos no UNIFAC; no UNIQUAC, r/q e interação "
+                    "binária do banco ChemSep/IPDB) — sem sliders manuais "
+                    "por enquanto.",
                     color=ft.Colors.GREY_800,
                     # `key` estável (2026-09-28) — sem identidade própria,
                     # trocar de modelo repetidamente/rápido no dropdown
@@ -1964,9 +1964,10 @@ def main(page: ft.Page):
             else:  # UNIQUAC
                 atualizar_selo_origem(
                     "banco",
-                    "r/q estruturais via grupos UNIFAC; a₁₂/a₂₁ do banco "
-                    "IPDB/ChemSep (tabela 'ChemSep UNIQUAC') para o par "
-                    "de componentes escolhido.",
+                    "r/q estruturais do banco ChemSep (os mesmos com que os "
+                    "parâmetros foram ajustados; se faltarem, via grupos "
+                    "UNIFAC); a₁₂/a₂₁ do banco IPDB/ChemSep (tabela "
+                    "'ChemSep UNIQUAC') para o par de componentes escolhido.",
                 )
             return
 

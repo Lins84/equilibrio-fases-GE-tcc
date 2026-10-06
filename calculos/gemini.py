@@ -1,3 +1,8 @@
+import os
+import xml.etree.ElementTree as ET
+from functools import lru_cache
+
+import chemicals
 import numpy as np
 from thermo.chemical import Chemical
 
@@ -412,10 +417,35 @@ def uniquac_rq_from_groups(groups):
     return r, q
 
 
+@lru_cache(maxsize=1)
+def _tabela_rq_chemsep():
+    """Lê UMA vez o banco de compostos puros do ChemSep que acompanha o pacote
+    `chemicals` (Misc/ChemSep8.32.xml, licença Artistic 2.0) e devolve
+    {CAS: (r, q)} do UNIQUAC — 429 dos 431 compostos têm os dois valores."""
+    caminho = os.path.join(os.path.dirname(chemicals.__file__), "Misc", "ChemSep8.32.xml")
+    tabela = {}
+    for composto in ET.parse(caminho).getroot().iter("compound"):
+        cas = composto.find("CAS")
+        r = composto.find("UniquacR")
+        q = composto.find("UniquacQ")
+        if cas is not None and r is not None and q is not None:
+            tabela[cas.get("value")] = (float(r.get("value")), float(q.get("value")))
+    return tabela
+
+
+def uniquac_rq_from_chemsep(cas):
+    """(r, q) do UNIQUAC para o composto de CAS dado, no banco do ChemSep, ou
+    None se ele não constar ali. São os r/q com que os parâmetros de interação
+    da tabela 'ChemSep UNIQUAC' do IPDB foram ajustados — usá-los junto com
+    esses parâmetros é o par consistente (ex.: etanol 2,11/1,97; água
+    0,92/1,40; os do UNIFAC dão 2,5755/2,588 para o etanol)."""
+    return _tabela_rq_chemsep().get(cas)
+
+
 def uniquac_params_from_ipdb(cas1, cas2):
     """Busca bij (K) na tabela 'ChemSep UNIQUAC' do IPDB e retorna os
     parâmetros de interação a12/a21 prontos para model_uniquac (r1/q1/r2/q2
-    vêm de uniquac_rq_from_groups; T_K é injetado por
+    vêm de uniquac_rq_from_chemsep ou, na falta, de uniquac_rq_from_groups; T_K é injetado por
     calculate_vle_isothermal). Levanta ValueError se o par não tiver dado
     nessa tabela (mesmo cuidado de nrtl_params_from_ipdb — o IPDB não
     avisa sozinho)."""
@@ -442,7 +472,7 @@ def montar_parametros_automaticos(model_name, component1_id, component2_id):
     dados/preditiva (seção 2.8 do mapeamento) — sem entrada manual na UI:
 
     - UNIFAC: grupos de cada componente (preditivo, sem IPDB).
-    - UNIQUAC: r/q via grupos UNIFAC + a12/a21 via IPDB.
+    - UNIQUAC: r/q do ChemSep (ou, se faltar, via grupos UNIFAC) + a12/a21 via IPDB.
 
     Não cobre Margules/Van Laar/Wilson/NRTL — esses seguem com parâmetro
     fornecido manualmente (sliders) na UI. Levanta ValueError com mensagem
@@ -454,10 +484,19 @@ def montar_parametros_automaticos(model_name, component1_id, component2_id):
         }
 
     if model_name == "UNIQUAC":
-        r1, q1 = uniquac_rq_from_groups(unifac_groups_from_name(component1_id))
-        r2, q2 = uniquac_rq_from_groups(unifac_groups_from_name(component2_id))
         cas1 = Chemical(component1_id).CAS
         cas2 = Chemical(component2_id).CAS
+        # r/q do ChemSep (2026-10-06, decisão do autor), quando os DOIS
+        # componentes constam lá — são os r/q com que os a12/a21 do banco
+        # foram ajustados. Senão, cai para os grupos UNIFAC (decisão de
+        # 2026-09-27), nos dois, para não misturar fontes dentro do par.
+        rq1 = uniquac_rq_from_chemsep(cas1)
+        rq2 = uniquac_rq_from_chemsep(cas2)
+        if rq1 is not None and rq2 is not None:
+            (r1, q1), (r2, q2) = rq1, rq2
+        else:
+            r1, q1 = uniquac_rq_from_groups(unifac_groups_from_name(component1_id))
+            r2, q2 = uniquac_rq_from_groups(unifac_groups_from_name(component2_id))
         return {
             "r1": r1, "q1": q1, "r2": r2, "q2": q2,
             **uniquac_params_from_ipdb(cas1, cas2),
@@ -576,8 +615,9 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
 # extra têm que vir prontas em params_fixos (não são ajustadas):
 # - NRTL: alpha12 fixado por convenção (mau-condicionamento com 3
 #   parâmetros e poucos pontos — mesma decisão do α12 fixo).
-# - UNIQUAC: r1/q1/r2/q2 são estruturais (vêm dos grupos UNIFAC da
-#   molécula via uniquac_rq_from_groups, não são ajustáveis por regressão).
+# - UNIQUAC: r1/q1/r2/q2 são estruturais (vêm do banco ChemSep via
+#   uniquac_rq_from_chemsep ou, na falta, dos grupos UNIFAC da molécula via
+#   uniquac_rq_from_groups; não são ajustáveis por regressão).
 REGRESSAO_MODELOS = {
     "Margules (1-P)": {
         "livres": ["A"],
