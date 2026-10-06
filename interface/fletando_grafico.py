@@ -1637,7 +1637,15 @@ def main(page: ft.Page):
         # em qualquer fonte.
         label="Modelo GE",
         value=modelo_selecionado["nome"],
-        options=[ft.dropdown.Option(nome) for nome in MODELS_GE],
+        # Texto exibido sem parênteses ("Margules 1-P"), só na tela: a chave
+        # continua sendo o nome de MODELS_GE. Com os parênteses, "Margules
+        # (1-P)" saía cortado no celular do autor (2026-10-06) por uns poucos
+        # pixels entre o ícone e a seta; ajustar o recuo interno do campo não
+        # teve efeito no Dropdown.
+        options=[
+            ft.dropdown.Option(key=nome, text=nome.replace(" (", " ").replace(")", ""))
+            for nome in MODELS_GE
+        ],
         on_select=selecionar_modelo,
         width=LARGURA_CAMPO_SISTEMA,
         leading_icon=ft.Icon(ft.Icons.FUNCTIONS, color=ft.Colors.BLUE_700),
