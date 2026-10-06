@@ -1935,7 +1935,7 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   pouco mais larga), por isso não tinha aparecido antes. **Tentativa
   descartada:** zerar o recuo horizontal interno (`content_padding`) só do
   dropdown — o texto não se moveu um pixel, o Dropdown ignora essa propriedade.
-  **Correção aplicada (escolha do assistente, a confirmar):** o texto exibido
+  **Correção aplicada (escolha do assistente, **confirmada pelo autor em 2026-10-06**: "pode manter sem parênteses"):** o texto exibido
   passou a ser sem parênteses ("Margules 1-P", "Margules 2-P"), via
   `ft.dropdown.Option(key=nome, text=...)`; a chave continua sendo o nome de
   `MODELS_GE`, então nada mais muda no código. Alternativas não adotadas:
