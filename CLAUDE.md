@@ -600,6 +600,42 @@ continuar sendo mantido.
   *Se for antecipado:* sugestão de **protótipo mínimo** antes de qualquer
   coisa maior — professor e aluno compartilhando só a escolha do modelo e um
   slider, para medir latência e carga.
+  *Cenário de uso e proposta do autor (2026-10-06, **ainda sem decisão de
+  servidor**):* a rede da universidade é instável e os dados móveis são mais
+  garantidos. O autor propôs o **PC do professor como servidor, com senha, e
+  os alunos entrando com uma "chave de sessão"**, como em apps de reunião
+  remota, usando internet móvel (ou a da universidade, num dia bom). Dois
+  modos de uso: **(1) todos independentes** (cada aluno usa o app sozinho) e
+  **(2) co-op**, quando a internet permitir (dia bom, pouca latência).
+  *Análise do assistente (opções, não decisões):*
+  (a) **alcance** — alunos em 4G/5G não chegam ao PC pelo endereço da rede
+  local; o servidor precisa de endereço público: túnel (cloudflared/ngrok;
+  conexão que sai do PC, passa pelo bloqueio de entrada da universidade) ou
+  hospedagem. O PC do professor na rede instável é ponto único de falha da
+  aula inteira, inclusive do modo independente. Caminhos: PC + túnel no
+  hotspot do celular do professor; servidor na nuvem com instância única (o
+  professor entra como cliente comum, com a senha); PC + túnel pela rede da
+  universidade (o mais frágil). Recomendação do assistente: nuvem para uso
+  real em aula, PC + túnel só para protótipo;
+  (b) **uma implantação, dois modos** — o modo independente é o app como
+  está (sem `pubsub`); o co-op é opt-in ("Entrar na aula"), com "Sair da
+  aula" para voltar a trabalhar sozinho sem perder o estado, o que dá
+  degradação gradual conforme a latência do dia;
+  (c) **senha e chave são coisas distintas** — a senha dá o papel de
+  professor (criar a sala e controlar); a chave é um código curto gerado ao
+  abrir a aula, que o aluno digita para entrar, e vira o tópico do `pubsub`
+  (`send_all_on_topic`), permitindo várias salas. O Flet não traz login, então
+  tudo isso é lógica do próprio app, com expiração da sala e código de
+  entropia suficiente, já que o endereço fica público;
+  (d) **internet nos alunos é pré-requisito de qualquer modo** (CanvasKit vem
+  de `www.gstatic.com`), então dados móveis não agravam o co-op; a dúvida da
+  rede da universidade fica restrita ao servidor;
+  (e) **riscos em aberto** — `pubsub` em memória exige um único processo;
+  conexão móvel que cai pode derrubar a sessão do aluno (não se sabe se o Flet
+  restaura o estado ao reconectar — testar); carga de um recálculo do modelo
+  por aluno a cada movimento de slider (alternativa: só a sessão do professor
+  calcula e transmite as curvas, com mais tráfego). Nada disso foi
+  implementado nem testado.
 
 ## Sessão de estética e bug de renderização intermitente (2026-09-28/29)
 
