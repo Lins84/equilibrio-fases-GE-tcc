@@ -2669,6 +2669,35 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   lado a lado à direita. Verificado por captura a 1400 px (lista, tópico, voltar)
   e a 360 px (faixa, lista e tópico); testes passam.
 
+- **(2026-10-07) Ajuda por card: "?" ao lado do título + sumário reorganizado.**
+  Depois de o assistente levar opções de ajuda contextual (tooltips só nos
+  ícones; ⓘ por card; sumário menor por card; "primeiros passos"; tour guiado),
+  o autor respondeu "vamos seguir sua recomendação" (ⓘ por card + sumário menor +
+  primeiros passos; tooltips só no desktop como detalhe opcional; tour adiado) e
+  perguntou se não seria "mais simbólico". **Resposta/decisão de implementação
+  (do assistente, a confirmar):** o acesso por card é só um símbolo, sem texto —
+  um "?" (`HELP_OUTLINE`, `BLUE_700`, 20 px) colado ao título de cada um dos cinco
+  cards (Dados experimentais, Sistema, Parâmetros do modelo, Diagrama P-x-y,
+  Coeficientes de atividade). Distinto do ⓘ azul-claro que já existe: **"?" =
+  ajuda do card; ⓘ = explicação de um valor** (selo de origem, ΔP, Δy). O botão
+  "Ajuda" do cabeçalho segue com ícone e a palavra, por ser a porta do manual
+  completo e precisar ser descoberto. **Implementação:** `cartao(..., ajuda=id)`
+  põe o ícone logo depois do título (controle novo a cada montagem); o "?" abre
+  direto o tópico daquele card (`mostrar_topico_ajuda`), com "Todos os tópicos"
+  (volta ao sumário) e "Fechar". `AJUDA_TOPICOS` ganhou o campo `id` e foi
+  reduzido de 16 para **9 tópicos, um por card**: primeiros passos (3 etapas);
+  dados experimentais (digitar, importar, exemplos); sistema; parâmetros do modelo
+  (slider, valor digitado, selo, banco, regressão); comparar (ΔP e Δy); diagrama
+  P-x-y; ln γ; modelos de Gᴱ e quando usar cada um; limitações e cuidados. Saíram
+  como tópicos próprios "desfazer" (vai em Parâmetros) e "ver como celular/
+  computador" (o botão já diz o que faz). **Conteúdo ainda vazio** ("Conteúdo em
+  breve."), a pedido do autor. **Escolha do assistente, a confirmar:** o "?"
+  abre o tópico direto, e não o sumário com o tópico destacado (a pergunta ficou
+  sem resposta do autor); o tooltip "Ajuda sobre este card" aparece só no
+  desktop. A altura da lista de tópicos agora acompanha o número de itens (rola se
+  não couber). Verificado por captura a 1400 px (os cinco "?", clique no card de
+  Parâmetros, "Todos os tópicos") e a 360 px; testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

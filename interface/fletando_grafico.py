@@ -460,25 +460,21 @@ EXEMPLOS_NIST = [
 
 # Botão "Ajuda" (2026-10-07, pedido do autor): manual rápido / tira-dúvidas,
 # navegável por tópicos. Por ora só o sumário — `conteudo=None` mostra "em
-# breve"; para escrever um tópico basta trocar o None por um texto. A lista
-# de tópicos é proposta do assistente, a confirmar pelo autor.
+# breve"; para escrever um tópico basta trocar o None por um texto. Os tópicos
+# seguem os cards da tela: o "?" de cada card abre o tópico dele (campo `id`,
+# usado por `cartao(..., ajuda=id)`). Lista proposta pelo assistente e
+# aprovada em linhas gerais pelo autor ("vamos seguir sua recomendação");
+# os títulos exatos seguem a confirmar.
 AJUDA_TOPICOS = [
-    {"titulo": "Visão geral do aplicativo", "conteudo": None},
-    {"titulo": "Escolher o sistema: componentes, temperatura e modelo Gᴱ", "conteudo": None},
-    {"titulo": "Digitar os dados experimentais na tabela", "conteudo": None},
-    {"titulo": "Importar dados (arquivo CSV e texto colado)", "conteudo": None},
-    {"titulo": "Exemplos prontos (dados do NIST)", "conteudo": None},
-    {"titulo": "Ler o diagrama P-x-y", "conteudo": None},
-    {"titulo": "Ler o gráfico de coeficientes de atividade (ln γ)", "conteudo": None},
-    {"titulo": "Modelos de Gᴱ disponíveis e quando usar cada um", "conteudo": None},
-    {"titulo": "Parâmetros do modelo: slider e valor digitado", "conteudo": None},
-    {"titulo": "Origem do parâmetro (o selo ao lado do título)", "conteudo": None},
-    {"titulo": "Buscar parâmetros no banco (IPDB)", "conteudo": None},
-    {"titulo": "Calcular parâmetros por regressão (Barker)", "conteudo": None},
-    {"titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
-    {"titulo": "Desfazer alterações de parâmetros", "conteudo": None},
-    {"titulo": "Limitações e cuidados (isotérmico, unidades, gás ideal)", "conteudo": None},
-    {"titulo": "Ver como celular / computador", "conteudo": None},
+    {"id": "primeiros_passos", "titulo": "Primeiros passos (3 etapas)", "conteudo": None},
+    {"id": "dados", "titulo": "Dados experimentais: digitar, importar e exemplos", "conteudo": None},
+    {"id": "sistema", "titulo": "Sistema: componentes, temperatura e modelo Gᴱ", "conteudo": None},
+    {"id": "parametros", "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão", "conteudo": None},
+    {"id": "comparar", "titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
+    {"id": "pxy", "titulo": "Diagrama P-x-y", "conteudo": None},
+    {"id": "gamma", "titulo": "Coeficientes de atividade (ln γ)", "conteudo": None},
+    {"id": "modelos", "titulo": "Modelos de Gᴱ e quando usar cada um", "conteudo": None},
+    {"id": "limitacoes", "titulo": "Limitações e cuidados (isotérmico, unidades, gás ideal)", "conteudo": None},
 ]
 
 
@@ -638,6 +634,7 @@ def main(page: ft.Page):
         extra_titulo=None,
         centralizar=False,
         extra_junto=False,
+        ajuda=None,
     ):
         # `extra_titulo` (opcional) — um controle extra ao lado do título,
         # no cabeçalho do card, em vez de só mais um item na lista debaixo.
@@ -652,6 +649,16 @@ def main(page: ft.Page):
         cabecalho = ft.Text(
             titulo, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800
         )
+        # `ajuda` (2026-10-07): id de um tópico de AJUDA_TOPICOS; põe o "?" logo
+        # depois do título, abrindo o tópico daquele card. O ícone é criado
+        # novo a cada montagem (o app não muta controle já criado).
+        if ajuda is not None:
+            cabecalho = ft.Row(
+                controls=[cabecalho, icone_ajuda_card(ajuda)],
+                spacing=2,
+                tight=True,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            )
         if centralizar and extra_titulo is None:
             # Num Column centralizado o título viria no meio; a Row ocupa a
             # largura toda e mantém o título à esquerda.
@@ -1081,32 +1088,50 @@ def main(page: ft.Page):
             actions=acoes,
         )
 
+    def mostrar_topico_ajuda(topico):
+        texto = topico["conteudo"] or "Conteúdo em breve."
+        page.show_dialog(
+            estilo_dialogo_ajuda(
+                topico["titulo"],
+                ft.Container(
+                    width=largura_dialogo(),
+                    content=ft.Text(
+                        texto,
+                        size=14,
+                        color=ft.Colors.TEAL_900 if topico["conteudo"] else ft.Colors.GREY_800,
+                        italic=topico["conteudo"] is None,
+                    ),
+                ),
+                [
+                    ft.TextButton("Todos os tópicos", on_click=voltar_aos_topicos),
+                    ft.TextButton("Fechar", on_click=lambda e: page.pop_dialog()),
+                ],
+            )
+        )
+
     def abrir_topico_ajuda(topico):
+        # Da lista de tópicos: fecha a lista e abre o tópico.
         def ao_clicar(e):
             page.pop_dialog()
-            texto = topico["conteudo"] or "Conteúdo em breve."
-            page.show_dialog(
-                estilo_dialogo_ajuda(
-                    topico["titulo"],
-                    ft.Container(
-                        width=largura_dialogo(),
-                        content=ft.Text(
-                            texto,
-                            size=14,
-                            color=ft.Colors.TEAL_900 if topico["conteudo"] else ft.Colors.GREY_800,
-                            italic=topico["conteudo"] is None,
-                        ),
-                    ),
-                    [
-                        ft.TextButton("Voltar aos tópicos", on_click=voltar_aos_topicos),
-                        ft.TextButton("Fechar", on_click=lambda e: page.pop_dialog()),
-                    ],
-                )
-            )
+            mostrar_topico_ajuda(topico)
         return ao_clicar
 
+    def icone_ajuda_card(id_topico):
+        # "?" no cabeçalho de um card: abre direto o tópico daquele card (sem
+        # lista aberta por baixo); "Todos os tópicos" leva ao sumário.
+        topico = next(t for t in AJUDA_TOPICOS if t["id"] == id_topico)
+        return ft.IconButton(
+            icon=ft.Icons.HELP_OUTLINE,
+            icon_size=20,
+            icon_color=ft.Colors.BLUE_700,
+            padding=2,
+            tooltip="Ajuda sobre este card",
+            on_click=lambda e: mostrar_topico_ajuda(topico),
+        )
+
     def mostrar_lista_ajuda():
-        altura = max(220, min(520, int((page.height or 700) * 0.6)))
+        # Sem espaço sobrando quando a lista é curta; rola quando não cabe.
+        altura = max(220, min(520, int((page.height or 700) * 0.6), 42 * len(AJUDA_TOPICOS) + 12))
         lista = ft.Column(
             controls=[
                 opcao_dialogo(ft.Icons.ARTICLE_OUTLINED, t["titulo"], abrir_topico_ajuda(t))
@@ -2570,7 +2595,8 @@ def main(page: ft.Page):
     # própria em vez de um bloco fixo.
     def construir_card_sistema(expand=False):
         return cartao(
-            "Sistema", linha_componentes, linha_modelo_temperatura, expand=expand
+            "Sistema", linha_componentes, linha_modelo_temperatura, expand=expand,
+            ajuda="sistema",
         )
 
     def construir_card_parametros(expand=False):
@@ -2594,6 +2620,7 @@ def main(page: ft.Page):
             expand=expand,
             extra_titulo=selo_origem,
             extra_junto=True,
+            ajuda="parametros",
         )
 
     def construir_card_dados(expand=False, centralizar=False):
@@ -2651,6 +2678,7 @@ def main(page: ft.Page):
             *mensagens,
             centralizar=centralizar,
             expand=expand,
+            ajuda="dados",
             extra_titulo=(
                 None
                 if centralizar
@@ -2677,6 +2705,7 @@ def main(page: ft.Page):
             ft.Container(content=chart, height=altura),
             expand=expand,
             extra_titulo=botao_lupa_pxy if com_lupa else None,
+            ajuda="pxy",
         )
 
     def construir_grafico_gamma(altura, expand=False, com_lupa=False):
@@ -2686,6 +2715,7 @@ def main(page: ft.Page):
             ft.Container(content=chart_gamma, height=altura),
             expand=expand,
             extra_titulo=botao_lupa_gamma if com_lupa else None,
+            ajuda="gamma",
         )
 
     # Guarda o modo atual ("mobile"/"desktop") para só reconstruir o layout
