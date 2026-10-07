@@ -1891,6 +1891,9 @@ def main(page: ft.Page):
     selo_origem = ft.Row(
         controls=[chip_selo_origem, icone_selo_origem],
         spacing=4,
+        # `tight` (definido na criação): sem ele a Row ocupa a largura toda e
+        # o "Comparar", que fica ao lado do selo, cairia para a linha de baixo.
+        tight=True,
         visible=False,
     )
 
@@ -2372,17 +2375,21 @@ def main(page: ft.Page):
             "Parâmetros do modelo",
             sliders_area,
             aviso_parametro,
-            selo_origem,
-            nota_alpha_fixo,
             # "Comparar" (2026-10-07, pedido do autor: "colocar o botão comparar
-            # junto com o card de parâmetros"): fica ao lado dos botões que
-            # geram o parâmetro e acima do ΔP/Δy que ele produz. Visível para
-            # todos os modelos (UNIQUAC/UNIFAC inclusos), ao contrário da
-            # regressão e do "Desfazer", que dependem dos sliders.
+            # junto com o card de parâmetros" e, depois, "ao lado do selo"):
+            # na mesma linha do selo de origem. A Row externa é nova a cada
+            # montagem e fica sempre visível; só o selo (`visible`) aparece e
+            # some. Comparar vale para todos os modelos (UNIQUAC/UNIFAC
+            # inclusos), ao contrário da regressão e do "Desfazer", que
+            # dependem dos sliders.
             ft.Row(
-                controls=[botao_buscar_banco, botao_regressao, botao_desfazer, botao_comparar],
+                controls=[selo_origem, botao_comparar],
+                spacing=12,
                 wrap=True,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
             ),
+            nota_alpha_fixo,
+            ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
             # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
             # parâmetros"): o erro do modelo fica junto dos parâmetros que o
             # produzem, em vez de no fim do card "Dados experimentais".

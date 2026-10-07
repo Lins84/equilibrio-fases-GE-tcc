@@ -2572,6 +2572,18 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   título; celular, abaixo do título do card. Verificado por captura a 1400 px e
   360 px (estado apagado, tabela vazia).
 
+- **(2026-10-07) "Comparar" ao lado do selo de origem.** Pedido do autor
+  ("botão de comparar fica ao lado do selo"), refinando a posição da entrada
+  anterior. No card "Parâmetros do modelo", o botão ocupa agora a mesma linha
+  do selo ("Fornecido"/"Banco de dados"/…, com o ⓘ), e não mais a linha dos
+  botões de banco/regressão/Desfazer. A linha do selo é uma Row nova a cada
+  montagem, sempre visível (só o selo muda de `visible`); o selo passou a
+  `tight=True` na criação, porque sem isso ocupava a largura toda e empurrava o
+  "Comparar" para baixo. No celular as duas linhas de botões abaixo quebram como
+  antes (Regressão numa, Desfazer na seguinte). Verificado por captura a 1400 px e
+  360 px e com o clique real após importar o exemplo metanol/dimetilbuteno
+  (ΔP/Δy aparecem).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
