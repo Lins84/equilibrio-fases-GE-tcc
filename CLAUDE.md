@@ -214,32 +214,45 @@ como registro da evolução da UI.
 > — é um fato técnico descoberto ao rodar de verdade, registrado para
 > quando isso importar.
 
-## Estado atual (2026-10-01)
+## Estado atual (2026-10-07)
 
 Snapshot; o histórico por sessão vem logo abaixo.
 
 - **Cálculo — pronto.** Os 7 modelos Gᴱ implementados e validados contra
   as referências do `thermo` em toda a faixa de x1 (0 a 1, extremos
-  inclusos). Parâmetros via IPDB (NRTL, Wilson, UNIQUAC), via grupos
-  UNIFAC e via regressão de Barker (`regress_params_barker`).
+  inclusos). Parâmetros via IPDB (NRTL, Wilson, UNIQUAC; UNIQUAC com r/q do
+  ChemSep, grupos UNIFAC como reserva), via grupos UNIFAC e via regressão de
+  Barker (`regress_params_barker`). Desde 2026-10-06/07 há também validação
+  contra **dado experimental com fonte citável** (NIST ThermoML): etanol/água
+  (modelos do banco e Barker), metanol/2,3-dimetil-2-buteno e clorofórmio/
+  2-butanona (Barker e azeótropo).
 - **UI — integrada.** `fletando_grafico.py` calcula e plota a curva do
   modelo sobre os pontos digitados, com banco IPDB, regressão, selo de
-  origem, comparação calculado-vs-experimental (ΔP/Δy), estética em
-  andamento e botão para alternar entre layout de celular e de computador.
-- **Pendências.** A estética segue em andamento (escopo: app inteiro); a
-  lista de itens levantados e ainda não atacados está na sessão de
-  2026-09-30/10-01. O modo isobárico (T-x-y) está adiado para depois do
-  piloto, em "Atualizações futuras". Não há decisão de rumo em aberto
-  neste momento. **Pendência de informação (2026-10-07):** origem do dado de
-  1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
-  conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2
-  do mapeamento fica em redação provisória (ver "Decisões de engenharia do
-  aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (5
-  scripts em `testes/`, 4 automatizados). A interface é verificada
-  visualmente pelo autor no dispositivo real **e**, desde 2026-09-30,
-  também pelo Claude Code por captura de tela em ambiente de nuvem — ver
-  sessão de 2026-09-30/10-01 para o alcance e os limites de cada uma.
+  origem, comparação calculado-vs-experimental (ΔP/Δy no card de
+  parâmetros), importação de dados (arquivo, texto colado e dois exemplos
+  NIST de etanol/água), valor de parâmetro digitável, lupa nos gráficos (só
+  no desktop), estética em andamento e botão para alternar entre layout de
+  celular e de computador.
+- **Pendências.** A estética segue em andamento (escopo: app inteiro): os 9
+  itens levantados em 2026-09-30/10-01 estão todos feitos, e os ajustes
+  seguintes vieram por pedido do autor. O modo isobárico (T-x-y) está
+  adiado para depois do piloto, em "Atualizações futuras". Não há decisão de
+  rumo em aberto neste momento, mas há **escolhas do assistente a confirmar
+  pelo autor** (registradas nas entradas de "Decisões de engenharia do
+  aluno"): chute inicial extra do Van Laar na regressão, só duas das cinco
+  isotermas de etanol/água como exemplo na UI, regras de validação do campo de
+  parâmetro e o chip laranja do UNIQUAC com r/q via UNIFAC. **Pendência de
+  informação (2026-10-07):** origem do dado de 1,4-dioxano/metanol a 308,5 K,
+  de um exercício do professor sem fonte conhecida — o autor vai perguntar ao
+  professor; até lá a frase da seção 2 do mapeamento fica em redação
+  provisória (ver "Decisões de engenharia do aluno", terceira rodada de busca
+  no ThermoML).
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (9
+  scripts em `testes/`, 8 automatizados; o `teste_dioxano_nrtl.py` é visual e
+  manual). A interface é verificada visualmente pelo autor no dispositivo
+  real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
+  ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
+  limites de cada uma.
 
 ## Sessão de auditoria dos modelos (2026-07-27)
 
