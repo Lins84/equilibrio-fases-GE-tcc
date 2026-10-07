@@ -2561,6 +2561,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Comparar: curvas comparativas e `ΔP = 31.78% / Δy = 0.1530` — Margules 1P com
   A = 0,5, sem ajuste, só mecânica) e a 360 px; testes passam.
 
+- **(2026-10-07) "Limpar Tabela" vira botão "Limpar dados", com ícone e estilo.**
+  Pedido do autor: o ícone de limpar deve ter o nome junto e um estilo próprio,
+  e o rótulo deve ser "Limpar dados", não "Limpar lista". O `IconButton` (só o
+  ícone, escolhido em 2026-09-28 para caber ao lado do "Comparar" no cabeçalho)
+  virou `ft.Button` com o ícone `DELETE_SWEEP` e o texto, no `estilo_botao()`
+  dos botões secundários (fundo azul claro, apagado em cinza quando a tabela
+  não tem ponto válido). O motivo de ser só ícone deixou de existir com a saída
+  do "Comparar" do card. Posição inalterada: desktop, centralizado abaixo do
+  título; celular, abaixo do título do card. Verificado por captura a 1400 px e
+  360 px (estado apagado, tabela vazia).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

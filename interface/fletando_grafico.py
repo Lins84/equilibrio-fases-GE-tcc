@@ -1055,15 +1055,20 @@ def main(page: ft.Page):
             mensagem_extra=f"Tabela limpa — {NUM_LINHAS_INICIAIS} linha(s) em branco restaurada(s)."
         )
 
-    # Ícone só (não botão com texto) — pedido do autor, 2026-09-28: precisa
-    # caber ao lado de "Comparar" no cabeçalho do card, sem disputar espaço
-    # com o título. "Delete sweep" (vassoura+lixo) é o ícone Material
-    # padrão pra "limpar tudo", autoexplicativo mesmo sem o rótulo de texto.
-    botao_limpar_tabela = ft.IconButton(
-        icon=ft.Icons.DELETE_SWEEP,
-        tooltip="Limpar Tabela",
-        icon_color=ft.Colors.BLUE_800,
+    # Botão com ícone e rótulo "Limpar dados" (2026-10-07, pedido do autor;
+    # antes era só o ícone, a pedido dele em 2026-09-28 para caber ao lado do
+    # "Comparar" no cabeçalho — o "Comparar" saiu dali para o card de
+    # parâmetros, então sobrou espaço). Mesmo estilo dos demais botões
+    # secundários. "Delete sweep" (vassoura+lixo) é o ícone Material padrão
+    # para "limpar tudo".
+    botao_limpar_tabela = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.DELETE_SWEEP), ft.Text("Limpar dados")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
         on_click=limpar_tabela,
+        style=estilo_botao(),
     )
 
     linha_botoes_tabela = ft.Row(
