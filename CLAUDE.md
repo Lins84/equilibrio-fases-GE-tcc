@@ -2509,6 +2509,21 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   teste), não um aviso na tela do aluno. Não foi feito comentário no
   `pyproject.toml` (o `chemicals` não é dependência direta; vem pelo `thermo`).
 
+- **(2026-10-07) Faixa dos sliders do Margules ampliada para [−3, 3].** Pedido
+  do autor, depois de testar o exemplo metanol/dimetilbuteno ("fica bem ajustado
+  no 1P se A > 2, tipo 2.2. Melhor aumentar a faixa do slide" — escreveu "etanol e
+  dimetil butano", mas o exemplo é o do **metanol**). Conferido com a regressão
+  de Barker: a 70 °C o Margules 1P ajusta **A = 2,25** (e 2,22/2,18/2,16 a
+  80/90/100 °C), acima do limite antigo de 2. `PARAM_SLIDERS`: Margules 1P (A) de
+  [−2, 2] para [−3, 3], mesmo critério do Van Laar e do NRTL em 2026-10-07 (faixa
+  é recorte de exploração, não limite físico; a regressão e o banco já podiam
+  passar do intervalo, com a posição do botão limitada). **Estendido pelo
+  assistente ao Margules 2P, a confirmar:** o mesmo exemplo ajusta A₁₂ = 2,26 e
+  A₂₁ = 2,25 no 2P, também fora de ±2, então os dois parâmetros do 2P foram a ±3
+  (o pedido citava só o 1P). Wilson (Λ de 0,01 a 3) e α₁₂ do NRTL não mudaram. Os
+  valores ajustados nos outros exemplos cabem em ±3 (etanol/água A ≈ 1,0–1,1 no 1P;
+  clorofórmio/MEK A = −1,17).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

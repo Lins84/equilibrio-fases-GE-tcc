@@ -44,13 +44,15 @@ ORIGENS_SELO = {
 # Faixa do slider é só recorte de exploração, não limite físico. Van Laar
 # (A₁₂, A₂₁) e NRTL (τ₁₂, τ₂₁) vão a ±3 (2026-10-07): ajustados ao dado do
 # NIST (Cristino 2013) saem A₁₂ = 2,06 (150 °C) e τ₂₁ = 2,49, fora de ±2.
+# Margules 1P e 2P também vão a ±3 (2026-10-07, pedido do autor): o exemplo
+# metanol/dimetilbuteno a 70 °C ajusta A = 2,25 (1P) e A₁₂ = 2,26, A₂₁ = 2,25 (2P).
 PARAM_SLIDERS = {
     "Margules (1-P)": [
-        {"chave": "A", "rotulo": "A", "min": -2.0, "max": 2.0, "inicial": 0.5},
+        {"chave": "A", "rotulo": "A", "min": -3.0, "max": 3.0, "inicial": 0.5},
     ],
     "Margules (2-P)": [
-        {"chave": "A12", "rotulo": "A₁₂", "min": -2.0, "max": 2.0, "inicial": 0.6},
-        {"chave": "A21", "rotulo": "A₂₁", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "A12", "rotulo": "A₁₂", "min": -3.0, "max": 3.0, "inicial": 0.6},
+        {"chave": "A21", "rotulo": "A₂₁", "min": -3.0, "max": 3.0, "inicial": 0.3},
     ],
     "Van Laar": [
         {"chave": "A12", "rotulo": "A₁₂", "min": -3.0, "max": 3.0, "inicial": 0.6},
