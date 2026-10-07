@@ -1100,6 +1100,39 @@ def main(page: ft.Page):
     # (isso só acontece em "Gerar Gráfico"). `botao_comparar` é definido
     # mais abaixo; resolvido por closure, sem problema (mesmo padrão já
     # usado em `aplicar_importacao`/`gerar_grafico`).
+    # Dica ao tocar num botão apagado (2026-10-07, pedido do autor): botão
+    # desabilitado não dispara `on_click`, então cada um vai dentro de um
+    # GestureDetector (`caixa_*`, criados mais abaixo) cujo `on_tap` explica por
+    # que está apagado. Botões de parâmetros mostram no `aviso_parametro` (dentro
+    # do card, em laranja — vermelho é só erro); o "Limpar dados", na mensagem de
+    # status do card "Dados experimentais". `dica_ativa["lugar"]` lembra onde
+    # há dica para apagá-la quando o estado muda.
+    COR_DICA = "#9A3B00"
+    dica_ativa = {"lugar": None, "texto": ""}
+
+    def esconder_dica():
+        if dica_ativa["lugar"] == "parametros":
+            aviso_parametro.visible = False
+        elif dica_ativa["lugar"] == "status":
+            # Só apaga se a mensagem ainda é a dica (outra ação pode já ter
+            # escrito por cima).
+            if mensagem_status.value == dica_ativa["texto"]:
+                mensagem_status.value = ""
+        dica_ativa["lugar"] = None
+
+    def mostrar_dica(texto, lugar="parametros"):
+        esconder_dica()
+        if lugar == "parametros":
+            aviso_parametro.value = texto
+            aviso_parametro.color = COR_DICA
+            aviso_parametro.visible = True
+        else:
+            mensagem_status.value = texto
+            mensagem_status.color = COR_DICA
+        dica_ativa["lugar"] = lugar
+        dica_ativa["texto"] = texto
+        page.update()
+
     def contar_pontos_validos():
         n = 0
         for linha in dt.rows:
@@ -1124,6 +1157,10 @@ def main(page: ft.Page):
         return spec is not None and n_pontos >= len(spec["livres"]) + 1
 
     def atualizar_habilitacao_botoes(n_pontos):
+        # Uma dica de "por que está apagado" (ver `mostrar_dica`) fica velha
+        # assim que a tabela muda — some junto com a reavaliação.
+        if dica_ativa["lugar"] is not None:
+            esconder_dica()
         botao_comparar.disabled = n_pontos == 0
         botao_limpar_tabela.disabled = n_pontos == 0
         botao_regressao.disabled = not regressao_aplicavel(n_pontos)
@@ -2079,8 +2116,8 @@ def main(page: ft.Page):
         botao_desfazer.disabled = True
 
         botao_buscar_banco.visible = nome_modelo in MODELOS_COM_BANCO_IPDB
-        botao_regressao.visible = nome_modelo in PARAM_SLIDERS
-        botao_desfazer.visible = nome_modelo in PARAM_SLIDERS
+        caixa_regressao.visible = nome_modelo in PARAM_SLIDERS
+        caixa_desfazer.visible = nome_modelo in PARAM_SLIDERS
         nota_alpha_fixo.visible = (nome_modelo == "NRTL")
 
         specs = PARAM_SLIDERS.get(nome_modelo)
@@ -2159,6 +2196,8 @@ def main(page: ft.Page):
                         f"Valor inválido para {spec['rotulo']}: digite um "
                         f"número{exigencia}."
                     )
+                    aviso_parametro.color = ft.Colors.RED_800
+                    dica_ativa["lugar"] = None
                     aviso_parametro.visible = True
                     page.update()
                     return
@@ -2384,6 +2423,44 @@ def main(page: ft.Page):
         style=estilo_botao(),
     )
 
+    def dica_regressao():
+        spec = REGRESSAO_MODELOS.get(modelo_selecionado["nome"])
+        minimo = len(spec["livres"]) + 1
+        mostrar_dica(
+            f"A regressão precisa de pelo menos {minimo} pontos válidos na "
+            f"tabela para {modelo_selecionado['nome']} (há "
+            f"{contar_pontos_validos()}). Complete a tabela, importe dados ou "
+            "use um exemplo."
+        )
+
+    def dica_comparar():
+        mostrar_dica(
+            "Para comparar, a tabela precisa ter ao menos um ponto "
+            "experimental válido (P, x₁ e y₁ preenchidos)."
+        )
+
+    def dica_desfazer():
+        mostrar_dica(
+            "Nada para desfazer: o histórico guarda só as alterações feitas "
+            "por \"Buscar do Banco\" e por \"Calcular por Regressão\"."
+        )
+
+    def dica_limpar():
+        mostrar_dica("A tabela já está sem pontos válidos.", lugar="status")
+
+    def caixa_com_dica(botao, dica):
+        # Só explica quando o botão está de fato apagado; aceso, o clique é
+        # do próprio botão.
+        return ft.GestureDetector(
+            content=botao,
+            on_tap=lambda e: dica() if botao.disabled else None,
+        )
+
+    caixa_regressao = caixa_com_dica(botao_regressao, dica_regressao)
+    caixa_desfazer = caixa_com_dica(botao_desfazer, dica_desfazer)
+    caixa_comparar = caixa_com_dica(botao_comparar, dica_comparar)
+    caixa_limpar = caixa_com_dica(botao_limpar_tabela, dica_limpar)
+
     construir_sliders(modelo_selecionado["nome"])
 
     # Layout adaptativo (2026-09-28) — implementa, enfim, o arranjo previsto
@@ -2420,9 +2497,9 @@ def main(page: ft.Page):
             # (`extra_titulo`, logo após o título). Comparar vale para todos os
             # modelos (UNIQUAC/UNIFAC inclusos), ao contrário da regressão e do
             # "Desfazer", que dependem dos sliders.
-            ft.Row(controls=[botao_comparar], wrap=True),
+            ft.Row(controls=[caixa_comparar], wrap=True),
             nota_alpha_fixo,
-            ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
+            ft.Row(controls=[botao_buscar_banco, caixa_regressao, caixa_desfazer], wrap=True),
             # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
             # parâmetros"): o erro do modelo fica junto dos parâmetros que o
             # produzem, em vez de no fim do card "Dados experimentais".
@@ -2452,7 +2529,7 @@ def main(page: ft.Page):
             # do título. ("Comparar" mudou para o card de parâmetros.)
             acoes_topo = [
                 ft.Row(
-                    controls=[botao_limpar_tabela],
+                    controls=[caixa_limpar],
                     spacing=4,
                     alignment=ft.MainAxisAlignment.CENTER,
                 )
@@ -2490,7 +2567,7 @@ def main(page: ft.Page):
             extra_titulo=(
                 None
                 if centralizar
-                else ft.Row(controls=[botao_limpar_tabela], spacing=4)
+                else ft.Row(controls=[caixa_limpar], spacing=4)
             ),
         )
 

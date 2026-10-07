@@ -2622,6 +2622,29 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   um ponto (volta a apagar); exemplo importado + regressão (Desfazer acende);
   testes passam.
 
+- **(2026-10-07) Aviso ao tocar num botão apagado.** Resposta do autor à
+  proposta do assistente ("Sim, mostre o aviso ao tocar no botão apagado"): o
+  botão apagado explica por que está apagado. Botão desabilitado do Flet não
+  dispara `on_click`, então "Comparar", "Calcular por Regressão", "Desfazer" e
+  "Limpar dados" ficam cada um dentro de um `ft.GestureDetector` (`caixa_*`,
+  criado uma vez e reaproveitado entre montagens de layout) cujo `on_tap` só age
+  se o botão estiver `disabled` — aceso, o clique é do próprio botão (conferido:
+  a regressão roda normalmente). Textos: regressão ("precisa de pelo menos N
+  pontos válidos ... para <modelo> (há X)"), comparar ("a tabela precisa ter ao
+  menos um ponto experimental válido"), desfazer ("o histórico guarda só as
+  alterações feitas por Buscar do Banco e por Regressão") e limpar ("a tabela já
+  está sem pontos válidos"). Os três primeiros aparecem no `aviso_parametro`,
+  dentro do card "Parâmetros do modelo"; o do "Limpar dados", na mensagem de
+  status do card "Dados experimentais". **Escolhas do assistente, a confirmar:**
+  cor **laranja** (`#9A3B00`, a dos avisos do app) em vez do vermelho, que fica
+  só para erro (o `aviso_parametro` volta ao vermelho quando o valor digitado é
+  inválido); a dica **some** quando a tabela é reavaliada (digitar, importar,
+  excluir, gerar gráfico) e ao trocar de modelo; e a visibilidade de regressão e
+  Desfazer por modelo passou para os `caixa_*`. Efeito colateral: o aviso ocupa
+  uma ou duas linhas no card e empurra os botões para baixo enquanto aparece.
+  Verificado por captura a 1400 px (os quatro avisos, e regressão aceita
+  rodando) e a 360 px (aviso da regressão); testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
