@@ -2938,6 +2938,39 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   laranja e selo "Calculado"; exemplo etanol/água 108 °C com Van Laar → sem aviso.
   Texto do tópico "Parâmetros do modelo" atualizado; testes passam.
 
+- **(2026-10-07) Conteúdo do tópico "Comparar calculado e experimental (ΔP e
+  Δy)" (rascunho).** Pedido do autor: "confirmo suas escolhas. siga para o
+  próximo" — mesmas escolhas já confirmadas valem; o próximo tópico da ordem do
+  fluxo é **"Comparar"**. Redação **do assistente, a revisar pelo autor**. Seções
+  (subtítulos `# `): **como usar** (botão no card "Parâmetros do modelo"; acende
+  com ≥ 1 ponto válido; vale para todos os modelos; avalia o modelo nos x₁ da
+  tabela, não na malha de 101); **como ler os gráficos** (marcadores vazados, a
+  coluna "Comparativo", distância cheio × vazado = erro; no ln γ só mostram onde o
+  modelo foi calculado); **o que são ΔP e Δy** (relativo em % × absoluto sem
+  unidade; ambos RMS; por que separados e por que um é relativo e o outro
+  absoluto — os argumentos da decisão de 2026-09-27); **valores de referência**
+  (nos exemplos NIST: banco sem ajuste no etanol/água ΔP 0,5–2,3 % e Δy
+  0,017–0,030; Barker ΔP 1–2 % e Δy 0,008–0,025 — ordem de grandeza, não critério
+  de aprovação); **cuidados**. **Fatos conferidos rodando o app:** o exemplo
+  etanol/água a 108 °C com Margules 1-P (A = 0,5) dá ΔP = 14,19 % e Δy = 0,0658
+  (só mecânica, sem ajuste); depois de "Comparar", digitar A = 1,2 **apaga**
+  marcadores vazados, coluna "Comparativo", ΔP e Δy (o `gerar_grafico` os limpa).
+  **Achado, não corrigido, a decidir pelo autor:** editar um valor na **tabela**
+  (testado: P da primeira linha de 156,1 para 400, saindo do campo) **não** refaz o
+  gráfico nem a comparação — o ΔP = 14,19 % e os marcadores continuam os do último
+  "Comparar", calculados com a tabela de antes, até o usuário clicar em "Gerar
+  Gráfico" e em "Comparar" de novo. Ou seja, o erro exibido pode estar defasado em
+  relação à tabela na tela. O texto da ajuda descreve o comportamento atual e manda
+  refazer os dois cliques. Opções, se o autor quiser tratar: (a) ao sair de um campo
+  da tabela, esconder a comparação (mesmo efeito de mexer num parâmetro) — a mais
+  simples e coerente; (b) refazer o gráfico e a comparação automaticamente — muda o
+  gatilho "Gerar Gráfico" manual já decidido; (c) deixar e só documentar. O texto
+  também diz que todos os pontos pesam igual, inclusive os repetidos (a mensagem
+  "calculada em N ponto(s)" conta x₁ distintos). Verificado por captura a 1400 px
+  e a 360 px (o diálogo rola, as seções aparecem); testes passam. Seis tópicos com
+  texto; quatro seguem "Conteúdo em breve.": "Diagrama P-x-y", "ln γ", "Modelos de
+  Gᴱ" e "Limitações".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

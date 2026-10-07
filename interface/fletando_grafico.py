@@ -678,7 +678,66 @@ AJUDA_TOPICOS = [
             "botões de banco, regressão e Desfazer não aparecem."
         ),
     },
-    {"id": "comparar", "titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
+    {
+        "id": "comparar",
+        "titulo": "Comparar calculado e experimental (ΔP e Δy)",
+        # Rascunho do assistente (2026-10-07), a revisar pelo autor. Fatos
+        # conferidos em `calcular_comparativo` e rodando o app: a comparação
+        # SOME ao mudar qualquer parâmetro (gerar_grafico a limpa) e é preciso
+        # clicar de novo; valores de referência vêm das validações NIST.
+        "conteudo": (
+            "A comparação responde à pergunta: o quanto o modelo, com os "
+            "parâmetros de agora, erra os pontos da tabela?\n\n"
+            "# Como usar\n"
+            "O botão \"Comparar\", no card \"Parâmetros do modelo\", só acende "
+            "com pelo menos um ponto válido na tabela (tocar nele apagado "
+            "explica). Vale para todos os modelos, inclusive UNIQUAC e UNIFAC. "
+            "Ao clicar, o app calcula o modelo exatamente nos x₁ da tabela, e não "
+            "na malha de 101 pontos da curva.\n\n"
+            "# Como ler os gráficos\n"
+            "No diagrama P-x-y aparecem marcadores vazados (a coluna "
+            "\"Comparativo\" da legenda): o modelo calculado nos x₁ da tabela, "
+            "com a mesma cor e forma da fase (quadrado: líquido; círculo: vapor). "
+            "A distância entre um marcador cheio (dado da tabela) e o vazado do "
+            "mesmo ponto é o erro. No gráfico de ln γ os círculos vazados mostram "
+            "só onde o modelo foi calculado: não há ln γ experimental para "
+            "comparar.\n\n"
+            "# O que são ΔP e Δy\n"
+            "ΔP é o erro relativo da pressão, em %, em relação à pressão medida. "
+            "Δy é o erro absoluto da fração molar do vapor (sem unidade; 0,02 é "
+            "2 pontos percentuais). Os dois são RMS: tira-se a raiz da média dos "
+            "quadrados dos erros de todos os pontos, o que pesa mais os erros "
+            "grandes que uma média simples. Ficam separados porque cada um mede "
+            "uma coisa — a pressão reflete o desvio da idealidade como um todo; "
+            "a composição do vapor é mais sensível ao erro em cada componente. "
+            "O ΔP é relativo porque a pressão nunca chega perto de zero; o Δy é "
+            "absoluto porque y passa por 0 e 1 nas bordas, onde um erro "
+            "relativo explodiria.\n\n"
+            "# Valores de referência\n"
+            "Nos exemplos NIST do app: modelos do banco de dados sem nenhum ajuste "
+            "no etanol/água, ΔP entre 0,5 e 2,3 % e Δy entre 0,017 e 0,030; "
+            "modelos ajustados por regressão de Barker, ΔP de 1 a 2 % e Δy de "
+            "0,008 a 0,025. É a ordem de grandeza de um bom ajuste com dado "
+            "confiável, não um critério de aprovação: o dado também tem erro.\n\n"
+            "# Cuidados\n"
+            "A comparação some quando o gráfico é refeito: ao mexer em qualquer "
+            "parâmetro, trocar de modelo, mudar o sistema, importar dados ou "
+            "clicar em \"Gerar Gráfico\", os marcadores vazados, o ΔP e o Δy "
+            "desaparecem e é preciso clicar em \"Comparar\" de novo. Isso evita "
+            "mostrar um erro que já não vale.\n\n"
+            "Editar um valor na tabela, porém, não refaz o gráfico: o ΔP e o Δy "
+            "na tela continuam sendo os do último clique em \"Comparar\", feitos "
+            "com a tabela de antes. Depois de editar, clique em \"Gerar "
+            "Gráfico\" e em \"Comparar\".\n\n"
+            "Um ΔP de dezenas de % quase sempre indica entrada errada, e não "
+            "modelo ruim: confira se P está em kPa, se a temperatura é a dos "
+            "dados e se os componentes estão na ordem certa (x₁ e y₁ são do "
+            "Componente 1).\n\n"
+            "Todos os pontos pesam igual, inclusive os repetidos. A mensagem "
+            "\"calculada em N ponto(s) da tabela\" conta composições x₁ "
+            "distintas, e o erro usa todos os pontos válidos."
+        ),
+    },
     {"id": "pxy", "titulo": "Diagrama P-x-y", "conteudo": None},
     {"id": "gamma", "titulo": "Coeficientes de atividade (ln γ)", "conteudo": None},
     {"id": "modelos", "titulo": "Modelos de Gᴱ e quando usar cada um", "conteudo": None},
