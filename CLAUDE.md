@@ -143,7 +143,11 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   CSV; roda com `PYTHONPATH=. .venv/bin/python testes/<arquivo>.py`) e
   `teste_validacao_nist_etanol_agua.py` (2026-10-06 — modelos do banco e
   regressão de Barker contra dado experimental com fonte citável, NIST
-  ThermoML/Cristino 2013; sai com código 1 se algo fugir da tolerância).
+  ThermoML/Cristino 2013; sai com código 1 se algo fugir da tolerância) e
+  `teste_validacao_azeotropos_nist.py` (2026-10-07 — regressão de Barker e
+  azeótropo contra dois sistemas com fonte citável: metanol/2,3-dimetil-2-buteno,
+  azeótropo de pressão máxima, e clorofórmio/2-butanona, desvio negativo e
+  azeótropo de pressão mínima; mesmo padrão de saída/código 1).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -154,7 +158,10 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   em "Próximos passos"), e `nist_thermoml_cristino2013_etanol_agua_isotermas.csv`
   (2026-10-06 — dado experimental etanol/água, T-P-x-y, com fonte citada no
   cabeçalho; usado pelo teste de validação e, desde 2026-10-07, pelos dois
-  exemplos do botão "Importar dados").
+  exemplos do botão "Importar dados"), e, desde 2026-10-07, mais dois CSVs
+  NIST/ThermoML só como fixtures de teste (não aparecem na UI):
+  `nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv` e
+  `nist_thermoml_clara2006_cloroformio_mek_303K.csv`.
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
   gerenciado com `uv`.
 
@@ -2186,11 +2193,47 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   de Barker** (botão "Calcular por Regressão") se aplica — é o caso de uso
   original da regressão (par sem banco); o metanol/olefina é menos conhecido
   pelos alunos que etanol/água; os dados são do TRC/NIST, não avaliados
-  criticamente. CSVs-rascunho fora do repositório. **Nada foi incorporado
-  ao repositório nem à UI; aguarda decisão do autor** (propor: fixtures de
-  teste + exemplos "Metanol/2,3-dimetil-2-buteno, 70 °C" e "Clorofórmio/
-  2-butanona, 30 °C", com componentes e T preenchidos, e decidir se os de
-  etanol/água a 90–108 °C permanecem).
+  criticamente.
+  **Decisão do autor, 2026-10-07: "Opção 3, incorpore os dois pares como
+  fixtures de teste."** Ficou **só como fixtures de teste**: os exemplos da
+  UI não mudaram (continuam os dois de etanol/água; "Metanol/2,3-dimetil-2-buteno"
+  e "Clorofórmio/2-butanona" como exemplos de tela **não** foram pedidos e não
+  foram feitos). **Feito:** (1) `referencias/nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv`
+  (Feng, Dong e Li, *Fluid Phase Equilib.* 309 (2011) 201-205,
+  doi:10.1016/j.fluid.2011.07.014; 4 isotermas, 85 pontos) e
+  `referencias/nist_thermoml_clara2006_cloroformio_mek_303K.csv` (Clara,
+  Marigliano e Solimo, *J. Chem. Eng. Data* 51 (2006) 1473-1478,
+  doi:10.1021/je060150a; 22 pontos), com fonte e ressalvas no cabeçalho;
+  componente 1 = metanol / clorofórmio. (2) `testes/teste_validacao_azeotropos_nist.py`
+  (sai com código 1 se algo fugir): P dos puros contra a Psat do `thermo`;
+  azeótropo presente no dado e do tipo esperado; regressão de Barker
+  (Margules 2P, Van Laar, Wilson, NRTL com α₁₂ = 0,3) convergindo sem parâmetro
+  no limite, com ΔP/Δy pequenos; azeótropo do modelo ajustado do tipo certo e
+  perto do experimental; Van Laar com A₁₂, A₂₁ < 0 no desvio negativo.
+  **Medido** (tolerâncias fixadas depois de medir, nada do motor foi ajustado):
+  metanol/dimetilbuteno — ΔP 1,0–2,0 %, Δy 0,011–0,025, azeótropo do modelo a
+  ≤ 0,015 do experimental em x₁; clorofórmio/MEK — ΔP 1,5–1,6 %, Δy 0,008–0,009,
+  Van Laar A₁₂ = −0,970, A₂₁ = −1,329, mas azeótropo do modelo em x₁ ≈ 0,14–0,15
+  contra 0,191 do dado (diferença de ~0,05: a região é quase plana, o modelo
+  acerta existência e tipo, não a composição com precisão). **Achados de
+  honestidade:** (a) no clorofórmio/MEK o P medido da 2-butanona pura (15,74 kPa)
+  fica 3,2 % acima da Psat do `thermo` (15,25 kPa); tolerância do teste nesse
+  sistema é 4 % por isso; (b) no metanol/dimetilbuteno a 363,15 K há um ponto
+  medido exatamente sobre o azeótropo (x = y = 0,612), tratado no teste;
+  (c) a regressão do Van Laar emite um `RuntimeWarning: overflow in exp`
+  durante os passos de tentativa do otimizador no metanol/dimetilbuteno a
+  70 °C — não afeta o resultado final (o mesmo dos demais modelos), mas fica
+  aparecendo na saída do teste. Nenhum dos dois pares tem parâmetros no IPDB
+  nem grupos UNIFAC na tabela do app, então só a regressão de Barker é
+  testada; UNIQUAC e os modelos do banco não se aplicam. Suíte inteira passa.
+  **Sobre o 1,4-dioxano/metanol (2026-10-07):** o autor informou que o par veio
+  **de um exercício do professor, sem fonte conhecida**. A busca no ThermoML
+  (159 artigos com os dois termos) não achou dado binário de equilíbrio
+  líquido-vapor desse par; o dioxano/metanol segue sem dado experimental com
+  fonte no repositório — usado só como teste de mecânica do motor (parâmetros
+  do IPDB e dados sintéticos). A frase "já testado contra dados de literatura"
+  do mapeamento (seção 2, 308,5 K) **não foi alterada** (decisão do autor
+  pendente).
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado

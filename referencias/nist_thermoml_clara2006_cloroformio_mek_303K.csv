@@ -1,0 +1,28 @@
+# Clara, R. A.; Marigliano, A. C. G.; Solimo, H. N. "Density, Viscosity, Vapor-Liquid Equilibrium, Excess Molar Volume, Viscosity Deviation,
+# and Their Correlations for the Chloroform + 2-Butanone Binary System". J. Chem. Eng. Data 51 (2006) 1473-1478, doi:10.1021/je060150a
+# (T, P, x, y; 1 isoterma, 22 pontos). Obtido do NIST/TRC ThermoML Archive (doi:10.18434/mds2-2422; Riccardi et al., J. Comput. Chem. 43, 879, 2022), dados publicos.
+# Extraidos pelo TRC, NAO avaliados criticamente. x e y = fracao molar do CLOROFORMIO (componente 1 no app); componente 2 = 2-butanona (MEK).
+# Desvio negativo da idealidade; azeotropo de pressao minima (maximo ponto de ebulicao) em x1 ~ 0,19-0,20. T nominal em K; P em kPa.
+T_K,P_kPa,x_cloroformio,y_cloroformio
+303.15,15.74,0,0
+303.15,15.59,0.074,0.063
+303.15,15.47,0.142,0.119
+303.15,15.35,0.252,0.281
+303.15,15.33,0.252,0.274
+303.15,15.89,0.363,0.443
+303.15,16.13,0.377,0.469
+303.15,16.69,0.444,0.573
+303.15,17.17,0.474,0.617
+303.15,17.69,0.507,0.673
+303.15,18.75,0.56,0.747
+303.15,19.26,0.571,0.751
+303.15,19.86,0.602,0.799
+303.15,20.41,0.63,0.823
+303.15,20.58,0.631,0.83
+303.15,21.74,0.678,0.868
+303.15,23.37,0.732,0.905
+303.15,24.66,0.757,0.929
+303.15,27.26,0.823,0.958
+303.15,29.22,0.88,0.976
+303.15,30,0.913,0.984
+303.15,32.19,1,1
