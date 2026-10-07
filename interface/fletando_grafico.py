@@ -600,7 +600,81 @@ AJUDA_TOPICOS = [
             "banco ou a regressão para o novo sistema."
         ),
     },
-    {"id": "parametros", "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão", "conteudo": None},
+    {
+        "id": "parametros",
+        "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão",
+        # Rascunho do assistente (2026-10-07), a revisar pelo autor. Fatos
+        # conferidos nas fórmulas de gemini.py (A₁₂/A₂₁ = ln γ à diluição
+        # infinita; Λ = 1 e τ = 0 dão solução ideal), nos limites da regressão
+        # (REGRESSAO_MODELOS), nas mensagens de erro reais e num teste com
+        # dados sem relação com o par (resíduo ≈ 0,4 e parâmetro no limite).
+        "conteudo": (
+            "Este card controla os números que dão forma à curva do modelo. "
+            "O selo ao lado do título diz de onde veio o valor atual.\n\n"
+            "# O que cada parâmetro é\n"
+            "Margules 1-P: um só parâmetro, A. Com A = 0 a solução é ideal; "
+            "A > 0 dá desvio positivo da idealidade (γ > 1) e A < 0, desvio "
+            "negativo (γ < 1).\n\n"
+            "Margules 2-P e Van Laar: A₁₂ e A₂₁ são os valores de ln γ₁ e "
+            "ln γ₂ à diluição infinita (quando x₁ tende a 0 e quando x₂ tende a "
+            "0).\n\n"
+            "Wilson: Λ₁₂ e Λ₂₁, sempre maiores que zero; com os dois iguais a 1 "
+            "a solução é ideal.\n\n"
+            "NRTL: τ₁₂, τ₂₁ e α₁₂; com τ₁₂ = τ₂₁ = 0 a solução é ideal. O α₁₂ "
+            "não é ajustado pela regressão (fica fixo, 0,3 de início). O "
+            "tópico \"Modelos de Gᴱ\" diz quando usar cada um.\n\n"
+            "# Mudar o valor à mão\n"
+            "Arraste o slider: o campo ao lado acompanha e o gráfico é "
+            "redesenhado quando você solta. Ou digite no campo e confirme com "
+            "Enter ou saindo do campo (a vírgula decimal vale). Valor que não "
+            "é número volta ao anterior com um aviso vermelho; Λ₁₂ e Λ₂₁ têm "
+            "de ser maiores que zero.\n\n"
+            "A faixa do slider é só um recorte para explorar: A, A₁₂, A₂₁, τ₁₂ e "
+            "τ₂₁ vão de −3 a 3; Λ, de 0,01 a 3; α₁₂, de 0,2 a 0,47. Um valor "
+            "digitado, vindo do banco ou da regressão pode ficar fora dela: o "
+            "botão do slider vai para a ponta, mas o cálculo usa o valor real.\n\n"
+            "# O selo de origem\n"
+            "Fornecido: valor inicial do app, ou arrastado ou digitado por você. "
+            "Banco de dados: veio do botão \"Buscar do Banco\" (ou é o UNIQUAC, "
+            "que sempre usa o banco). Calculado: veio da regressão. Calculado "
+            "(poucos pontos): regressão com o número mínimo de pontos, confiança "
+            "baixa. Preditivo: UNIFAC, sem parâmetro por par. Banco, r/q via "
+            "UNIFAC: UNIQUAC cujos r/q não estavam no banco. Toque no ⓘ para ver "
+            "o detalhe (tabela do banco usada, número de pontos e resíduo da "
+            "regressão).\n\n"
+            "Mexer à mão em qualquer parâmetro (menos o α₁₂), ou trocar "
+            "componentes ou temperatura, devolve o selo a \"Fornecido\".\n\n"
+            "# Buscar do Banco (IPDB)\n"
+            "Só existe para NRTL e Wilson: Margules e Van Laar não têm tabela no "
+            "banco. Usa os componentes e a temperatura do card \"Sistema\" e "
+            "preenche todos os parâmetros do modelo (no NRTL, inclusive o α₁₂ "
+            "do banco). Se o par não está na tabela, aparece \"Busca no banco "
+            "não realizada\" com o motivo — é o caso de metanol/"
+            "dimetilbuteno e clorofórmio/MEK dos exemplos.\n\n"
+            "# Calcular por Regressão (Barker)\n"
+            "Ajusta os parâmetros aos pontos da tabela, comparando a pressão e "
+            "a composição do vapor calculadas com as medidas. Serve para pares "
+            "sem parâmetros no banco. Só acende com pontos válidos suficientes: "
+            "2 para Margules 1-P e 3 para os demais; tocar no botão apagado "
+            "explica. Não existe para UNIQUAC e UNIFAC. Usa a temperatura do "
+            "card \"Sistema\", que deve ser a dos dados.\n\n"
+            "O resíduo RMS, no ⓘ do selo, resume o ajuste (ΔP relativo e Δy "
+            "juntos, sem unidade). Nos exemplos NIST ele ficou entre 0,007 e "
+            "0,023. Num teste com dados sem relação com o par saiu cerca de "
+            "0,4, com o parâmetro encostado no limite da busca (±5 no Margules, "
+            "Van Laar e NRTL; 0,0001 a 10 no Wilson). O app não classifica o "
+            "ajuste como bom ou ruim: confira com \"Comparar\" e desconfie de "
+            "parâmetro no limite.\n\n"
+            "# Desfazer\n"
+            "Volta ao estado anterior de valores e selo. Guarda até 5 estados, "
+            "e só os de \"Buscar do Banco\" e da regressão — arrastar ou "
+            "digitar não entra no histórico. Trocar de modelo apaga o "
+            "histórico.\n\n"
+            "# UNIQUAC e UNIFAC\n"
+            "Não têm slider: os parâmetros saem sozinhos dos componentes, e os "
+            "botões de banco, regressão e Desfazer não aparecem."
+        ),
+    },
     {"id": "comparar", "titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
     {"id": "pxy", "titulo": "Diagrama P-x-y", "conteudo": None},
     {"id": "gamma", "titulo": "Coeficientes de atividade (ln γ)", "conteudo": None},

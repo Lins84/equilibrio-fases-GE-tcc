@@ -2835,6 +2835,42 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   tópico "Sistema" foi atualizado para descrever o novo comportamento; os testes
   passam.
 
+- **(2026-10-07) Escolhas confirmadas; conteúdo do tópico "Parâmetros do modelo"
+  (rascunho).** O autor respondeu "Confirmo as escolhas, siga para o próximo
+  tópico": passam a valer como decisões do projeto as escolhas do assistente que
+  estavam "a confirmar" nas entradas recentes — selo voltando a "Fornecido" ao
+  mudar o sistema (em vez de um selo novo), aviso de temperatura crítica **sem
+  bloquear** o gráfico, um "?" por exemplo com "O que funciona" e a seção
+  "Cosmético", ordem e lista dos 9 tópicos de ajuda, cor laranja dos avisos. O
+  próximo tópico da ordem é **"Parâmetros do modelo"**, o mais longo. Redação **do
+  assistente, a revisar pelo autor**. Seções (subtítulos `# `): **o que cada
+  parâmetro é** (A: ln γ₁ = A·x₂², ln γ₂ = A·x₁²; em Margules 2-P e Van Laar,
+  A₁₂ e A₂₁ são ln γ à diluição infinita; Λ = 1 e τ = 0 dão solução ideal);
+  **mudar o valor à mão** (slider redesenha ao soltar; campo confirma com Enter ou
+  ao sair; faixas dos sliders; valor fora da faixa vale no cálculo); **o selo de
+  origem** (os seis selos); **Buscar do Banco** (só NRTL/Wilson; mensagem
+  "Busca no banco não realizada" para pares sem tabela, como os dois exemplos
+  NIST sem banco); **Calcular por Regressão (Barker)** (mínimos de pontos, T do
+  card "Sistema", α₁₂ do NRTL fixo, resíduo RMS no ⓘ); **Desfazer** (até 5
+  estados, só banco e regressão); **UNIQUAC e UNIFAC**. **Fatos conferidos antes
+  de escrever:** fórmulas de `gemini.py`; limites da regressão (±5 em Margules, Van
+  Laar e NRTL; 1e-4 a 10 no Wilson); mensagens reais de erro (regressão com 1
+  ponto, Van Laar no banco, par sem NRTL); α₁₂ não muda o selo ao ser movido; e um
+  teste com 10 pontos sem relação com o par (etanol/água a 70 °C), em que a
+  regressão "converge" (`sucesso=True`) com resíduo RMS ≈ 0,43–0,45 e parâmetro
+  **colado no limite** (Van Laar A₂₁ = −5; Wilson Λ₁₂ = 0,0001).
+  **Achado a decidir pelo autor, não corrigido:** a UI **não lê** `sucesso` nem
+  olha o resíduo ou o limite: depois de uma regressão sem sentido o selo diz
+  "Calculado" normalmente, e só o ⓘ traz o resíduo, sem dizer se é alto. Referência
+  medida: resíduo 0,007–0,023 nos exemplos NIST × ≈ 0,4 em dados sem relação. O
+  texto da ajuda manda conferir com "Comparar" e desconfiar de parâmetro no
+  limite. Opções, se o autor quiser tratar: (a) aviso laranja quando o parâmetro
+  ficar a menos de 1 % do limite da busca ou `sucesso` for falso; (b) aviso quando
+  o resíduo passar de um limiar (a calibrar com mais dados reais); (c) deixar como
+  está e só documentar. Verificado por captura a 1400 px (o diálogo rola, as
+  seções aparecem) e a 360 px; testes passam. Quatro tópicos com texto; cinco
+  seguem "Conteúdo em breve.".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
