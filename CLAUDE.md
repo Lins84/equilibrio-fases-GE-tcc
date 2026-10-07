@@ -150,6 +150,7 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   azeótropo contra dois sistemas com fonte citável: metanol/2,3-dimetil-2-buteno,
   azeótropo de pressão máxima, e clorofórmio/2-butanona, desvio negativo e
   azeótropo de pressão mínima; mesmo padrão de saída/código 1) e
+  `teste_temperatura_critica.py` (2026-10-07 — o motor devolve `Tc_C` e o aviso de T na crítica dispara só quando deve) e
   `teste_xml_chemsep.py` (2026-10-07 — alerta de atualização do XML interno do
   ChemSep que o UNIQUAC usa: falha com código 1 se a versão do `chemicals` ou o
   XML — nome e conteúdo — diferirem dos validados, e confere que o alerta de
@@ -253,8 +254,8 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (10
-  scripts em `testes/`, 9 automatizados; o `teste_dioxano_nrtl.py` é visual e
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (11
+  scripts em `testes/`, 10 automatizados; o `teste_dioxano_nrtl.py` é visual e
   manual). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
   ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
@@ -2803,6 +2804,36 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   quando T passar da menor Tc dos dois componentes. Verificado por captura a
   1400 px e a 360 px (o diálogo rola); testes passam. Três tópicos com texto;
   seis seguem "Conteúdo em breve.".
+
+- **(2026-10-07) Correções dos dois achados do tópico "Sistema".** Pedido do
+  autor: "faça as correções". **(1) Selo de origem ao mudar o sistema:** o app
+  guarda o sistema (Componente 1, Componente 2 e T) em que o selo foi definido
+  (`sistema_do_selo`); a cada `gerar_grafico`, se o selo é "Banco de dados",
+  "Calculado" ou "Calculado (poucos pontos)" e o sistema mudou, o selo volta a
+  **"Fornecido"** e o ⓘ diz de que origem e de que sistema vieram os valores
+  ("… para o sistema anterior (ethanol/water a 70 °C) e não foram recalculados
+  para o sistema atual. Refaça a busca no banco ou a regressão."). Os valores e
+  os sliders **não** mudam (só o selo, que passa a dizer a verdade). Vale só para
+  os modelos com slider (UNIQUAC/UNIFAC recalculam a cada gráfico). O histórico
+  do "Desfazer" guarda o sistema de cada estado, então desfazer para um estado
+  de outro sistema também cai em "Fornecido". **Escolha do assistente, a
+  confirmar:** "Fornecido" em vez de um selo novo ("Desatualizado") — reaproveita
+  os selos que existem. **(2) Aviso de temperatura crítica:** `calculate_vle_
+  isothermal` passou a devolver `Tc_C` (temperatura crítica, em °C, dos dois
+  componentes — chave nova, sem alterar as demais) e, na UI,
+  `aviso_temperatura_critica` mostra um texto laranja na mensagem do card "Dados
+  experimentais" quando T chega à crítica de algum componente, dizendo qual
+  (ex.: etanol/água a 300 °C: "ethanol: 241,6 °C"). **Só avisa; o cálculo
+  continua e o gráfico aparece** (escolha do assistente, a confirmar: bloquear o
+  gráfico seria decisão mais forte). O limiar é a própria crítica, sem folga
+  (perto dela o vapor ideal já é ruim, mas isso é gradual e o aviso do tópico
+  "Limitações" fica para o texto). Novo `testes/teste_temperatura_critica.py`
+  (Tc do etanol e da água; sem aviso a 70 °C; só o etanol a 300 °C; os dois a
+  400 °C; Tc ausente não dá erro). Verificado por captura a 1400 px: aviso a
+  300 °C; NRTL + "Buscar do Banco" ("Banco de dados") e, ao mudar T para 90 °C,
+  selo "Fornecido" com o ⓘ correto; "Desfazer" continua funcionando. O texto do
+  tópico "Sistema" foi atualizado para descrever o novo comportamento; os testes
+  passam.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

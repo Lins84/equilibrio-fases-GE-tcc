@@ -551,9 +551,9 @@ AJUDA_TOPICOS = [
         "id": "sistema",
         "titulo": "Sistema: componentes, temperatura e modelo Gᴱ",
         # Rascunho do assistente (2026-10-07), a revisar pelo autor. Fatos
-        # conferidos rodando o motor: nomes aceitos pelo thermo, T acima da
-        # crítica sem aviso, mensagens de erro e o que NÃO é reiniciado ao
-        # trocar componentes/temperatura.
+        # conferidos rodando o motor: nomes aceitos pelo thermo, aviso de T na
+        # crítica, mensagens de erro e o que NÃO é reiniciado ao trocar
+        # componentes/temperatura (parâmetros e tabela; o selo volta a Fornecido).
         "conteudo": (
             "Este card define o sistema binário que o app calcula. Os gráficos "
             "são refeitos quando você sai de um campo ou aperta Enter; no "
@@ -576,10 +576,11 @@ AJUDA_TOPICOS = [
             "ser a mesma em que os dados da tabela foram medidos, senão a "
             "comparação não vale. Os exemplos já preenchem a temperatura certa.\n\n"
             "Mantenha a temperatura abaixo da temperatura crítica dos dois "
-            "componentes (etanol 241,6 °C; água 373,9 °C). Acima dela a pressão "
-            "de vapor deixa de ter sentido e o app não avisa: etanol/água a "
-            "300 °C dá pressões de milhares a dezenas de milhares de kPa, acima "
-            "da pressão crítica do etanol (6268 kPa).\n\n"
+            "componentes (etanol 241,6 °C; água 373,9 °C). Na crítica ou acima "
+            "dela a pressão de vapor deixa de ter sentido: etanol/água a 300 °C "
+            "daria pressões acima da pressão crítica do etanol (6268 kPa). O app "
+            "ainda calcula, mas mostra um aviso laranja no card \"Dados "
+            "experimentais\" dizendo qual componente passou da crítica.\n\n"
             "# Modelo Gᴱ\n"
             "Margules 1-P, Margules 2-P, Van Laar, Wilson e NRTL têm parâmetros "
             "que você ajusta no card \"Parâmetros do modelo\". UNIQUAC e UNIFAC "
@@ -594,9 +595,9 @@ AJUDA_TOPICOS = [
             "# Ao trocar componentes ou temperatura\n"
             "Os valores dos parâmetros e os pontos da tabela ficam como "
             "estavam. Se os parâmetros vieram do banco ou da regressão para o "
-            "sistema anterior, o selo de origem continua dizendo \"Banco de "
-            "dados\" ou \"Calculado\" — refaça a busca ou a regressão para o "
-            "novo sistema."
+            "sistema anterior, o selo de origem volta a \"Fornecido\" e o ⓘ "
+            "explica que os valores são do sistema anterior — refaça a busca no "
+            "banco ou a regressão para o novo sistema."
         ),
     },
     {"id": "parametros", "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão", "conteudo": None},
@@ -621,6 +622,25 @@ def carregar_exemplo_nist(exemplo: dict) -> list[tuple[float, float, float]]:
                     float(linha["y_" + exemplo["coluna"]]),
                 ))
     return sorted(pontos, key=lambda p: p[1])
+
+
+def aviso_temperatura_critica(comp1, comp2, T_C, tcs_C):
+    """Texto de aviso se T_C chega à temperatura crítica de algum componente
+    (`tcs_C` = [Tc1, Tc2] em °C, como devolve `calculate_vle_isothermal`), ou
+    None. Acima da crítica a pressão de vapor extrapolada não tem sentido físico
+    e o cálculo não dá erro — o autor pediu o aviso em 2026-10-07."""
+    acima = [
+        (nome, tc) for nome, tc in zip((comp1, comp2), tcs_C)
+        if tc is not None and T_C >= tc
+    ]
+    if not acima:
+        return None
+    detalhe = "; ".join(f"{nome}: {tc:.1f} °C".replace(".", ",") for nome, tc in acima)
+    return (
+        f"Atenção: a temperatura ({T_C:g} °C) está na ou acima da temperatura "
+        f"crítica de um componente ({detalhe}). Nesse caso a pressão de vapor "
+        "não tem sentido físico e o diagrama não é confiável."
+    )
 
 
 # Escala de espaçamento única para o app inteiro (2026-09-28, passada de
@@ -1850,6 +1870,8 @@ def main(page: ft.Page):
             valores_P += [p for _, p in liquido] + [p for _, p in vapor]
 
         erro_modelo = None
+        aviso_critica = None
+        revalidar_selo_ao_mudar_sistema()
         try:
             nome_modelo = modelo_selecionado["nome"]
             comp1 = campo_componente1.value.strip()
@@ -1893,6 +1915,9 @@ def main(page: ft.Page):
             ))
             valores_gamma += ln_gamma1 + ln_gamma2
             modelo_ok = True
+            aviso_critica = aviso_temperatura_critica(
+                comp1, comp2, T_C, resultado.get("Tc_C", [])
+            )
         except Exception as exc:
             erro_modelo = str(exc)
 
@@ -1955,6 +1980,8 @@ def main(page: ft.Page):
             mensagens.append(f"{linhas_ignoradas} linha(s) da tabela ignorada(s) por dado inválido.")
         if erro_modelo:
             mensagens.append(f"Curva do modelo não calculada: {erro_modelo}.")
+        if aviso_critica:
+            mensagens.append(aviso_critica)
         mensagem_status.value = " ".join(mensagens)
         mensagem_status.color = "#9A3B00" if mensagens else ""
 
@@ -2255,7 +2282,20 @@ def main(page: ft.Page):
         visible=False,
     )
 
+    def chave_sistema():
+        # Componentes (texto) e temperatura (número, para "70" == "70.0").
+        try:
+            T = float(campo_temperatura.value)
+        except (TypeError, ValueError):
+            T = (campo_temperatura.value or "").strip()
+        return (campo_componente1.value.strip(), campo_componente2.value.strip(), T)
+
+    # Sistema (componentes e T) em que o selo atual foi definido (2026-10-07):
+    # valores de banco/regressão valem só para aquele sistema.
+    sistema_do_selo = {"chave": None}
+
     def atualizar_selo_origem(tipo, detalhe):
+        sistema_do_selo["chave"] = chave_sistema()
         bg, fg, rotulo = ORIGENS_SELO[tipo]
         chip_selo_origem.bgcolor = bg
         texto_selo_origem.value = rotulo
@@ -2263,6 +2303,29 @@ def main(page: ft.Page):
         detalhe_selo_origem["tipo"] = tipo
         detalhe_selo_origem["texto"] = detalhe
         selo_origem.visible = True
+
+    def revalidar_selo_ao_mudar_sistema():
+        # Trocar componentes ou temperatura não recalcula os parâmetros. Se o
+        # selo diz "Banco de dados"/"Calculado" para o sistema anterior, o
+        # valor deixou de ter essa origem para o sistema atual: o selo volta a
+        # "Fornecido" e o ⓘ explica (autor, 2026-10-07). Só modelos com slider;
+        # UNIQUAC/UNIFAC recalculam a cada gráfico.
+        if modelo_selecionado["nome"] not in PARAM_SLIDERS:
+            return
+        if detalhe_selo_origem["tipo"] not in ("banco", "calculado", "calculado_poucos_pontos"):
+            return
+        anterior = sistema_do_selo["chave"]
+        if anterior is None or anterior == chave_sistema():
+            return
+        rotulo = ORIGENS_SELO[detalhe_selo_origem["tipo"]][2]
+        c1, c2, T = anterior
+        sufixo = f" a {T:g} °C" if isinstance(T, float) else ""
+        atualizar_selo_origem(
+            "fornecido",
+            f"Estes valores vieram de \"{rotulo}\" para o sistema anterior "
+            f"({c1}/{c2}{sufixo}) e não foram recalculados para o sistema "
+            "atual. Refaça a busca no banco ou a regressão.",
+        )
 
     def atualizar_selo_uniquac(comp1, comp2):
         """Selo do UNIQUAC dizendo de onde vieram os r/q do par atual (2026-10-06,
@@ -2307,6 +2370,7 @@ def main(page: ft.Page):
             "parametros": dict(parametros_atuais),
             "tipo_origem": detalhe_selo_origem["tipo"],
             "detalhe_origem": detalhe_selo_origem["texto"],
+            "sistema": sistema_do_selo["chave"],
         })
         del historico_parametros[:-MAX_HISTORICO_PARAMETROS]
         botao_desfazer.disabled = False
@@ -2324,6 +2388,9 @@ def main(page: ft.Page):
             parametros_atuais[chave] = valor
         if estado["tipo_origem"] is not None:
             atualizar_selo_origem(estado["tipo_origem"], estado["detalhe_origem"])
+            # O selo restaurado vale para o sistema em que foi definido; se o
+            # sistema atual for outro, gerar_grafico o volta a "Fornecido".
+            sistema_do_selo["chave"] = estado["sistema"]
         botao_desfazer.disabled = not historico_parametros
         gerar_grafico(mensagem_extra="Última alteração de parâmetros desfeita.")
 

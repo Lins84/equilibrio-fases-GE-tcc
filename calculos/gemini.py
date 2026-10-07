@@ -694,6 +694,14 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
         'y1': [float(y) for y in y1_list],
         'gamma1': [float(g) for g in gamma1_list],
         'gamma2': [float(g) for g in gamma2_list],
+        # Temperaturas críticas (°C) dos dois componentes (None se o thermo não
+        # tiver o dado). Acima da crítica de um componente a pressão de vapor
+        # deixa de ter sentido e o cálculo não acusa erro — a UI usa isto para
+        # avisar (2026-10-07).
+        'Tc_C': [
+            None if c.Tc is None else float(c.Tc) - 273.15
+            for c in (comp1, comp2)
+        ],
     }
 
 
