@@ -660,11 +660,14 @@ AJUDA_TOPICOS = [
             "card \"Sistema\", que deve ser a dos dados.\n\n"
             "O resíduo RMS, no ⓘ do selo, resume o ajuste (ΔP relativo e Δy "
             "juntos, sem unidade). Nos exemplos NIST ele ficou entre 0,007 e "
-            "0,023. Num teste com dados sem relação com o par saiu cerca de "
-            "0,4, com o parâmetro encostado no limite da busca (±5 no Margules, "
-            "Van Laar e NRTL; 0,0001 a 10 no Wilson). O app não classifica o "
-            "ajuste como bom ou ruim: confira com \"Comparar\" e desconfie de "
-            "parâmetro no limite.\n\n"
+            "0,023; num teste com dados sem relação com o par saiu cerca de 0,4.\n\n"
+            "O app mostra um aviso laranja neste card quando o parâmetro termina "
+            "a menos de 1 % de um limite da busca (±5 no Margules, Van Laar e "
+            "NRTL; 0,0001 e 10 no Wilson) ou quando o otimizador não converge: "
+            "quase sempre é sinal de que o modelo não descreve os dados ou de "
+            "que há erro de digitação. O aviso não cobre tudo — um resíduo alto "
+            "com os parâmetros dentro dos limites passa sem aviso. Confira "
+            "sempre com \"Comparar\".\n\n"
             "# Desfazer\n"
             "Volta ao estado anterior de valores e selo. Guarda até 5 estados, "
             "e só os de \"Buscar do Banco\" e da regressão — arrastar ou "
@@ -747,6 +750,32 @@ def carregar_exemplo_nist(exemplo: dict) -> list[tuple[float, float, float]]:
                     float(linha["y_" + exemplo["coluna"]]),
                 ))
     return sorted(pontos, key=lambda p: p[1])
+
+
+def aviso_ajuste_regressao(resultado, rotulos_por_chave):
+    """Texto de aviso laranja se a regressão de Barker terminou suspeita, ou
+    None: parâmetro a menos de 1 % de um limite da busca (`no_limite`) ou
+    otimizador que não convergiu (`sucesso` falso). `rotulos_por_chave` mapeia a
+    chave do parâmetro a uma tupla cujo último item é o rótulo exibido (como
+    `sliders_por_chave`). Pedido do autor em 2026-10-07 (opção (a)); o resíduo
+    alto sem parâmetro no limite não é coberto."""
+    problemas = []
+    if resultado.get("no_limite"):
+        itens = ", ".join(
+            f"{rotulos_por_chave[p['chave']][-1] if p['chave'] in rotulos_por_chave else p['chave']}"
+            f" = {formatar_valor(p['valor'])} (limite da busca: {p['limite']:g})"
+            for p in resultado["no_limite"]
+        )
+        problemas.append(f"terminou com parâmetro no limite da busca — {itens}")
+    if resultado.get("sucesso") is False:
+        problemas.append("o otimizador não convergiu")
+    if not problemas:
+        return None
+    return (
+        "Atenção: a regressão " + " e ".join(problemas) + ". O modelo "
+        "provavelmente não descreve estes dados, ou há erro de digitação na "
+        "tabela. Confira com \"Comparar\" antes de usar este ajuste."
+    )
 
 
 def aviso_temperatura_critica(comp1, comp2, T_C, tcs_C):
@@ -2873,12 +2902,14 @@ def main(page: ft.Page):
             " — poucos pontos (grau de liberdade mínimo), confiança baixa"
             if poucos_pontos else ""
         )
+        aviso_ajuste = aviso_ajuste_regressao(resultado, sliders_por_chave)
         atualizar_selo_origem(
             "calculado_poucos_pontos" if poucos_pontos else "calculado",
             f"Regressão de Barker a partir de {resultado['n_pontos']} "
             f"ponto(s) da tabela (grau de liberdade = "
             f"{resultado['graus_liberdade']}), resíduo RMS = "
-            f"{resultado['residual_rms']:.4g}.",
+            f"{resultado['residual_rms']:.4g}."
+            + (f" {aviso_ajuste}" if aviso_ajuste else ""),
         )
         gerar_grafico(
             mensagem_extra=(
@@ -2886,6 +2917,10 @@ def main(page: ft.Page):
                 f"{resultado['n_pontos']} ponto(s) da tabela{aviso_gl}."
             )
         )
+        # Depois do gráfico: `gerar_grafico` reavalia os botões e apagaria a
+        # dica. Aviso laranja dentro do card "Parâmetros do modelo".
+        if aviso_ajuste:
+            mostrar_dica(aviso_ajuste)
 
     botao_regressao = ft.Button(
         content=ft.Row(

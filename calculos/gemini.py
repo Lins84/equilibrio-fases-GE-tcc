@@ -720,6 +720,10 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
 # - UNIQUAC: r1/q1/r2/q2 são estruturais (vêm do banco ChemSep via
 #   uniquac_rq_from_chemsep ou, na falta, dos grupos UNIFAC da molécula via
 #   uniquac_rq_from_groups; não são ajustáveis por regressão).
+# Fração do limite da busca abaixo da qual um parâmetro regredido é dado como
+# "no limite" (ver `no_limite` em regress_params_barker).
+TOLERANCIA_LIMITE_REGRESSAO = 0.01
+
 REGRESSAO_MODELOS = {
     "Margules (1-P)": {
         "livres": ["A"],
@@ -796,6 +800,8 @@ def regress_params_barker(
             'residual_rms': raiz do erro quadrático médio do resíduo
                 combinado (ΔP relativo e Δy absoluto, adimensional),
             'sucesso': bool — se o otimizador convergiu.
+            'no_limite': lista de {'chave', 'valor', 'limite'} dos parâmetros
+                a menos de 1 % de um limite da busca (vazia se nenhum).
         }
 
     Levanta ValueError se o modelo não tiver regressão implementada
@@ -877,11 +883,26 @@ def regress_params_barker(
         **dict(zip(nomes_livres, resultado.x)),
     }
 
+    # Parâmetro encostado num limite da busca: sinal de que o modelo não
+    # descreve os dados (ou há erro de digitação) — o otimizador "converge"
+    # contra a parede. "A menos de 1 % do limite" = |valor − limite| ≤ 1 % de
+    # |limite|, relativo ao próprio limite (para o Wilson, de 1e-4 a 10, uma
+    # fração da faixa marcaria como suspeitos Λ legítimos em torno de 0,1).
+    # Pedido do autor, 2026-10-07 (opção (a)).
+    no_limite = []
+    lim_inf, lim_sup = spec["limites"]
+    for nome, valor, inf, sup in zip(nomes_livres, resultado.x, lim_inf, lim_sup):
+        for limite in (inf, sup):
+            if abs(valor - limite) <= TOLERANCIA_LIMITE_REGRESSAO * abs(limite):
+                no_limite.append({"chave": nome, "valor": float(valor), "limite": float(limite)})
+                break
+
     return {
         "params": params_finais,
         "n_pontos": len(pontos),
         "graus_liberdade": len(pontos) - len(nomes_livres),
         "residual_rms": float(np.sqrt(np.mean(resultado.fun**2))),
         "sucesso": bool(resultado.success),
+        "no_limite": no_limite,
     }
 

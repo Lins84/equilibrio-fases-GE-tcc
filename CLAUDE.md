@@ -150,6 +150,7 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   azeótropo contra dois sistemas com fonte citável: metanol/2,3-dimetil-2-buteno,
   azeótropo de pressão máxima, e clorofórmio/2-butanona, desvio negativo e
   azeótropo de pressão mínima; mesmo padrão de saída/código 1) e
+  `teste_aviso_regressao.py` (2026-10-07 — aviso de regressão suspeita: parâmetro a menos de 1 % de um limite da busca ou otimizador que não converge; sem falso positivo nos 4 exemplos NIST × 5 modelos) e
   `teste_temperatura_critica.py` (2026-10-07 — o motor devolve `Tc_C` e o aviso de T na crítica dispara só quando deve) e
   `teste_xml_chemsep.py` (2026-10-07 — alerta de atualização do XML interno do
   ChemSep que o UNIQUAC usa: falha com código 1 se a versão do `chemicals` ou o
@@ -254,8 +255,8 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (11
-  scripts em `testes/`, 10 automatizados; o `teste_dioxano_nrtl.py` é visual e
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (12
+  scripts em `testes/`, 11 automatizados; o `teste_dioxano_nrtl.py` é visual e
   manual). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
   ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
@@ -2905,6 +2906,37 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   1400 px (sumário com o tópico novo, texto inteiro rolando) e a 360 px (sumário
   rola); testes passam. Cinco tópicos de conteúdo em branco continuam
   "Conteúdo em breve."; o "Sobre" já tem texto (cinco com texto, ao todo).
+
+- **(2026-10-07) Aviso laranja de regressão suspeita — opção (a).** O autor
+  escolheu, entre as três saídas levadas ("vamos de (a)"), o **aviso quando o
+  parâmetro ficar a menos de 1 % do limite, ou quando o otimizador não
+  convergir** — resposta ao achado do tópico "Parâmetros do modelo" (a UI não
+  lia `sucesso` nem olhava os limites). **Implementação:** `regress_params_
+  barker` devolve uma chave nova, `no_limite` (lista de `{chave, valor, limite}`
+  dos parâmetros com |valor − limite| ≤ 1 % de |limite|; constante
+  `TOLERANCIA_LIMITE_REGRESSAO = 0.01`); as demais chaves não mudaram. Na UI,
+  `aviso_ajuste_regressao(resultado, rotulos)` monta o texto ("Atenção: a regressão
+  terminou com parâmetro no limite da busca — A₂₁ = -5.000 (limite da busca: -5).
+  O modelo provavelmente não descreve estes dados, ou há erro de digitação na
+  tabela. Confira com "Comparar" antes de usar este ajuste."; e/ou "o otimizador
+  não convergiu"), que aparece em laranja no card "Parâmetros do modelo"
+  (`mostrar_dica`, depois do `gerar_grafico` — que reavalia os botões e apagaria a
+  dica) e também entra no texto do ⓘ do selo. O selo continua "Calculado": o
+  aviso não o troca. Some ao mexer num parâmetro, trocar de modelo ou reavaliar a
+  tabela (mesmas regras das outras dicas). **Escolha do assistente, a confirmar:**
+  a tolerância é **relativa ao próprio limite** (1 % de |limite|: 0,05 em ±5,
+  0,1 no limite 10, 1e-6 no 1e-4), e não 1 % da faixa — com 1 % da faixa o Wilson
+  (1e-4 a 10) marcaria Λ legítimos de até ≈ 0,1 (o do etanol/água é 0,176).
+  **Medido:** dados sem relação com o par (10 pontos, semente 1): Van Laar A₂₁ =
+  −5 e Wilson Λ₁₂ = 1e-4 marcados; nos 4 exemplos NIST × 5 modelos com slider
+  (e nas 4 isotermas do metanol/dimetilbuteno e 5 do etanol/água) **nenhum falso
+  positivo**, todos com `sucesso`. **O que o aviso não cobre (dito na ajuda):**
+  resíduo alto com parâmetros dentro dos limites — o Margules 1-P nos mesmos dados
+  sem relação deu A = −0,13 e resíduo ≈ 0,45 **sem aviso**; seria a opção (b) (limiar
+  de resíduo, a calibrar), não escolhida. Novo `testes/teste_aviso_regressao.py`.
+  Verificado por captura a 1400 px: dados sem relação (CSV) com Van Laar → aviso
+  laranja e selo "Calculado"; exemplo etanol/água 108 °C com Van Laar → sem aviso.
+  Texto do tópico "Parâmetros do modelo" atualizado; testes passam.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
