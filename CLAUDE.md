@@ -230,7 +230,11 @@ Snapshot; o histórico por sessão vem logo abaixo.
   lista de itens levantados e ainda não atacados está na sessão de
   2026-09-30/10-01. O modo isobárico (T-x-y) está adiado para depois do
   piloto, em "Atualizações futuras". Não há decisão de rumo em aberto
-  neste momento.
+  neste momento. **Pendência de informação (2026-10-07):** origem do dado de
+  1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
+  conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2
+  do mapeamento fica em redação provisória (ver "Decisões de engenharia do
+  aluno", terceira rodada de busca no ThermoML).
 - **Testes** são scripts avulsos rodados à mão, sem runner nem CI (5
   scripts em `testes/`, 4 automatizados). A interface é verificada
   visualmente pelo autor no dispositivo real **e**, desde 2026-09-30,
