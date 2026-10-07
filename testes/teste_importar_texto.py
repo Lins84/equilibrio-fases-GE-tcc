@@ -65,14 +65,21 @@ def teste_csv():
 
 
 def teste_exemplos_nist():
-    esperado = {363.3: 12, 381.4: 26}
+    esperado = {
+        "etanol/água, 90 °C": 12,
+        "etanol/água, 108 °C": 26,
+        "metanol/dimetilbuteno, 70 °C": 22,
+        "clorofórmio/MEK, 30 °C": 22,
+    }
+    assert {ex["rotulo"] for ex in EXEMPLOS_NIST} == set(esperado), "lista de exemplos mudou"
     for ex in EXEMPLOS_NIST:
-        pontos = carregar_exemplo_nist(ex["T_K"])
-        assert len(pontos) == esperado[ex["T_K"]], (ex, len(pontos))
+        pontos = carregar_exemplo_nist(ex)
+        assert len(pontos) == esperado[ex["rotulo"]], (ex["rotulo"], len(pontos))
         assert all(0 <= x <= 1 and 0 <= y <= 1 and P > 0 for P, x, y in pontos)
         assert [p[1] for p in pontos] == sorted(p[1] for p in pontos)
-    assert carregar_exemplo_nist(999.9) == []
-    print("OK: exemplos NIST carregam (12 e 26 pontos), ordenados por x.")
+        assert ex["componente1"] and ex["componente2"] and ex["fonte"] and ex["nota"]
+    assert carregar_exemplo_nist({**EXEMPLOS_NIST[0], "T_K": 999.9}) == []
+    print("OK: exemplos NIST carregam (12, 26, 22 e 22 pontos), ordenados por x.")
 
 
 if __name__ == "__main__":

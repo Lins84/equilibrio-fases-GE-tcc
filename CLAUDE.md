@@ -87,7 +87,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   ajusta os parâmetros livres de um modelo a partir dos pontos (P, x1,
   y1) digitados, por mínimos quadrados não-lineares diretos sobre P e y
   (método de Barker, seção 2.8 do mapeamento — `scipy.optimize`, já
-  instalado indiretamente via `thermo`). Todos os modelos e adaptadores
+  instalado indiretamente via `thermo`); `verificar_xml_chemsep`
+  (2026-10-07), que alerta quando uma atualização do `chemicals` pode ter
+  alterado o XML de r/q do UNIQUAC. Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
 
 **UI — `interface/` (protótipos Flet, em ordem de evolução):**
@@ -147,7 +149,11 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   `teste_validacao_azeotropos_nist.py` (2026-10-07 — regressão de Barker e
   azeótropo contra dois sistemas com fonte citável: metanol/2,3-dimetil-2-buteno,
   azeótropo de pressão máxima, e clorofórmio/2-butanona, desvio negativo e
-  azeótropo de pressão mínima; mesmo padrão de saída/código 1).
+  azeótropo de pressão mínima; mesmo padrão de saída/código 1) e
+  `teste_xml_chemsep.py` (2026-10-07 — alerta de atualização do XML interno do
+  ChemSep que o UNIQUAC usa: falha com código 1 se a versão do `chemicals` ou o
+  XML — nome e conteúdo — diferirem dos validados, e confere que o alerta de
+  execução dispara).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -159,7 +165,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   (2026-10-06 — dado experimental etanol/água, T-P-x-y, com fonte citada no
   cabeçalho; usado pelo teste de validação e, desde 2026-10-07, pelos dois
   exemplos do botão "Importar dados"), e, desde 2026-10-07, mais dois CSVs
-  NIST/ThermoML só como fixtures de teste (não aparecem na UI):
+  NIST/ThermoML, usados como fixtures de teste e também como exemplos do botão
+  "Importar dados":
   `nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv` e
   `nist_thermoml_clara2006_cloroformio_mek_303K.csv`.
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
@@ -229,24 +236,25 @@ Snapshot; o histórico por sessão vem logo abaixo.
 - **UI — integrada.** `fletando_grafico.py` calcula e plota a curva do
   modelo sobre os pontos digitados, com banco IPDB, regressão, selo de
   origem, comparação calculado-vs-experimental (ΔP/Δy no card de
-  parâmetros), importação de dados (arquivo, texto colado e dois exemplos
-  NIST de etanol/água), valor de parâmetro digitável, lupa nos gráficos (só
-  no desktop), estética em andamento e botão para alternar entre layout de
-  celular e de computador.
-- **Pendências.** A estética segue em andamento (escopo: app inteiro): os 9
-  itens levantados em 2026-09-30/10-01 estão todos feitos, e os ajustes
-  seguintes vieram por pedido do autor. O modo isobárico (T-x-y) está
-  adiado para depois do piloto, em "Atualizações futuras". Não há decisão de
-  rumo em aberto neste momento; as escolhas do assistente que estavam
-  marcadas "a confirmar" foram **confirmadas pelo autor em 2026-10-07** (ver
-  "Decisões de engenharia do aluno", última entrada). **Pendência de
-  informação (2026-10-07):** origem do dado de 1,4-dioxano/metanol a 308,5 K,
-  de um exercício do professor sem fonte conhecida — o autor vai perguntar ao
-  professor; até lá a frase da seção 2 do mapeamento fica em redação
-  provisória (ver "Decisões de engenharia do aluno", terceira rodada de busca
-  no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (9
-  scripts em `testes/`, 8 automatizados; o `teste_dioxano_nrtl.py` é visual e
+  parâmetros), importação de dados (arquivo, texto colado e quatro exemplos
+  NIST: etanol/água a 90 e 108 °C, metanol/2,3-dimetil-2-buteno a 70 °C e
+  clorofórmio/2-butanona a 30 °C), valor de parâmetro digitável, lupa nos gráficos (só
+  no desktop), estética **encerrada** (2026-10-07) e botão para alternar entre
+  layout de celular e de computador.
+- **Pendências.** A fase de estética foi **encerrada pelo autor em
+  2026-10-07**; o tooltip dos gráficos fica como está; a visualização no
+  aparelho real (Termux) foi considerada ok pelo autor. O modo isobárico
+  (T-x-y) está adiado para depois do piloto, em "Atualizações futuras". Não há
+  decisão de rumo em aberto neste momento; as escolhas do assistente que
+  estavam marcadas "a confirmar" foram **confirmadas pelo autor em
+  2026-10-07** (ver "Decisões de engenharia do aluno", últimas entradas).
+  **Pendência de informação (2026-10-07):** origem do dado de
+  1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
+  conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
+  mapeamento fica em redação provisória (ver "Decisões de engenharia do
+  aluno", terceira rodada de busca no ThermoML).
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (10
+  scripts em `testes/`, 9 automatizados; o `teste_dioxano_nrtl.py` é visual e
   manual). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
   ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
@@ -2210,10 +2218,9 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   pelos alunos que etanol/água; os dados são do TRC/NIST, não avaliados
   criticamente.
   **Decisão do autor, 2026-10-07: "Opção 3, incorpore os dois pares como
-  fixtures de teste."** Ficou **só como fixtures de teste**: os exemplos da
-  UI não mudaram (continuam os dois de etanol/água; "Metanol/2,3-dimetil-2-buteno"
-  e "Clorofórmio/2-butanona" como exemplos de tela **não** foram pedidos e não
-  foram feitos). **Feito:** (1) `referencias/nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv`
+  fixtures de teste."** Ficou **só como fixtures de teste** nesse momento
+  (**revisto no mesmo dia: o autor pediu que também fossem exemplos de tela —
+  ver a última entrada desta seção**). **Feito:** (1) `referencias/nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv`
   (Feng, Dong e Li, *Fluid Phase Equilib.* 309 (2011) 201-205,
   doi:10.1016/j.fluid.2011.07.014; 4 isotermas, 85 pontos) e
   `referencias/nist_thermoml_clara2006_cloroformio_mek_303K.csv` (Clara,
@@ -2450,6 +2457,57 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   (420 px no desktop, largura da página − 120 no celular). **Não confirmado
   por essa resposta, segue aberto:** a origem do dado de 1,4-dioxano/metanol
   (depende do professor).
+
+- **(2026-10-07) Fechamento das decisões em aberto: exemplos de tela, estética,
+  tooltip, alerta do XML do UNIQUAC e Termux.** Resposta do autor à lista de
+  pendências: **(1) "quero como exemplos"** — os dois pares novos viram exemplos
+  do botão "Importar dados", além de fixtures de teste; **(2) "estética
+  encerrada"**; **(3) "tooltip assim pode deixar então"** — o balão fica como
+  está (um estilo só, peso e cor herdados da série; letras em negrito com
+  números normais não são possíveis no Flet 1.0.0); **(4) "UNIQUAC emita um
+  alerta sempre que for feita alguma atualização que possa vir a alterar o XML
+  interno"**; **(5) "considere que a visualização no Termux está ok"** — as
+  verificações que as entradas anteriores marcavam como "não conferido no
+  aparelho real" passam a valer como conferidas pelo autor.
+  *(1) Exemplos.* `EXEMPLOS_NIST` (em `fletando_grafico.py`) deixou de ser só
+  etanol/água: cada exemplo traz arquivo, coluna, T, componentes, fonte e nota,
+  e `carregar_exemplo_nist(exemplo)` lê o CSV certo; para acrescentar um
+  exemplo basta uma entrada na lista. Ao carregar, o app preenche componentes e
+  temperatura (`methanol`/`2,3-dimethyl-2-butene` a 70 °C; `chloroform`/
+  `2-butanone` a 30 °C) e a mensagem de status traz a fonte e a nota (azeótropo
+  de pressão máxima em x₁ ≈ 0,58; desvio negativo e azeótropo de pressão mínima
+  em x₁ ≈ 0,19). **Escolhas do assistente, a confirmar:** só a isoterma de
+  70 °C do metanol/dimetilbuteno (a mais baixa das quatro, a mais próxima de
+  temperaturas de aula; 80, 90 e 100 °C seguem só como fixture de teste); os
+  rótulos "metanol/dimetilbuteno, 70 °C" e "clorofórmio/MEK, 30 °C" (abreviados
+  para caber); e, no diálogo, o texto das opções passou a **quebrar linha**
+  (`expand=True`) em vez de transbordar a 360 px, com espaço sem quebra antes de
+  "°C" para não separar o número da unidade. Verificado por captura de tela: a
+  1400 px o diálogo mostra as seis opções e os dois exemplos novos importam
+  (22 pontos cada; componentes e T preenchidos; "Comparar" funciona); a 360 px o
+  texto quebra dentro dos botões. **Achados sem correção (cosméticos):** a
+  mensagem pós-"Comparar" diz "calculada em N ponto(s) da tabela" contando
+  x₁ distintos (21 no clorofórmio/MEK, que tem dois pontos em x₁ = 0,252; o erro
+  ΔP/Δy usa os 22); e o campo "Componente 2" corta visualmente
+  "2,3-dimethyl-2-butene" em 200 px (o valor está inteiro).
+  *(4) Alerta do XML.* O XML de r/q do ChemSep é dado interno do `chemicals`
+  (não interface). Em `calculos/gemini.py`: constantes
+  `CHEMICALS_VERSAO_VALIDADA` ("1.5.2"), `CHEMSEP_XML_NOME_VALIDADO`
+  ("ChemSep8.32.xml") e `CHEMSEP_XML_SHA256_VALIDADO`, e
+  `verificar_xml_chemsep()`, que devolve os alertas se a versão do pacote, o
+  nome do arquivo ou o conteúdo (SHA-256) divergirem do validado, ou se o
+  arquivo sumir. `_tabela_rq_chemsep` emite cada alerta como `RuntimeWarning`
+  (uma vez, ao primeiro uso do UNIQUAC; aparece no terminal onde o app roda,
+  não na tela) e o UNIQUAC segue funcionando. Novo `testes/teste_xml_chemsep.py`
+  **falha com código 1** nessas condições e confere que o alerta dispara quando
+  a versão diverge. Procedimento depois de uma atualização do `chemicals` ou do
+  `thermo`: rodar o teste; se alertar, revalidar o UNIQUAC com
+  `teste_banco_ipdb.py` e, estando correto, atualizar as três constantes.
+  **Interpretação do assistente, a confirmar:** "atualização" = mudança da
+  versão do `chemicals` ou do conteúdo do XML (a versão sozinha já alerta, mesmo
+  sem o XML ter mudado, por precaução); o alerta é de desenvolvedor (terminal e
+  teste), não um aviso na tela do aluno. Não foi feito comentário no
+  `pyproject.toml` (o `chemicals` não é dependência direta; vem pelo `thermo`).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

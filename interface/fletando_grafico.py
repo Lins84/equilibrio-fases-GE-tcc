@@ -411,34 +411,62 @@ def importar_pontos_texto(
     return pontos, ignoradas
 
 
-# Exemplos do botão "Importar dados" (2026-10-07): isotermas de etanol/água
-# de Cristino et al., Fluid Phase Equilib. 341 (2013) 48-53,
-# doi:10.1016/j.fluid.2012.12.014, obtidas do NIST/TRC ThermoML Archive
+# Exemplos do botão "Importar dados" (2026-10-07): isotermas de dado
+# experimental com fonte citável, obtidas do NIST/TRC ThermoML Archive
 # (doi:10.18434/mds2-2422, dados públicos; extraídos pelo TRC, não avaliados
-# criticamente). O CSV fica em referencias/ com a fonte no cabeçalho. Ao
+# criticamente). Os CSVs ficam em referencias/ com a fonte no cabeçalho. Ao
 # carregar, o exemplo também ajusta componentes e temperatura da tela, porque
-# o dado só faz sentido a essa T. Limites: faixa de x₁ incompleta e T alta.
-ARQUIVO_EXEMPLOS = (
-    Path(__file__).resolve().parent.parent
-    / "referencias" / "nist_thermoml_cristino2013_etanol_agua_isotermas.csv"
-)
-FONTE_EXEMPLOS = (
-    "Cristino et al., Fluid Phase Equilib. 341 (2013) 48-53, via NIST ThermoML"
-)
+# o dado só faz sentido a essa T. Para acrescentar um exemplo, basta uma linha
+# em EXEMPLOS_NIST (x e y do CSV são do componente 1).
+PASTA_REFERENCIAS = Path(__file__).resolve().parent.parent / "referencias"
+_CSV_ETANOL_AGUA = PASTA_REFERENCIAS / "nist_thermoml_cristino2013_etanol_agua_isotermas.csv"
+_FONTE_ETANOL_AGUA = "Cristino et al., Fluid Phase Equilib. 341 (2013) 48-53, via NIST ThermoML"
 EXEMPLOS_NIST = [
-    {"rotulo": "etanol/água, 90 °C", "T_K": 363.3},
-    {"rotulo": "etanol/água, 108 °C", "T_K": 381.4},
+    {
+        "rotulo": "etanol/água, 90 °C",
+        "arquivo": _CSV_ETANOL_AGUA, "coluna": "etanol", "T_K": 363.3,
+        "componente1": "ethanol", "componente2": "water",
+        "fonte": _FONTE_ETANOL_AGUA,
+        "nota": "faixa de x₁ incompleta, T elevada",
+    },
+    {
+        "rotulo": "etanol/água, 108 °C",
+        "arquivo": _CSV_ETANOL_AGUA, "coluna": "etanol", "T_K": 381.4,
+        "componente1": "ethanol", "componente2": "water",
+        "fonte": _FONTE_ETANOL_AGUA,
+        "nota": "faixa de x₁ incompleta, T elevada",
+    },
+    {
+        "rotulo": "metanol/dimetilbuteno, 70 °C",
+        "arquivo": PASTA_REFERENCIAS / "nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv",
+        "coluna": "metanol", "T_K": 343.15,
+        "componente1": "methanol", "componente2": "2,3-dimethyl-2-butene",
+        "fonte": "Feng, Dong e Li, Fluid Phase Equilib. 309 (2011) 201-205, via NIST ThermoML",
+        "nota": "azeótropo de pressão máxima em x₁ ≈ 0,58 (mínimo ponto de ebulição)",
+    },
+    {
+        "rotulo": "clorofórmio/MEK, 30 °C",
+        "arquivo": PASTA_REFERENCIAS / "nist_thermoml_clara2006_cloroformio_mek_303K.csv",
+        "coluna": "cloroformio", "T_K": 303.15,
+        "componente1": "chloroform", "componente2": "2-butanone",
+        "fonte": "Clara, Marigliano e Solimo, J. Chem. Eng. Data 51 (2006) 1473-1478, via NIST ThermoML",
+        "nota": "desvio negativo, azeótropo de pressão mínima em x₁ ≈ 0,19 (máximo ponto de ebulição)",
+    },
 ]
 
 
-def carregar_exemplo_nist(T_K: float) -> list[tuple[float, float, float]]:
-    """Pontos (P kPa, x1, y1) da isoterma de T_K (K) no CSV de exemplos.
-    x1 e y1 são do etanol (componente 1). Ignora as linhas de comentário (#)."""
+def carregar_exemplo_nist(exemplo: dict) -> list[tuple[float, float, float]]:
+    """Pontos (P kPa, x1, y1) da isoterma do exemplo (`T_K`, em K) no CSV dele.
+    x1 e y1 são do componente 1. Ignora as linhas de comentário (#)."""
     pontos = []
-    with open(ARQUIVO_EXEMPLOS, encoding="utf-8") as f:
+    with open(exemplo["arquivo"], encoding="utf-8") as f:
         for linha in csv.DictReader(l for l in f if not l.startswith("#")):
-            if abs(float(linha["T_K"]) - T_K) < 1e-6:
-                pontos.append((float(linha["P_kPa"]), float(linha["x_etanol"]), float(linha["y_etanol"])))
+            if abs(float(linha["T_K"]) - exemplo["T_K"]) < 1e-6:
+                pontos.append((
+                    float(linha["P_kPa"]),
+                    float(linha["x_" + exemplo["coluna"]]),
+                    float(linha["y_" + exemplo["coluna"]]),
+                ))
     return sorted(pontos, key=lambda p: p[1])
 
 
@@ -843,18 +871,18 @@ def main(page: ft.Page):
         def acao(e):
             page.pop_dialog()
             try:
-                pontos = carregar_exemplo_nist(exemplo["T_K"])
+                pontos = carregar_exemplo_nist(exemplo)
             except (OSError, ValueError, KeyError) as exc:
                 falha_importacao(exc)
                 return
             # Só `.value` muda (regra do app: não mutar layout de controle criado).
-            campo_componente1.value = "ethanol"
-            campo_componente2.value = "water"
+            campo_componente1.value = exemplo["componente1"]
+            campo_componente2.value = exemplo["componente2"]
             campo_temperatura.value = f"{exemplo['T_K'] - 273.15:.2f}"
             aplicar_importacao(
                 pontos, 0,
-                f"exemplo {exemplo['rotulo']}. Fonte: {FONTE_EXEMPLOS}; "
-                "faixa de x₁ incompleta, T elevada",
+                f"exemplo {exemplo['rotulo']}. Fonte: {exemplo['fonte']}; "
+                f"{exemplo['nota']}",
             )
 
         return acao
@@ -960,8 +988,7 @@ def main(page: ft.Page):
         def opcao(icone, texto, ao_clicar):
             return ft.Button(
                 content=ft.Row(
-                    controls=[ft.Icon(icone), ft.Text(texto)],
-                    tight=True,
+                    controls=[ft.Icon(icone), ft.Text(texto, expand=True)],
                     alignment=ft.MainAxisAlignment.START,
                 ),
                 on_click=ao_clicar,

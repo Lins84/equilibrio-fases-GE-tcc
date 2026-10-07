@@ -1,5 +1,7 @@
 import glob
+import hashlib
 import os
+import warnings
 import xml.etree.ElementTree as ET
 from functools import lru_cache
 
@@ -428,6 +430,50 @@ def _caminho_xml_chemsep():
     return candidatos[-1] if candidatos else None
 
 
+# Alerta de atualização do XML interno do ChemSep (2026-10-07, pedido do
+# autor). O UNIQUAC usa r/q desse XML, que é dado empacotado no `chemicals`
+# (não é interface dele): uma atualização do pacote pode renomeá-lo, movê-lo ou
+# mudar valores sem aviso. Estes são os valores com que o UNIQUAC foi validado
+# (testes/teste_banco_ipdb.py contra `thermo.UNIQUAC`). Se algum diferir,
+# `verificar_xml_chemsep` devolve o alerta, `_tabela_rq_chemsep` o emite como
+# `RuntimeWarning` ao carregar o arquivo e `testes/teste_xml_chemsep.py` falha.
+# Depois de revalidar o UNIQUAC com o pacote novo, atualize as três constantes.
+CHEMICALS_VERSAO_VALIDADA = "1.5.2"
+CHEMSEP_XML_NOME_VALIDADO = "ChemSep8.32.xml"
+CHEMSEP_XML_SHA256_VALIDADO = "78b3e0c6408ff35f3b75fb71a1fdd70bb8e967d8996b49452a4a9fa2dd567c76"
+
+
+def verificar_xml_chemsep():
+    """Lista de alertas (texto) se o `chemicals` ou o XML do ChemSep não forem
+    os validados para o UNIQUAC; lista vazia se tudo bate."""
+    alertas = []
+    if chemicals.__version__ != CHEMICALS_VERSAO_VALIDADA:
+        alertas.append(
+            f"a versão do pacote `chemicals` mudou ({CHEMICALS_VERSAO_VALIDADA} validada, "
+            f"{chemicals.__version__} instalada); ela pode ter alterado o XML do ChemSep"
+        )
+    caminho = _caminho_xml_chemsep()
+    if caminho is None:
+        alertas.append(
+            "o XML do ChemSep não foi encontrado no `chemicals`; o UNIQUAC usará os r/q dos grupos UNIFAC"
+        )
+        return alertas
+    if os.path.basename(caminho) != CHEMSEP_XML_NOME_VALIDADO:
+        alertas.append(
+            f"o XML do ChemSep mudou de nome ({CHEMSEP_XML_NOME_VALIDADO} validado, "
+            f"{os.path.basename(caminho)} encontrado)"
+        )
+    try:
+        with open(caminho, "rb") as f:
+            sha = hashlib.sha256(f.read()).hexdigest()
+    except OSError:
+        alertas.append("o XML do ChemSep não pôde ser lido para conferência")
+    else:
+        if sha != CHEMSEP_XML_SHA256_VALIDADO:
+            alertas.append("o conteúdo do XML do ChemSep mudou em relação ao validado (r/q podem ter mudado)")
+    return alertas
+
+
 @lru_cache(maxsize=1)
 def _tabela_rq_chemsep():
     """Lê UMA vez o banco de compostos puros do ChemSep que acompanha o pacote
@@ -438,6 +484,14 @@ def _tabela_rq_chemsep():
     mova ou remova — ele não é usado pelo código do pacote, só empacotado)
     devolve tabela vazia: `montar_parametros_automaticos` então cai nos grupos
     UNIFAC, em vez de o UNIQUAC inteiro falhar."""
+    # Alerta (uma vez, por causa do cache): o XML é dado interno do `chemicals`.
+    for alerta in verificar_xml_chemsep():
+        warnings.warn(
+            f"UNIQUAC: {alerta}. Revalidar o UNIQUAC (testes/teste_banco_ipdb.py) e, se estiver "
+            "correto, atualizar as constantes *_VALIDADO em calculos/gemini.py.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     caminho = _caminho_xml_chemsep()
     if caminho is None:
         return {}
