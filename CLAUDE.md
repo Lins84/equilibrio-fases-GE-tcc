@@ -2698,6 +2698,27 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   não couber). Verificado por captura a 1400 px (os cinco "?", clique no card de
   Parâmetros, "Todos os tópicos") e a 360 px; testes passam.
 
+- **(2026-10-07) Conteúdo do tópico "Primeiros passos" (rascunho).** Pedido do
+  autor: "vamos começar pelo tópico Primeiros passos". Primeiro tópico com
+  texto em `AJUDA_TOPICOS`; redação **do assistente, a revisar pelo autor**
+  (comentário no código diz isso). Estrutura: três etapas — (1) **carregar
+  dados** (botão "Exemplos": preenche tabela, componentes e temperatura e já
+  desenha os gráficos), (2) **ajustar o modelo** (modelo no card "Sistema";
+  slider ou valor digitado no card "Parâmetros do modelo"; o selo diz a origem
+  do valor) e (3) **comparar com o experimental** ("Comparar": marcadores vazados
+  e ΔP em %, Δy; "Calcular por Regressão (Barker)" para ajustar o parâmetro) —,
+  mais um parágrafo para quem usa **dados próprios** (digitar P em kPa, x₁, y₁ ou
+  "Importar dados"; componentes por nome **em inglês** ou CAS; temperatura em
+  °C; "Gerar Gráfico" se digitou à mão). **Fato conferido antes de escrever:** o
+  `thermo` aceita "ethanol"/"water"/CAS, mas nomes em português como "água" e
+  "acetona" dão erro ("etanol" e "metanol" funcionam por coincidência) — por isso o
+  texto manda usar o nome em inglês. **Mecânica nova (vale para os próximos
+  tópicos):** o corpo do tópico é uma string em parágrafos separados por linha em
+  branco; uma linha que começa com `# ` vira subtítulo (negrito azul); o diálogo do
+  tópico é rolável (`scrollable`), porque no celular o texto não cabe. Verificado
+  por captura a 1400 px e a 360 px; testes passam. Os outros oito tópicos seguem
+  "Conteúdo em breve.".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
