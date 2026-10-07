@@ -720,16 +720,14 @@ AJUDA_TOPICOS = [
             "0,008 a 0,025. É a ordem de grandeza de um bom ajuste com dado "
             "confiável, não um critério de aprovação: o dado também tem erro.\n\n"
             "# Cuidados\n"
-            "A comparação some quando o gráfico é refeito: ao mexer em qualquer "
+            "A comparação some quando deixa de valer: ao mexer em qualquer "
             "parâmetro, trocar de modelo, mudar o sistema, importar dados ou "
-            "clicar em \"Gerar Gráfico\", os marcadores vazados, o ΔP e o Δy "
-            "desaparecem e é preciso clicar em \"Comparar\" de novo. Isso evita "
-            "mostrar um erro que já não vale.\n\n"
-            "Editar um valor na tabela, porém, não refaz o gráfico: o ΔP e o Δy "
-            "na tela continuam sendo os do último clique em \"Comparar\", feitos "
-            "com a tabela de antes. Depois de editar, clique em \"Gerar "
-            "Gráfico\" e em \"Comparar\".\n\n"
-            "Um ΔP de dezenas de % quase sempre indica entrada errada, e não "
+            "clicar em \"Gerar Gráfico\", e também ao editar ou excluir um ponto "
+            "da tabela. Os marcadores vazados, o ΔP e o Δy desaparecem e é "
+            "preciso clicar em \"Comparar\" de novo. Isso evita mostrar um erro "
+            "que já não vale.\n\n"
+            "Editar a tabela não atualiza os marcadores cheios do gráfico: para "
+            "isso, clique em \"Gerar Gráfico\".\n\n"            "Um ΔP de dezenas de % quase sempre indica entrada errada, e não "
             "modelo ruim: confira se P está em kPa, se a temperatura é a dos "
             "dados e se os componentes estão na ordem certa (x₁ e y₁ são do "
             "Componente 1).\n\n"
@@ -738,7 +736,64 @@ AJUDA_TOPICOS = [
             "distintas, e o erro usa todos os pontos válidos."
         ),
     },
-    {"id": "pxy", "titulo": "Diagrama P-x-y", "conteudo": None},
+    {
+        "id": "pxy",
+        "titulo": "Diagrama P-x-y",
+        # Rascunho do assistente (2026-10-07), a revisar pelo autor. Fatos
+        # conferidos no código (`gerar_grafico`, `ponto_grafico`, lupa) e nos
+        # exemplos NIST (azeótropos); leitura do diagrama é termodinâmica
+        # padrão.
+        "conteudo": (
+            "O diagrama mostra o equilíbrio líquido-vapor do sistema a uma "
+            "temperatura fixa: a pressão P (kPa, eixo vertical) contra a "
+            "fração molar do Componente 1 (eixo horizontal).\n\n"
+            "# O que está desenhado\n"
+            "Curva azul (\"Líquido\"): a pressão de bolha, P contra x₁, a fração "
+            "molar no líquido. Curva laranja (\"Vapor\"): a pressão de orvalho, P "
+            "contra y₁, a fração molar no vapor. As duas dividem o mesmo eixo "
+            "horizontal, por isso ele se chama \"x₁, y₁\".\n\n"
+            "Os marcadores cheios são os pontos da tabela: quadrado azul, o "
+            "líquido (x₁, P); círculo laranja, o vapor (y₁, P). Cada ponto "
+            "experimental gera os dois, na mesma altura. Os marcadores vazados "
+            "aparecem depois de \"Comparar\" (veja o tópico dele).\n\n"
+            "# Como ler\n"
+            "Acima da curva azul o sistema é só líquido; abaixo da laranja, só "
+            "vapor; entre as duas, líquido e vapor coexistem. Uma linha "
+            "horizontal na altura de uma pressão liga a composição do líquido "
+            "(onde ela cruza a curva azul) à do vapor em equilíbrio com ele (onde "
+            "cruza a laranja).\n\n"
+            "Nos extremos, x₁ = 0 e x₁ = 1, as duas curvas se encontram: são as "
+            "pressões de vapor dos componentes puros à temperatura escolhida. Se "
+            "os pontos medidos nas pontas não caem sobre esse encontro, confira a "
+            "temperatura e os componentes.\n\n"
+            "# Azeótropo\n"
+            "Quando as curvas se tocam no meio, com tangente horizontal, líquido "
+            "e vapor têm a mesma composição: é um azeótropo. Pode ser de pressão "
+            "máxima (as curvas formam um arco para cima; desvio positivo da "
+            "idealidade), como o metanol/dimetilbuteno a 70 °C, em x₁ ≈ 0,58, ou "
+            "de pressão mínima (arco para baixo; desvio negativo), como o "
+            "clorofórmio/MEK a 30 °C, em x₁ ≈ 0,19. Ver o azeótropo no modelo e "
+            "nos pontos é um bom teste de que o modelo capta o desvio.\n\n"
+            "# Cálculo\n"
+            "As curvas vêm da lei de Raoult modificada: P = x₁γ₁P₁ˢᵃᵗ + x₂γ₂P₂ˢᵃᵗ e "
+            "y₁ = x₁γ₁P₁ˢᵃᵗ/P, com γ do modelo de Gᴱ escolhido e as pressões de "
+            "vapor da thermo. O vapor é tratado como ideal. Vale para uma única "
+            "temperatura.\n\n"
+            "# Detalhes da tela\n"
+            "O gráfico é redesenhado sozinho ao mexer em parâmetro, modelo ou "
+            "sistema. Pontos digitados na tabela só entram nele ao clicar em "
+            "\"Gerar Gráfico\". Sem pontos válidos, só as curvas do modelo "
+            "aparecem; se o modelo falhar, aparecem só os pontos e a mensagem "
+            "\"Curva do modelo não calculada\". O eixo vertical se ajusta para "
+            "caber dados e curvas.\n\n"
+            "Passando o cursor sobre um ponto, o balão mostra "
+            "x₁ (ou y₁) e P. Os valores calculados pelo modelo saem em negrito; "
+            "os da tabela, em peso normal.\n\n"
+            "No computador, a lupa ao lado do título abre o gráfico ampliado, tal "
+            "como está no momento do clique: para refletir mudanças, feche e "
+            "abra de novo."
+        ),
+    },
     {"id": "gamma", "titulo": "Coeficientes de atividade (ln γ)", "conteudo": None},
     {"id": "modelos", "titulo": "Modelos de Gᴱ e quando usar cada um", "conteudo": None},
     {"id": "limitacoes", "titulo": "Limitações e cuidados (isotérmico, unidades, gás ideal)", "conteudo": None},
@@ -1147,6 +1202,10 @@ def main(page: ft.Page):
             if valor_filtrado != e.control.value:
                 e.control.value = valor_filtrado
                 e.control.update()
+            # Editar a tabela invalida a comparação já mostrada (2026-10-07,
+            # opção (a) do autor): o ΔP/Δy e os marcadores vazados eram da
+            # tabela de antes.
+            invalidar_comparacao()
 
         # Função para criar as caixas de texto padronizadas
         def criar_campo(valor_inicial):
@@ -1188,6 +1247,7 @@ def main(page: ft.Page):
         # Função específica para excluir esta linha
         def excluir_esta_linha(e):
             dt.rows.remove(nova_linha)
+            invalidar_comparacao()
             # Recalcula o que acende (Comparar, Limpar dados, Regressão) e
             # já faz o page.update().
             atualizar_estado_botoes_tabela()
@@ -2047,6 +2107,7 @@ def main(page: ft.Page):
         coluna_comparativo_pxy.visible = False
         coluna_comparativo_gamma.visible = False
         linha_erro_comparativo.visible = False
+        comparativo_ativo["ativo"] = False
 
         series = []
         series_gamma = []
@@ -2225,6 +2286,30 @@ def main(page: ft.Page):
     # pontos usada por gerar_grafico), pra sobrepor calculado e experimental
     # no mesmo gráfico. O número de erro em si (métrica ainda não definida
     # — depende de orientação do Dr. Filipe) fica para depois.
+    # A comparação mostrada vale para a tabela e os parâmetros do momento do
+    # clique. Se a tabela é editada, ela é escondida (opção (a) do autor,
+    # 2026-10-07; antes ficava na tela defasada até "Gerar Gráfico"). Remove as
+    # 2 séries que `calcular_comparativo` acrescentou a cada gráfico, esconde as
+    # colunas "Comparativo" das legendas e a linha ΔP/Δy. Só age se há
+    # comparação (barato: roda a cada tecla).
+    comparativo_ativo = {"ativo": False}
+
+    def invalidar_comparacao():
+        if not comparativo_ativo["ativo"]:
+            return
+        comparativo_ativo["ativo"] = False
+        chart.data_series = chart.data_series[:-2]
+        chart_gamma.data_series = chart_gamma.data_series[:-2]
+        coluna_comparativo_pxy.visible = False
+        coluna_comparativo_gamma.visible = False
+        linha_erro_comparativo.visible = False
+        mensagem_status.value = (
+            "Tabela editada: a comparação foi escondida. Clique em \"Comparar\" "
+            "de novo (e em \"Gerar Gráfico\" para atualizar os pontos do gráfico)."
+        )
+        mensagem_status.color = COR_DICA
+        page.update()
+
     def calcular_comparativo(e=None):
         pontos_validos = []
         for linha in dt.rows:
@@ -2259,6 +2344,13 @@ def main(page: ft.Page):
             mensagem_status.color = ft.Colors.RED_800
             page.update()
             return
+
+        # Clicar "Comparar" de novo não pode empilhar séries repetidas: tira a
+        # comparação anterior antes de acrescentar a nova.
+        if comparativo_ativo["ativo"]:
+            chart.data_series = chart.data_series[:-2]
+            chart_gamma.data_series = chart_gamma.data_series[:-2]
+            comparativo_ativo["ativo"] = False
 
         liquido_comp = sorted(zip(resultado["x1"], resultado["P_kPa"]))
         vapor_comp = sorted(zip(resultado["y1"], resultado["P_kPa"]))
@@ -2327,6 +2419,7 @@ def main(page: ft.Page):
         texto_dp_comparativo.value = f"ΔP = {dp_rms_pct:.2f}% (RMS)"
         texto_dy_comparativo.value = f"Δy = {dy_rms:.4f} (RMS)"
         linha_erro_comparativo.visible = True
+        comparativo_ativo["ativo"] = True
 
         mensagem_status.value = f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela."
         mensagem_status.color = ""

@@ -2971,6 +2971,42 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   texto; quatro seguem "Conteúdo em breve.": "Diagrama P-x-y", "ln γ", "Modelos de
   Gᴱ" e "Limitações".
 
+- **(2026-10-07) Comparação escondida ao editar a tabela — opção (a); conteúdo
+  do tópico "Diagrama P-x-y" (rascunho).** O autor respondeu "Confirmo suas
+  escolhas e (A), siga para o próximo tópico": as escolhas pendentes do assistente
+  passam a valer e, entre as saídas do achado do tópico "Comparar", fica a **(a)**
+  (esconder a comparação ao editar a tabela). **Implementação:** `comparativo_ativo`
+  (estado) e `invalidar_comparacao()`: remove as 2 séries que "Comparar" acrescentou
+  a cada gráfico, esconde as colunas "Comparativo" das legendas e a linha ΔP/Δy, e
+  avisa em laranja no card "Dados experimentais" ("Tabela editada: a comparação foi
+  escondida. Clique em "Comparar" de novo…"). Dispara **ao editar um valor** (no
+  `on_change` do campo, não só ao sair dele — pedido literal era "ao sair de um
+  campo"; escolhi o gatilho de edição para que apenas entrar e sair do campo sem
+  mudar nada **não** apague a comparação; **a confirmar**) e **ao excluir uma
+  linha**; só age se há comparação ativa (barato a cada tecla). **Efeito colateral
+  corrigido de passagem:** clicar "Comparar" duas vezes empilhava séries repetidas no
+  gráfico; agora a segunda vez troca a comparação anterior em vez de somar. Os
+  marcadores cheios da tabela **continuam** só atualizando em "Gerar Gráfico"
+  (gatilho manual decidido em 2026-09-21; dito no texto da ajuda). Verificado por
+  captura a 1400 px: exemplo etanol/água 108 °C + "Comparar" (duas vezes, sem
+  duplicar), editar P da primeira linha para 400 → marcadores vazados, coluna
+  "Comparativo", ΔP e Δy somem; "Comparar" de novo → ΔP = 18,95 % (antes 14,19 %),
+  coerente com a tabela editada. Texto do tópico "Comparar" atualizado. **Conteúdo do
+  tópico "Diagrama P-x-y"** — redação **do assistente, a revisar pelo autor**.
+  Seções: **o que está desenhado** (curva azul = pressão de bolha, P × x₁; laranja =
+  orvalho, P × y₁; marcadores cheios da tabela, vazados do "Comparar"); **como ler**
+  (regiões líquido, vapor e bifásica; linha horizontal liga x₁ e y₁ em equilíbrio;
+  nos extremos as curvas se encontram nas pressões de vapor dos puros); **azeótropo**
+  (tangente horizontal; máxima × mínima; os dois exemplos NIST, x₁ ≈ 0,58 e ≈ 0,19);
+  **cálculo** (Raoult modificada, vapor ideal, uma só T); **detalhes da tela**
+  (quando o gráfico se refaz, balão, lupa só no desktop e "como no clique"). **Fatos
+  conferidos antes de escrever:** código de `gerar_grafico`, `ponto_grafico` e da lupa;
+  azeótropos dos exemplos (dados NIST já registrados); o resto é termodinâmica padrão.
+  **Retirado do texto por não verificado:** que o balão aparece "tocando" no celular
+  (só o cursor foi testado). Verificado por captura a 1400 px (o diálogo rola, as
+  seções aparecem); testes passam. Sete tópicos com texto; três seguem "Conteúdo em
+  breve.": "ln γ", "Modelos de Gᴱ" e "Limitações".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
