@@ -272,7 +272,7 @@ Durante a integração dos ambientes de desenvolvimento (julho 2026), foi descob
 
 **Princípio adotado para uso futuro de código de origem similar:** um código gerado por IA sem supervisão prévia pode ser incorporado ao projeto desde que (a) seja submetido a auditoria técnica documentada, (b) o autor seja capaz de explicar seu funcionamento após o processo, e (c) a origem e o processo de validação sejam registrados nesta prestação de contas — transformando uma origem potencialmente frágil em prática de revisão de código documentada, e não em ocultação.
 
-**Pendência:** entendimento linha a linha do `gemini.py` pelo autor (com apoio do Claude Code explicando o código), de forma que o autor seja capaz de defender qualquer trecho perante a banca sem depender de memória de terceiros.
+**Pendência:** entendimento do **essencial** do `gemini.py` pelo autor, com apoio do Claude Code explicando o código, de forma que o autor consiga explicar o que cada parte faz e por quê, sem depender de memória de terceiros. A formulação original desta pendência era "entendimento linha a linha", para poder defender qualquer trecho perante a banca; foi substituída em 2026-09-01, depois do tira-dúvidas com o orientador (seção 2.6), que fixou a barra em entender o **básico** de cada parte e priorizar entregar funcionando — ver seção 5.2. A validação sistemática contra referência independente, descrita acima, é o que sustenta a confiança no código; o entendimento do autor é calibrado pela orientação, não pela leitura de cada linha.
 
 #### Desdobramento (julho–agosto de 2026): de 2 para 7 modelos, e o que a auditoria encontrou
 
