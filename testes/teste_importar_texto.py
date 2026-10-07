@@ -12,7 +12,12 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ / "interface"))
 
-from fletando_grafico import importar_pontos_csv, importar_pontos_texto
+from fletando_grafico import (
+    EXEMPLOS_NIST,
+    carregar_exemplo_nist,
+    importar_pontos_csv,
+    importar_pontos_texto,
+)
 
 ESPERADO = [(12.33, 0.0, 0.0), (16.51, 0.01, 0.091)]
 
@@ -59,9 +64,21 @@ def teste_csv():
     print("OK: leitura de CSV.")
 
 
+def teste_exemplos_nist():
+    esperado = {363.3: 12, 381.4: 26}
+    for ex in EXEMPLOS_NIST:
+        pontos = carregar_exemplo_nist(ex["T_K"])
+        assert len(pontos) == esperado[ex["T_K"]], (ex, len(pontos))
+        assert all(0 <= x <= 1 and 0 <= y <= 1 and P > 0 for P, x, y in pontos)
+        assert [p[1] for p in pontos] == sorted(p[1] for p in pontos)
+    assert carregar_exemplo_nist(999.9) == []
+    print("OK: exemplos NIST carregam (12 e 26 pontos), ordenados por x.")
+
+
 if __name__ == "__main__":
     teste_formatos_aceitos()
     teste_cabecalho()
     teste_erros()
     teste_csv()
+    teste_exemplos_nist()
     print("Todos os testes passaram.")

@@ -4,6 +4,7 @@ import io
 import math
 import re
 import textwrap
+from pathlib import Path
 
 import flet as ft
 import flet_charts as fch
@@ -40,6 +41,9 @@ ORIGENS_SELO = {
 # resolvidos automaticamente a partir dos componentes escolhidos, via
 # montar_parametros_automaticos (grupos UNIFAC clássicos no UNIFAC; r/q do
 # ChemSep e banco IPDB no UNIQUAC), sem slider manual.
+# Faixa do slider é só recorte de exploração, não limite físico. Van Laar
+# (A₁₂, A₂₁) e NRTL (τ₁₂, τ₂₁) vão a ±3 (2026-10-07): ajustados ao dado do
+# NIST (Cristino 2013) saem A₁₂ = 2,06 (150 °C) e τ₂₁ = 2,49, fora de ±2.
 PARAM_SLIDERS = {
     "Margules (1-P)": [
         {"chave": "A", "rotulo": "A", "min": -2.0, "max": 2.0, "inicial": 0.5},
@@ -49,16 +53,16 @@ PARAM_SLIDERS = {
         {"chave": "A21", "rotulo": "A₂₁", "min": -2.0, "max": 2.0, "inicial": 0.3},
     ],
     "Van Laar": [
-        {"chave": "A12", "rotulo": "A₁₂", "min": -2.0, "max": 2.0, "inicial": 0.6},
-        {"chave": "A21", "rotulo": "A₂₁", "min": -2.0, "max": 2.0, "inicial": 0.4},
+        {"chave": "A12", "rotulo": "A₁₂", "min": -3.0, "max": 3.0, "inicial": 0.6},
+        {"chave": "A21", "rotulo": "A₂₁", "min": -3.0, "max": 3.0, "inicial": 0.4},
     ],
     "Wilson": [
         {"chave": "L12", "rotulo": "Λ₁₂", "min": 0.01, "max": 3.0, "inicial": 0.8},
         {"chave": "L21", "rotulo": "Λ₂₁", "min": 0.01, "max": 3.0, "inicial": 0.6},
     ],
     "NRTL": [
-        {"chave": "tau12", "rotulo": "τ₁₂", "min": -2.0, "max": 2.0, "inicial": 0.3},
-        {"chave": "tau21", "rotulo": "τ₂₁", "min": -2.0, "max": 2.0, "inicial": 0.3},
+        {"chave": "tau12", "rotulo": "τ₁₂", "min": -3.0, "max": 3.0, "inicial": 0.3},
+        {"chave": "tau21", "rotulo": "τ₂₁", "min": -3.0, "max": 3.0, "inicial": 0.3},
         {"chave": "alpha12", "rotulo": "α₁₂", "min": 0.2, "max": 0.47, "inicial": 0.3},
     ],
 }
@@ -405,6 +409,37 @@ def importar_pontos_texto(
         except (ValueError, TypeError, IndexError):
             ignoradas += 1
     return pontos, ignoradas
+
+
+# Exemplos do botão "Importar dados" (2026-10-07): isotermas de etanol/água
+# de Cristino et al., Fluid Phase Equilib. 341 (2013) 48-53,
+# doi:10.1016/j.fluid.2012.12.014, obtidas do NIST/TRC ThermoML Archive
+# (doi:10.18434/mds2-2422, dados públicos; extraídos pelo TRC, não avaliados
+# criticamente). O CSV fica em referencias/ com a fonte no cabeçalho. Ao
+# carregar, o exemplo também ajusta componentes e temperatura da tela, porque
+# o dado só faz sentido a essa T. Limites: faixa de x₁ incompleta e T alta.
+ARQUIVO_EXEMPLOS = (
+    Path(__file__).resolve().parent.parent
+    / "referencias" / "nist_thermoml_cristino2013_etanol_agua_isotermas.csv"
+)
+FONTE_EXEMPLOS = (
+    "Cristino et al., Fluid Phase Equilib. 341 (2013) 48-53, via NIST ThermoML"
+)
+EXEMPLOS_NIST = [
+    {"rotulo": "etanol/água, 90 °C", "T_K": 363.3},
+    {"rotulo": "etanol/água, 108 °C", "T_K": 381.4},
+]
+
+
+def carregar_exemplo_nist(T_K: float) -> list[tuple[float, float, float]]:
+    """Pontos (P kPa, x1, y1) da isoterma de T_K (K) no CSV de exemplos.
+    x1 e y1 são do etanol (componente 1). Ignora as linhas de comentário (#)."""
+    pontos = []
+    with open(ARQUIVO_EXEMPLOS, encoding="utf-8") as f:
+        for linha in csv.DictReader(l for l in f if not l.startswith("#")):
+            if abs(float(linha["T_K"]) - T_K) < 1e-6:
+                pontos.append((float(linha["P_kPa"]), float(linha["x_etanol"]), float(linha["y_etanol"])))
+    return sorted(pontos, key=lambda p: p[1])
 
 
 # Escala de espaçamento única para o app inteiro (2026-09-28, passada de
@@ -804,6 +839,26 @@ def main(page: ft.Page):
         mensagem_status.color = ft.Colors.RED_800
         page.update()
 
+    def importar_exemplo(exemplo):
+        def acao(e):
+            page.pop_dialog()
+            try:
+                pontos = carregar_exemplo_nist(exemplo["T_K"])
+            except (OSError, ValueError, KeyError) as exc:
+                falha_importacao(exc)
+                return
+            # Só `.value` muda (regra do app: não mutar layout de controle criado).
+            campo_componente1.value = "ethanol"
+            campo_componente2.value = "water"
+            campo_temperatura.value = f"{exemplo['T_K'] - 273.15:.2f}"
+            aplicar_importacao(
+                pontos, 0,
+                f"exemplo {exemplo['rotulo']}. Fonte: {FONTE_EXEMPLOS}; "
+                "faixa de x₁ incompleta, T elevada",
+            )
+
+        return acao
+
     async def importar_arquivo(e):
         page.pop_dialog()
         try:
@@ -917,6 +972,9 @@ def main(page: ft.Page):
         opcoes = [
             opcao(ft.Icons.UPLOAD_FILE, "Arquivo CSV do dispositivo", importar_arquivo),
             opcao(ft.Icons.CONTENT_PASTE, "Colar texto", abrir_colar_texto),
+        ] + [
+            opcao(ft.Icons.SCIENCE, f"Exemplo: {ex['rotulo']}", importar_exemplo(ex))
+            for ex in EXEMPLOS_NIST
         ]
         page.show_dialog(
             ft.AlertDialog(

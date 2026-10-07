@@ -153,7 +153,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   com um quadro "Salva" ao lado, ainda não implementado — ver pendência
   em "Próximos passos"), e `nist_thermoml_cristino2013_etanol_agua_isotermas.csv`
   (2026-10-06 — dado experimental etanol/água, T-P-x-y, com fonte citada no
-  cabeçalho; usado só por teste, não é exemplo da UI).
+  cabeçalho; usado pelo teste de validação e, desde 2026-10-07, pelos dois
+  exemplos do botão "Importar dados").
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
   gerenciado com `uv`.
 
@@ -670,7 +671,8 @@ continuar sendo mantido.
   mas depende de cada um achar o arquivo no celular; (2) **exemplos embutidos**
   — um seletor "Carregar exemplo" no app com os CSVs de referência (a opção
   foi implementada e **retirada em 2026-10-06**, por falta de dataset com
-  fonte), sem arquivo nenhum para compartilhar; só serve para dados que o professor deixou previamente no
+  fonte; **reposta em 2026-10-07** com dado do NIST/ThermoML, ver
+  "Decisões de engenharia do aluno"), sem arquivo nenhum para compartilhar; só serve para dados que o professor deixou previamente no
   repositório; (3) **colar texto** — campo para colar as linhas P, x₁, y₁
   (o professor manda o texto por mensagem e o aluno cola); funciona com qualquer
   dado novo na hora; (4) **link/QR** — importar de um endereço (ex.: arquivo
@@ -2075,8 +2077,8 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   de parâmetro conhecido. O dado foi para `referencias/nist_thermoml_cristino2013_etanol_agua_isotermas.csv`
   (fonte e ressalvas no cabeçalho) e a verificação virou
   `testes/teste_validacao_nist_etanol_agua.py` (reprodutível; passa). **Isso
-  é fixture de teste, não exemplo da UI** — incorporar à UI continua
-  aguardando decisão do autor. Resultados:
+  é fixture de teste, não exemplo da UI** (até 2026-10-07; ver a decisão do
+  autor logo abaixo). Resultados:
   1. **Métrica ΔP/Δy (item 4 de "Próximos passos"): refeita.** Com dado
      confiável o Barker reduz **os dois** erros (ex.: 363,3 K, Wilson: Δy 0,024
      → 0,009, ΔP 0,5 % → 1,0 %, ou seja, ΔP ≈ constante); a alegação antiga
@@ -2117,6 +2119,27 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
      ([−5, 5] etc.) acomodam todos os valores obtidos.
   **Nada mais foi alterado**: os chutes, limites e α₁₂ = 0,3 ficaram como
   estavam, porque o dado confiável os confirmou.
+  **Decisão do autor, 2026-10-07: "Sim, amplie os sliders e incorpore o
+  dado".** Executado: (1) **sliders** Van Laar (A₁₂, A₂₁) e NRTL (τ₁₂, τ₂₁) de
+  [−2, 2] para **[−3, 3]** (`PARAM_SLIDERS`; sem `divisions`, então a
+  granularidade não muda; Margules, Wilson e α₁₂ ficaram como estavam).
+  (2) **dado incorporado como exemplo na UI**: o diálogo "Importar dados" voltou
+  a ter dois botões de exemplo, **"Exemplo: etanol/água, 90 °C"** (363,3 K, 12
+  pontos) e **"Exemplo: etanol/água, 108 °C"** (381,4 K, 26 pontos), lidos de
+  `referencias/nist_thermoml_cristino2013_etanol_agua_isotermas.csv` por
+  `carregar_exemplo_nist`. **Diferente do exemplo antigo**, ao carregar ele
+  também preenche **componentes (ethanol/water) e temperatura (90,15 ou
+  108,25 °C)** — só `.value` dos campos —, porque o dado só vale a essa T (o
+  antigo deixava T = 70 °C e produzia ΔP sem sentido). A mensagem de status
+  traz a **fonte** (Cristino et al., *Fluid Phase Equilib.* 341 (2013) 48-53,
+  via NIST ThermoML) e os **limites** ("faixa de x₁ incompleta, T elevada").
+  **Escolha do assistente, a confirmar:** só duas das cinco isotermas (as 403,5
+  e 423 K têm T ainda mais alta e menos pontos); o rótulo arredonda a T para
+  caber a 360 px. Verificado por captura a 1400 px (importar 90 °C → 12 pontos,
+  T = 90,15, "Comparar" funcionando) e a 360 px (diálogo com os 4 botões, sem
+  corte); novo teste `teste_exemplos_nist` em `teste_importar_texto.py`;
+  testes passam. A mensagem com a fonte some quando o usuário clica em
+  "Comparar" (a mensagem de status é única) — a citação continua no CSV e aqui.
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado
