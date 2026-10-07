@@ -2369,7 +2369,15 @@ def main(page: ft.Page):
             aviso_parametro,
             selo_origem,
             nota_alpha_fixo,
-            ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
+            # "Comparar" (2026-10-07, pedido do autor: "colocar o botão comparar
+            # junto com o card de parâmetros"): fica ao lado dos botões que
+            # geram o parâmetro e acima do ΔP/Δy que ele produz. Visível para
+            # todos os modelos (UNIQUAC/UNIFAC inclusos), ao contrário da
+            # regressão e do "Desfazer", que dependem dos sliders.
+            ft.Row(
+                controls=[botao_buscar_banco, botao_regressao, botao_desfazer, botao_comparar],
+                wrap=True,
+            ),
             # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
             # parâmetros"): o erro do modelo fica junto dos parâmetros que o
             # produzem, em vez de no fim do card "Dados experimentais".
@@ -2392,12 +2400,12 @@ def main(page: ft.Page):
         # Row nova com o alinhamento certo a cada montagem; as mensagens
         # voltam para a esquerda dentro de um Container.
         if centralizar:
-            # "Comparar" e a lixeira de limpar (que no celular ficam no
-            # cabeçalho, ao lado do título) vão para uma Row própria,
-            # centralizada, logo abaixo do título.
+            # A lixeira de limpar (que no celular fica no cabeçalho, ao lado
+            # do título) vai para uma Row própria, centralizada, logo abaixo
+            # do título. ("Comparar" mudou para o card de parâmetros.)
             acoes_topo = [
                 ft.Row(
-                    controls=[botao_comparar, botao_limpar_tabela],
+                    controls=[botao_limpar_tabela],
                     spacing=4,
                     alignment=ft.MainAxisAlignment.CENTER,
                 )
@@ -2435,7 +2443,7 @@ def main(page: ft.Page):
             extra_titulo=(
                 None
                 if centralizar
-                else ft.Row(controls=[botao_comparar, botao_limpar_tabela], spacing=4)
+                else ft.Row(controls=[botao_limpar_tabela], spacing=4)
             ),
         )
 

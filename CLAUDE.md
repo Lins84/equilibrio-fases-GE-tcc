@@ -2545,6 +2545,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   metanol/dimetilbuteno pelo botão novo, 22 pontos). Nenhum teste automatizado
   muda (a lógica dos exemplos, `EXEMPLOS_NIST`/`carregar_exemplo_nist`, é a mesma).
 
+- **(2026-10-07) Botão "Comparar" movido para o card "Parâmetros do modelo".**
+  Pedido do autor: "colocar o botão comparar junto com o card de parâmetros".
+  Saiu do card "Dados experimentais" (no desktop, da Row com a lixeira abaixo
+  do título; no celular, do cabeçalho) e entrou na Row de botões do card de
+  parâmetros, depois de "Buscar do Banco", "Calcular por Regressão" e
+  "Desfazer", acima do ΔP/Δy que ele produz. Continua visível para todos os
+  modelos (UNIQUAC/UNIFAC inclusos — a visibilidade da regressão e do
+  "Desfazer" depende dos sliders, a do Comparar não) e habilitado só com dado
+  experimental na tabela. O botão segue criado uma vez e reaproveitado (regra
+  de não mutar controle criado). **Escolha do assistente, a confirmar:** a
+  posição do botão dentro da Row (por último); no desktop (card de ~420 px) ele
+  quebra para uma linha própria, e no celular fica ao lado do "Desfazer".
+  Verificado por captura de tela a 1400 px (exemplo metanol/dimetilbuteno +
+  Comparar: curvas comparativas e `ΔP = 31.78% / Δy = 0.1530` — Margules 1P com
+  A = 0,5, sem ajuste, só mecânica) e a 360 px; testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
