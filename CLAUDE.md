@@ -2719,6 +2719,29 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   por captura a 1400 px e a 360 px; testes passam. Os outros oito tópicos seguem
   "Conteúdo em breve.".
 
+- **(2026-10-07) "Primeiros passos" revisado; conteúdo do tópico "Dados
+  experimentais" (rascunho).** O autor revisou o texto de "Primeiros passos"
+  ("revisado, siga para o próximo") — passa a valer como aprovado — e o
+  assistente seguiu para o tópico sugerido, **"Dados experimentais: digitar,
+  importar e exemplos"** (o próximo da ordem do fluxo; a ordem era proposta do
+  assistente). Redação **do assistente, a revisar pelo autor**. Seções (subtítulos
+  `# `): o que a tabela guarda (P em kPa; x₁ e y₁ do componente 1, isotérmico);
+  **digitar na tabela**; **importar dados** (arquivo CSV e colar texto); **exemplos**;
+  **limpar dados**; **atenção às unidades**. **Fatos conferidos no código antes de
+  escrever, que o texto reflete:** (a) as células da tabela **só aceitam dígitos,
+  ponto e sinal de menos** (`filtrar_numero`) — **vírgula decimal não vale na
+  tabela**, só no "Colar texto"; (b) o **CSV exige cabeçalho com as colunas `P`, `x`
+  e `y`** (sem diferenciar maiúsculas, em qualquer ordem; `x1` não é aceito); (c)
+  no texto colado, espaço/tabulação/`;`/vírgula separam os campos e, com os três
+  primeiros, a vírgula vale como decimal; cabeçalho opcional; (d) importar
+  **substitui** a tabela e redesenha; linhas inválidas são ignoradas e contadas;
+  (e) "Limpar dados" volta às 10 linhas em branco (`NUM_LINHAS_INICIAIS`); (f) os
+  exemplos preenchem também componentes e temperatura. O aviso sobre unidades
+  repete o que o app **não** valida (P em outra unidade dá ΔP sem sentido, sem
+  aviso — item 1 da lista de estética). Verificado por captura a 1400 px e a
+  360 px (o diálogo rola); testes passam. Dois tópicos com texto; sete seguem
+  "Conteúdo em breve.".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

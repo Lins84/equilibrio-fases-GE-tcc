@@ -492,7 +492,47 @@ AJUDA_TOPICOS = [
             "se digitou à mão, toque em \"Gerar Gráfico\"."
         ),
     },
-    {"id": "dados", "titulo": "Dados experimentais: digitar, importar e exemplos", "conteudo": None},
+    {
+        "id": "dados",
+        "titulo": "Dados experimentais: digitar, importar e exemplos",
+        # Rascunho do assistente (2026-10-07), a revisar pelo autor.
+        "conteudo": (
+            "A tabela guarda os pontos experimentais de um sistema a "
+            "temperatura constante: P (em kPa) e as frações molares x₁ (no "
+            "líquido) e y₁ (no vapor) do componente 1.\n\n"
+            "# Digitar na tabela\n"
+            "Preencha P, x₁ e y₁ de cada linha, usando ponto como separador "
+            "decimal (a vírgula não é aceita na tabela). \"Adicionar Novo "
+            "Ponto\" cria uma linha; a lixeira vermelha exclui a linha. Linhas "
+            "com algum campo vazio ou inválido são ignoradas, com aviso. "
+            "Depois de digitar, toque em \"Gerar Gráfico\" para ver os pontos "
+            "nos gráficos.\n\n"
+            "# Importar dados\n"
+            "\"Importar dados\" substitui o conteúdo da tabela e já desenha os "
+            "gráficos. Há duas formas:\n"
+            "• Arquivo CSV do dispositivo: precisa de cabeçalho com as colunas "
+            "P, x e y (maiúsculas ou minúsculas, em qualquer ordem).\n"
+            "• Colar texto: uma linha por ponto, na ordem P, x₁, y₁, separados "
+            "por espaço, tabulação, ponto e vírgula ou vírgula. Com espaço, "
+            "tabulação ou ponto e vírgula, a vírgula vale como decimal (útil "
+            "para colar direto do Excel). A primeira linha pode ser um "
+            "cabeçalho P, x, y em qualquer ordem.\n"
+            "Linhas inválidas são ignoradas e contadas na mensagem.\n\n"
+            "# Exemplos\n"
+            "\"Exemplos\" carrega dado experimental real (NIST/ThermoML); a "
+            "mensagem mostra a fonte. Além da tabela, ele preenche os "
+            "componentes e a temperatura, porque cada conjunto só vale à "
+            "temperatura em que foi medido. Hoje são quatro: etanol/água a 90 "
+            "e a 108 °C, metanol/2,3-dimetil-2-buteno a 70 °C e "
+            "clorofórmio/2-butanona (MEK) a 30 °C.\n\n"
+            "# Limpar dados\n"
+            "\"Limpar dados\" esvazia a tabela inteira (volta a 10 linhas em "
+            "branco). Fica apagado quando não há nenhum ponto válido.\n\n"
+            "# Atenção às unidades\n"
+            "Digite a pressão em kPa. Em outra unidade (mmHg, bar) o app não "
+            "avisa, e o erro ΔP da comparação perde o sentido."
+        ),
+    },
     {"id": "sistema", "titulo": "Sistema: componentes, temperatura e modelo Gᴱ", "conteudo": None},
     {"id": "parametros", "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão", "conteudo": None},
     {"id": "comparar", "titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
