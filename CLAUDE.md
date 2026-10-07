@@ -2645,6 +2645,30 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Verificado por captura a 1400 px (os quatro avisos, e regressão aceita
   rodando) e a 360 px (aviso da regressão); testes passam.
 
+- **(2026-10-07) Botão "Ajuda": manual rápido por tópicos, só o sumário.** Pedido
+  do autor: um botão "Ajuda" com o sumário de funcionamento do app, navegável
+  por tópicos, para ajuda rápida/tira-dúvidas; "por enquanto apenas os tópicos,
+  sem conteúdo". **Implementação:** botão na faixa de cabeçalho, ao lado do de
+  modo de exibição, no mesmo estilo (fundo branco translúcido, criado novo a cada
+  montagem). Abre um diálogo "Ajuda" com a lista de tópicos (rola, com altura de
+  ~60% da janela); tocar num tópico abre outro diálogo com o título e, por ora,
+  "Conteúdo em breve."; "Voltar aos tópicos" reabre a lista e "Fechar" sai (um
+  diálogo novo por passo, como em "Colar texto"). Os tópicos moram em
+  `AJUDA_TOPICOS` (módulo), cada um `{"titulo", "conteudo"}` com `conteudo=None`:
+  escrever um tópico é trocar o `None` por texto. **Lista de tópicos —
+  proposta do assistente, a confirmar pelo autor (16):** visão geral; escolher o
+  sistema (componentes, temperatura, modelo Gᴱ); digitar dados na tabela; importar
+  dados (CSV e texto colado); exemplos prontos (NIST); ler o diagrama P-x-y; ler
+  o gráfico de ln γ; modelos de Gᴱ e quando usar cada um; parâmetros (slider e
+  valor digitado); origem do parâmetro (selo); buscar no banco (IPDB); regressão
+  (Barker); comparar calculado e experimental (ΔP e Δy); desfazer; limitações e
+  cuidados (isotérmico, unidades, gás ideal); ver como celular/computador.
+  **Layout no celular:** a faixa passou a ter "UFC", "Ajuda" e o botão de modo
+  numa Row que quebra linha — a 360 px o botão de modo desce para a linha de
+  baixo (sem a quebra ele estourava a faixa). No desktop, "Ajuda" e modo ficam
+  lado a lado à direita. Verificado por captura a 1400 px (lista, tópico, voltar)
+  e a 360 px (faixa, lista e tópico); testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

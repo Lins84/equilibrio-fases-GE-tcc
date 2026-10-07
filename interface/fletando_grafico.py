@@ -458,6 +458,30 @@ EXEMPLOS_NIST = [
 ]
 
 
+# Botão "Ajuda" (2026-10-07, pedido do autor): manual rápido / tira-dúvidas,
+# navegável por tópicos. Por ora só o sumário — `conteudo=None` mostra "em
+# breve"; para escrever um tópico basta trocar o None por um texto. A lista
+# de tópicos é proposta do assistente, a confirmar pelo autor.
+AJUDA_TOPICOS = [
+    {"titulo": "Visão geral do aplicativo", "conteudo": None},
+    {"titulo": "Escolher o sistema: componentes, temperatura e modelo Gᴱ", "conteudo": None},
+    {"titulo": "Digitar os dados experimentais na tabela", "conteudo": None},
+    {"titulo": "Importar dados (arquivo CSV e texto colado)", "conteudo": None},
+    {"titulo": "Exemplos prontos (dados do NIST)", "conteudo": None},
+    {"titulo": "Ler o diagrama P-x-y", "conteudo": None},
+    {"titulo": "Ler o gráfico de coeficientes de atividade (ln γ)", "conteudo": None},
+    {"titulo": "Modelos de Gᴱ disponíveis e quando usar cada um", "conteudo": None},
+    {"titulo": "Parâmetros do modelo: slider e valor digitado", "conteudo": None},
+    {"titulo": "Origem do parâmetro (o selo ao lado do título)", "conteudo": None},
+    {"titulo": "Buscar parâmetros no banco (IPDB)", "conteudo": None},
+    {"titulo": "Calcular parâmetros por regressão (Barker)", "conteudo": None},
+    {"titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
+    {"titulo": "Desfazer alterações de parâmetros", "conteudo": None},
+    {"titulo": "Limitações e cuidados (isotérmico, unidades, gás ideal)", "conteudo": None},
+    {"titulo": "Ver como celular / computador", "conteudo": None},
+]
+
+
 def carregar_exemplo_nist(exemplo: dict) -> list[tuple[float, float, float]]:
     """Pontos (P kPa, x1, y1) da isoterma do exemplo (`T_K`, em K) no CSV dele.
     x1 e y1 são do componente 1. Ignora as linhas de comentário (#)."""
@@ -1042,6 +1066,69 @@ def main(page: ft.Page):
             opcao_dialogo(ft.Icons.SCIENCE, ex["rotulo"], importar_exemplo(ex))
             for ex in EXEMPLOS_NIST
         ])
+
+    # Ajuda: lista de tópicos -> página do tópico, cada uma um diálogo novo
+    # (a regra do app é não mutar controle já criado; mesmo padrão de "Colar
+    # texto"). "Voltar" reabre a lista.
+    def estilo_dialogo_ajuda(titulo, conteudo, acoes):
+        return ft.AlertDialog(
+            bgcolor=ft.Colors.WHITE,
+            shape=ft.RoundedRectangleBorder(
+                radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
+            ),
+            title=ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800),
+            content=conteudo,
+            actions=acoes,
+        )
+
+    def abrir_topico_ajuda(topico):
+        def ao_clicar(e):
+            page.pop_dialog()
+            texto = topico["conteudo"] or "Conteúdo em breve."
+            page.show_dialog(
+                estilo_dialogo_ajuda(
+                    topico["titulo"],
+                    ft.Container(
+                        width=largura_dialogo(),
+                        content=ft.Text(
+                            texto,
+                            size=14,
+                            color=ft.Colors.TEAL_900 if topico["conteudo"] else ft.Colors.GREY_800,
+                            italic=topico["conteudo"] is None,
+                        ),
+                    ),
+                    [
+                        ft.TextButton("Voltar aos tópicos", on_click=voltar_aos_topicos),
+                        ft.TextButton("Fechar", on_click=lambda e: page.pop_dialog()),
+                    ],
+                )
+            )
+        return ao_clicar
+
+    def mostrar_lista_ajuda():
+        altura = max(220, min(520, int((page.height or 700) * 0.6)))
+        lista = ft.Column(
+            controls=[
+                opcao_dialogo(ft.Icons.ARTICLE_OUTLINED, t["titulo"], abrir_topico_ajuda(t))
+                for t in AJUDA_TOPICOS
+            ],
+            spacing=ESPACO_PEQUENO,
+            scroll=ft.ScrollMode.AUTO,
+        )
+        page.show_dialog(
+            estilo_dialogo_ajuda(
+                "Ajuda",
+                ft.Container(width=largura_dialogo(), height=altura, content=lista),
+                [ft.TextButton("Fechar", on_click=lambda e: page.pop_dialog())],
+            )
+        )
+
+    def abrir_ajuda(e):
+        mostrar_lista_ajuda()
+
+    def voltar_aos_topicos(e):
+        page.pop_dialog()
+        mostrar_lista_ajuda()
 
     botao_importar_csv = ft.Button(
         content=ft.Row(
@@ -2683,6 +2770,27 @@ def main(page: ft.Page):
             style=ft.ButtonStyle(bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.WHITE)),
         )
 
+        # Botão "Ajuda" (2026-10-07): mesmo estilo do botão de modo, ao lado
+        # dele; criado novo a cada montagem pelo mesmo motivo.
+        botao_ajuda = ft.TextButton(
+            content=ft.Row(
+                controls=[
+                    ft.Icon(ft.Icons.HELP_OUTLINE, size=16, color=ft.Colors.WHITE),
+                    ft.Text("Ajuda", size=14, color=ft.Colors.WHITE),
+                ],
+                tight=True,
+                spacing=6,
+            ),
+            on_click=abrir_ajuda,
+            style=ft.ButtonStyle(bgcolor=ft.Colors.with_opacity(0.18, ft.Colors.WHITE)),
+        )
+        botoes_cabecalho = ft.Row(
+            controls=[botao_ajuda, botao_modo],
+            spacing=ESPACO_PEQUENO,
+            wrap=True,
+            alignment=ft.MainAxisAlignment.END,
+        )
+
         # Faixa de cabeçalho (item 5 da estética, 2026-10-03, opção H2 do
         # autor): nome, subtítulo e crédito, com o botão de modo dentro da
         # faixa. Montada nova a cada `montar_layout`, como o resto — sem
@@ -2710,7 +2818,7 @@ def main(page: ft.Page):
                 controls=[
                     ft.Container(content=titulo_app, expand=True),
                     ft.Column(
-                        controls=[credito_app, botao_modo],
+                        controls=[credito_app, botoes_cabecalho],
                         spacing=0,
                         horizontal_alignment=ft.CrossAxisAlignment.END,
                     ),
@@ -2721,9 +2829,13 @@ def main(page: ft.Page):
             interior_cabecalho = ft.Column(
                 controls=[
                     titulo_app,
+                    # Crédito e os dois botões numa Row que quebra linha
+                    # sozinha (a 360px o botão de modo desce para a de baixo).
                     ft.Row(
-                        controls=[credito_app, botao_modo],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        controls=[credito_app, botao_ajuda, botao_modo],
+                        spacing=ESPACO_PEQUENO,
+                        run_spacing=0,
+                        wrap=True,
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     ),
                 ],
