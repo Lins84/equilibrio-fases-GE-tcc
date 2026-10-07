@@ -606,12 +606,22 @@ def main(page: ft.Page):
     # diferentes. Cada card leva um título curto — mesma ideia de
     # "dashboards financeiros" já citada como inspiração do selo de origem
     # (seção 2.8 do mapeamento), aplicada agora ao layout inteiro.
-    def cartao(titulo, *controles, expand=False, extra_titulo=None, centralizar=False):
+    def cartao(
+        titulo,
+        *controles,
+        expand=False,
+        extra_titulo=None,
+        centralizar=False,
+        extra_junto=False,
+    ):
         # `extra_titulo` (opcional) — um controle extra ao lado do título,
         # no cabeçalho do card, em vez de só mais um item na lista debaixo.
         # Usado pelo botão "Comparar" no card "Dados experimentais" (pedido
         # do autor, 2026-09-28): fica junto do título, não lá embaixo perto
         # de "Gerar Gráfico".
+        # `extra_junto` (2026-10-07): o extra fica logo depois do texto do
+        # título (usado pelo selo de origem no card "Parâmetros do modelo"),
+        # em vez de empurrado para a ponta direita.
         # Estilo (2026-10-03): título em azul-escuro, como os rótulos das
         # caixas do card Sistema.
         cabecalho = ft.Text(
@@ -631,7 +641,13 @@ def main(page: ft.Page):
             # botões.
             cabecalho = ft.Row(
                 controls=[cabecalho, extra_titulo],
-                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                alignment=(
+                    ft.MainAxisAlignment.START
+                    if extra_junto
+                    else ft.MainAxisAlignment.SPACE_BETWEEN
+                ),
+                spacing=8,
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 wrap=True,
             )
         # Estilo (2026-10-03): todos os cards com fundo branco, moldura
@@ -1892,7 +1908,7 @@ def main(page: ft.Page):
         controls=[chip_selo_origem, icone_selo_origem],
         spacing=4,
         # `tight` (definido na criação): sem ele a Row ocupa a largura toda e
-        # o "Comparar", que fica ao lado do selo, cairia para a linha de baixo.
+        # o selo não fica colado ao título do card.
         tight=True,
         visible=False,
     )
@@ -2376,18 +2392,12 @@ def main(page: ft.Page):
             sliders_area,
             aviso_parametro,
             # "Comparar" (2026-10-07, pedido do autor: "colocar o botão comparar
-            # junto com o card de parâmetros" e, depois, "ao lado do selo"):
-            # na mesma linha do selo de origem. A Row externa é nova a cada
-            # montagem e fica sempre visível; só o selo (`visible`) aparece e
-            # some. Comparar vale para todos os modelos (UNIQUAC/UNIFAC
-            # inclusos), ao contrário da regressão e do "Desfazer", que
-            # dependem dos sliders.
-            ft.Row(
-                controls=[selo_origem, botao_comparar],
-                spacing=12,
-                wrap=True,
-                vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            ),
+            # junto com o card de parâmetros"): numa linha própria, sob os
+            # sliders. O selo de origem foi para o cabeçalho do card
+            # (`extra_titulo`, logo após o título). Comparar vale para todos os
+            # modelos (UNIQUAC/UNIFAC inclusos), ao contrário da regressão e do
+            # "Desfazer", que dependem dos sliders.
+            ft.Row(controls=[botao_comparar], wrap=True),
             nota_alpha_fixo,
             ft.Row(controls=[botao_buscar_banco, botao_regressao, botao_desfazer], wrap=True),
             # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
@@ -2395,6 +2405,8 @@ def main(page: ft.Page):
             # produzem, em vez de no fim do card "Dados experimentais".
             linha_erro_comparativo,
             expand=expand,
+            extra_titulo=selo_origem,
+            extra_junto=True,
         )
 
     def construir_card_dados(expand=False, centralizar=False):

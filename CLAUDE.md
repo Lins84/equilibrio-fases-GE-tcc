@@ -2584,6 +2584,23 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   360 px e com o clique real após importar o exemplo metanol/dimetilbuteno
   (ΔP/Δy aparecem).
 
+- **(2026-10-07) Selo de origem logo depois do título "Parâmetros do modelo".**
+  Pedido do autor ("mude o selo para após o texto Parâmetros do modelo"),
+  substituindo a posição anterior (ao lado do "Comparar"). O selo (chip + ⓘ)
+  vai para o cabeçalho do card, colado ao título: `cartao()` ganhou o parâmetro
+  `extra_junto` (o extra fica logo depois do título, em vez de empurrado para a
+  ponta direita, que continua sendo o padrão de `extra_titulo`). **Interpretação
+  do assistente, a confirmar:** o pedido citava só o selo, então o "Comparar" não
+  o acompanhou — ficou numa linha própria logo abaixo do slider, antes da nota do
+  α₁₂ e dos botões Banco/Regressão/Desfazer; se a ideia era mantê-lo junto do
+  selo, é só passar os dois ao cabeçalho. **Limite no celular:** a 360 px o
+  título (~175 px) mais o selo ("Fornecido" ~100 px) não cabem na largura útil do
+  card (~270 px) e o selo desce para a linha de baixo — a quebra (`wrap=True`) é a
+  proteção contra o erro de overflow já visto; selos mais longos ("Banco, r/q via
+  UNIFAC") quebram também em telas maiores. No desktop o selo fica ao lado do
+  título. Verificado por captura a 1400 px e 360 px e pelo clique real em
+  "Comparar" depois de importar o exemplo (ΔP/Δy aparecem).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
