@@ -100,9 +100,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   com adição/remoção de linhas via `ft.DataTable`.
 - `interface/fletando_grafico.py` (~1525 linhas) — **a linha viva da UI,
   já integrada ao motor de cálculo**: tabela editável de pontos
-  experimentais P/x/y (com botão "Importar dados" — arquivo CSV, exemplo
-  embutido ou texto colado —, "Desfazer" e "Limpar
-  Tabela"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
+  experimentais P/x/y (com botão "Importar dados" — arquivo CSV ou texto
+  colado —, botão "Exemplos" — quatro exemplos embutidos com dado NIST —,
+  "Desfazer" e "Limpar Tabela"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
   parâmetros, gráfico P-x-y com a curva do modelo
   (`calculate_vle_isothermal`) sobreposta aos pontos, e gráfico de ln γ vs
   x1. Botões de apoio ao parâmetro: "Buscar do Banco (IPDB)" (NRTL/Wilson),
@@ -164,9 +164,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   em "Próximos passos"), e `nist_thermoml_cristino2013_etanol_agua_isotermas.csv`
   (2026-10-06 — dado experimental etanol/água, T-P-x-y, com fonte citada no
   cabeçalho; usado pelo teste de validação e, desde 2026-10-07, pelos dois
-  exemplos do botão "Importar dados"), e, desde 2026-10-07, mais dois CSVs
+  exemplos do botão "Exemplos"), e, desde 2026-10-07, mais dois CSVs
   NIST/ThermoML, usados como fixtures de teste e também como exemplos do botão
-  "Importar dados":
+  "Exemplos":
   `nist_thermoml_feng2011_metanol_dimetilbuteno_isotermas.csv` e
   `nist_thermoml_clara2006_cloroformio_mek_303K.csv`.
 - `.replit` / `pyproject.toml` / `uv.lock` — projeto roda no Replit,
@@ -236,9 +236,9 @@ Snapshot; o histórico por sessão vem logo abaixo.
 - **UI — integrada.** `fletando_grafico.py` calcula e plota a curva do
   modelo sobre os pontos digitados, com banco IPDB, regressão, selo de
   origem, comparação calculado-vs-experimental (ΔP/Δy no card de
-  parâmetros), importação de dados (arquivo, texto colado e quatro exemplos
-  NIST: etanol/água a 90 e 108 °C, metanol/2,3-dimetil-2-buteno a 70 °C e
-  clorofórmio/2-butanona a 30 °C), valor de parâmetro digitável, lupa nos gráficos (só
+  parâmetros), importação de dados (botão "Importar dados": arquivo e texto colado) e
+  botão "Exemplos" (quatro exemplos NIST: etanol/água a 90 e 108 °C,
+  metanol/2,3-dimetil-2-buteno a 70 °C e clorofórmio/2-butanona a 30 °C), valor de parâmetro digitável, lupa nos gráficos (só
   no desktop), estética **encerrada** (2026-10-07) e botão para alternar entre
   layout de celular e de computador.
 - **Pendências.** A fase de estética foi **encerrada pelo autor em
@@ -2523,6 +2523,27 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   (o pedido citava só o 1P). Wilson (Λ de 0,01 a 3) e α₁₂ do NRTL não mudaram. Os
   valores ajustados nos outros exemplos cabem em ±3 (etanol/água A ≈ 1,0–1,1 no 1P;
   clorofórmio/MEK A = −1,17).
+
+- **(2026-10-07) Botão "Exemplos" separado de "Importar dados".** Pedido do
+  autor: "crie o botão exemplo e coloque próximo ao importar e mova o conteúdo
+  de exemplos pra ele". Os quatro exemplos NIST saíram do diálogo "Importar
+  dados" (que ficou com *Arquivo CSV do dispositivo* e *Colar texto*) e ganharam
+  o botão **"Exemplos"** (ícone de frasco), com diálogo próprio de título
+  "Exemplos" e as opções sem o prefixo "Exemplo:" (o título já diz). O
+  comportamento ao escolher um exemplo não mudou (preenche tabela, componentes
+  e T; mensagem com fonte e nota). Código: `opcao_dialogo` e
+  `mostrar_dialogo_opcoes` (comuns aos dois diálogos), `abrir_importar`,
+  `abrir_exemplos` e `botao_exemplos`, criado uma vez e reaproveitado nos dois
+  layouts (a regra de não mutar controle criado vale: o botão não é alterado).
+  **Posição:** no celular, os três botões quebram linha sozinhos (Adicionar numa
+  linha; Importar dados + Exemplos na de baixo). No desktop (card de ~420 px, onde
+  os três não cabem numa linha) foi montado o mesmo arranjo de forma explícita:
+  "Adicionar Novo Ponto" centralizado numa linha e "Importar dados" + "Exemplos"
+  juntos na de baixo — **escolha do assistente, a confirmar** (a alternativa era
+  deixar o "Exemplos" sozinho numa terceira linha). Verificado por captura de
+  tela a 1400 px e a 360 px (os dois diálogos, e a importação do exemplo
+  metanol/dimetilbuteno pelo botão novo, 22 pontos). Nenhum teste automatizado
+  muda (a lógica dos exemplos, `EXEMPLOS_NIST`/`carregar_exemplo_nist`, é a mesma).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

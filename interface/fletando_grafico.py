@@ -986,38 +986,43 @@ def main(page: ft.Page):
         # No celular o diálogo tem margem lateral; 420px é o teto no desktop.
         return max(220, min(420, (page.width or 420) - 120))
 
-    def abrir_importar(e):
-        def opcao(icone, texto, ao_clicar):
-            return ft.Button(
-                content=ft.Row(
-                    controls=[ft.Icon(icone), ft.Text(texto, expand=True)],
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                on_click=ao_clicar,
-                style=estilo_botao(),
-                width=largura_dialogo(),
-            )
+    def opcao_dialogo(icone, texto, ao_clicar):
+        return ft.Button(
+            content=ft.Row(
+                controls=[ft.Icon(icone), ft.Text(texto, expand=True)],
+                alignment=ft.MainAxisAlignment.START,
+            ),
+            on_click=ao_clicar,
+            style=estilo_botao(),
+            width=largura_dialogo(),
+        )
 
-        opcoes = [
-            opcao(ft.Icons.UPLOAD_FILE, "Arquivo CSV do dispositivo", importar_arquivo),
-            opcao(ft.Icons.CONTENT_PASTE, "Colar texto", abrir_colar_texto),
-        ] + [
-            opcao(ft.Icons.SCIENCE, f"Exemplo: {ex['rotulo']}", importar_exemplo(ex))
-            for ex in EXEMPLOS_NIST
-        ]
+    def mostrar_dialogo_opcoes(titulo, opcoes):
         page.show_dialog(
             ft.AlertDialog(
                 bgcolor=ft.Colors.WHITE,
                 shape=ft.RoundedRectangleBorder(
                     radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
                 ),
-                title=ft.Text(
-                    "Importar dados", size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800
-                ),
+                title=ft.Text(titulo, size=16, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800),
                 content=ft.Column(controls=opcoes, tight=True, spacing=ESPACO_MEDIO),
                 actions=[ft.TextButton("Cancelar", on_click=lambda e: page.pop_dialog())],
             )
         )
+
+    def abrir_importar(e):
+        mostrar_dialogo_opcoes("Importar dados", [
+            opcao_dialogo(ft.Icons.UPLOAD_FILE, "Arquivo CSV do dispositivo", importar_arquivo),
+            opcao_dialogo(ft.Icons.CONTENT_PASTE, "Colar texto", abrir_colar_texto),
+        ])
+
+    # Botão "Exemplos" (2026-10-07, pedido do autor): os exemplos embutidos saíram
+    # do diálogo "Importar dados" e ganharam botão próprio, ao lado dele.
+    def abrir_exemplos(e):
+        mostrar_dialogo_opcoes("Exemplos", [
+            opcao_dialogo(ft.Icons.SCIENCE, ex["rotulo"], importar_exemplo(ex))
+            for ex in EXEMPLOS_NIST
+        ])
 
     botao_importar_csv = ft.Button(
         content=ft.Row(
@@ -1026,6 +1031,16 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=abrir_importar,
+        style=estilo_botao(),
+    )
+
+    botao_exemplos = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.SCIENCE), ft.Text("Exemplos")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=abrir_exemplos,
         style=estilo_botao(),
     )
 
@@ -1051,7 +1066,9 @@ def main(page: ft.Page):
         on_click=limpar_tabela,
     )
 
-    linha_botoes_tabela = ft.Row(controls=[botao_adicionar, botao_importar_csv], wrap=True)
+    linha_botoes_tabela = ft.Row(
+        controls=[botao_adicionar, botao_importar_csv, botao_exemplos], wrap=True
+    )
 
     # Reavaliação leve de "Comparar"/"Limpar Tabela" ao editar a tabela
     # diretamente (ver criar_campo, on_blur) — só checa se existe ao menos
@@ -2385,10 +2402,19 @@ def main(page: ft.Page):
                     alignment=ft.MainAxisAlignment.CENTER,
                 )
             ]
-            botoes = ft.Row(
-                controls=[botao_adicionar, botao_importar_csv],
-                wrap=True,
-                alignment=ft.MainAxisAlignment.CENTER,
+            # Três botões não cabem numa linha nos ~420px do card: "Adicionar"
+            # numa linha e "Importar dados" + "Exemplos" juntos na de baixo
+            # (o mesmo arranjo que o celular já faz por quebra de linha).
+            botoes = ft.Column(
+                controls=[
+                    ft.Row(controls=[botao_adicionar], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row(
+                        controls=[botao_importar_csv, botao_exemplos],
+                        alignment=ft.MainAxisAlignment.CENTER,
+                    ),
+                ],
+                spacing=ESPACO_MEDIO,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
             mensagens = [
                 ft.Container(content=mensagem_status, alignment=ft.Alignment.CENTER_LEFT),
