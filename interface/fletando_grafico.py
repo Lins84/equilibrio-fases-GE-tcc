@@ -680,6 +680,57 @@ AJUDA_TOPICOS = [
     {"id": "gamma", "titulo": "Coeficientes de atividade (ln γ)", "conteudo": None},
     {"id": "modelos", "titulo": "Modelos de Gᴱ e quando usar cada um", "conteudo": None},
     {"id": "limitacoes", "titulo": "Limitações e cuidados (isotérmico, unidades, gás ideal)", "conteudo": None},
+    {
+        "id": "sobre",
+        "titulo": "Sobre: autor, fontes e créditos",
+        # Pedido do autor (2026-10-07). Redação do assistente, a revisar pelo
+        # autor. Versões e licenças conferidas nos metadados dos pacotes
+        # instalados e no uv.lock; fontes dos dados conforme referencias/ e o
+        # mapeamento. Tópico sem "?" de card: só no sumário do botão Ajuda.
+        "conteudo": (
+            "# Autor\n"
+            "Leonardo de Sousa Lins, graduando em Engenharia Química na "
+            "Universidade Federal do Ceará (UFC). O VLE Interativo foi "
+            "desenvolvido como Trabalho de Conclusão de Curso, para o ensino do "
+            "equilíbrio líquido-vapor com modelos de Gᴱ.\n\n"
+            "# Linguagem e bibliotecas\n"
+            "Python (Python Software Foundation): a linguagem de todo o app.\n\n"
+            "Flet 1.0 e flet-charts 1.0, de Appveyor Systems Inc. e dos "
+            "colaboradores do Flet (licença Apache 2.0; flet.dev): a interface e os "
+            "gráficos.\n\n"
+            "thermo 0.6.1 e chemicals 1.5.2, de Caleb Bell (licença MIT; "
+            "github.com/CalebBell/thermo): reconhecimento dos componentes por nome "
+            "ou CAS, pressão de vapor e acesso aos bancos de parâmetros.\n\n"
+            "NumPy e SciPy, das comunidades que os mantêm: cálculo numérico e, no "
+            "SciPy, o ajuste da regressão de Barker.\n\n"
+            "As equações dos modelos de Gᴱ (Margules, Van Laar, Wilson, NRTL, "
+            "UNIQUAC e UNIFAC) foram escritas no código do projeto e conferidas "
+            "contra as implementações da thermo.\n\n"
+            "# Fontes dos parâmetros\n"
+            "NRTL, Wilson e UNIQUAC: parâmetros de interação, e r/q do UNIQUAC, do "
+            "banco ChemSep, de Harry Kooijman e Ross Taylor (Artistic License 2.0), "
+            "distribuído com a thermo e a chemicals.\n\n"
+            "UNIFAC: grupos e parâmetros do método original (Fredenslund, Jones e "
+            "Prausnitz), conforme as tabelas da thermo.\n\n"
+            "Regressão: técnica de redução de dados de equilíbrio líquido-vapor "
+            "(método de Barker) descrita em Smith, Van Ness e Abbott.\n\n"
+            "# Fontes dos dados experimentais\n"
+            "Os exemplos vêm do NIST/TRC ThermoML Archive (doi:10.18434/mds2-2422; "
+            "Riccardi et al., J. Comput. Chem. 43, 879, 2022), dados públicos "
+            "extraídos pelo TRC e não avaliados criticamente. Artigos de origem:\n"
+            "• Etanol/água: Cristino et al., Fluid Phase Equilib. 341 (2013) "
+            "48-53, doi:10.1016/j.fluid.2012.12.014.\n"
+            "• Metanol/2,3-dimetil-2-buteno: Feng, Dong e Li, Fluid Phase Equilib. "
+            "309 (2011) 201-205, doi:10.1016/j.fluid.2011.07.014.\n"
+            "• Clorofórmio/2-butanona: Clara, Marigliano e Solimo, J. Chem. Eng. "
+            "Data 51 (2006) 1473-1478, doi:10.1021/je060150a.\n\n"
+            "O Margules 2-P foi conferido numericamente contra a planilha XSEOS "
+            "(canal Youtermo, no YouTube).\n\n"
+            "# Licenças\n"
+            "Cada biblioteca e cada base de dados mantém a licença e os direitos "
+            "dos seus autores; os créditos acima são deles."
+        ),
+    },
 ]
 
 

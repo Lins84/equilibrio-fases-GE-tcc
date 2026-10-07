@@ -2871,6 +2871,41 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   seções aparecem) e a 360 px; testes passam. Quatro tópicos com texto; cinco
   seguem "Conteúdo em breve.".
 
+- **(2026-10-07) Tópico "Sobre: autor, fontes e créditos" na Ajuda.** Pedido do
+  autor: "quero que tenha o tópico 'sobre', onde informa o autor dessa aplicação
+  (eu), as fontes e a linguagem Python e as lib thermo e flet com seus devidos
+  créditos aos autores criadores". Décimo tópico de `AJUDA_TOPICOS` (`id`
+  "sobre"), **o último da lista e sem "?" de card** — só no sumário do botão
+  "Ajuda". Redação **do assistente, a revisar pelo autor**. Seções: **autor**
+  (Leonardo de Sousa Lins, graduando em Engenharia Química na UFC; TCC);
+  **linguagem e bibliotecas** (Python — Python Software Foundation; Flet 1.0 e
+  flet-charts 1.0 — Appveyor Systems Inc. e colaboradores, Apache 2.0; thermo
+  0.6.1 e chemicals 1.5.2 — Caleb Bell, MIT; NumPy e SciPy; e a nota de que as
+  equações dos modelos são do projeto, conferidas contra a thermo); **fontes dos
+  parâmetros** (banco ChemSep — Harry Kooijman e Ross Taylor, Artistic License 2.0;
+  UNIFAC original — Fredenslund, Jones e Prausnitz, conforme as tabelas da thermo;
+  regressão — redução de dados de ELV em Smith, Van Ness e Abbott); **fontes dos
+  dados experimentais** (NIST/TRC ThermoML, doi:10.18434/mds2-2422, Riccardi et
+  al. 2022, e os três artigos de origem com DOI; planilha XSEOS, canal Youtermo,
+  para o Margules 2-P); **licenças** (cada biblioteca e base mantém a sua). **Fatos
+  conferidos antes de escrever:** versões e licenças nos metadados dos pacotes
+  instalados e no `uv.lock` (thermo 0.6.1, chemicals 1.5.2, flet e flet-charts
+  1.0.0); autores e licenças nos próprios pacotes (Caleb Bell/MIT; "Appveyor
+  Systems Inc."/Apache-2.0; o XML do ChemSep traz "Copyright (c) Harry Kooijman
+  and Ross Taylor" e a Artistic License 2.0); `thermo.unifac.UFIP` = parâmetros do
+  UNIFAC original; os três artigos e DOIs vêm dos cabeçalhos dos CSVs em
+  `referencias/`. **Escolhas do assistente, a confirmar:** (1) **não** incluir o
+  orientador (Dr. Filipe Xavier Feitosa) nem o uso do Claude Code como
+  ferramenta — o pedido não os citava, e ambos são decisão do autor (o uso de IA
+  será explicitado no trabalho final, ver o topo deste arquivo); (2) **não** declarar
+  a licença do próprio projeto, que não está definida no repositório; (3) citar as
+  versões das bibliotecas no texto, o que obriga a atualizá-lo quando o `uv.lock`
+  mudar; (4) a atribuição do método de Barker a Smith, Van Ness e Abbott segue o
+  mapeamento (seção 2.8), sem título nem edição do livro. Verificado por captura a
+  1400 px (sumário com o tópico novo, texto inteiro rolando) e a 360 px (sumário
+  rola); testes passam. Cinco tópicos de conteúdo em branco continuam
+  "Conteúdo em breve."; o "Sobre" já tem texto (cinco com texto, ao todo).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
