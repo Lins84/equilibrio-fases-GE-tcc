@@ -12,6 +12,7 @@ import flet_charts as fch
 from calculos.gemini import (
     MODELOS_COM_BANCO_IPDB,
     MODELS_GE,
+    REGRESSAO_MODELOS,
     buscar_parametros_banco,
     calculate_vle_isothermal,
     montar_parametros_automaticos,
@@ -793,7 +794,9 @@ def main(page: ft.Page):
         # Função específica para excluir esta linha
         def excluir_esta_linha(e):
             dt.rows.remove(nova_linha)
-            page.update()
+            # Recalcula o que acende (Comparar, Limpar dados, Regressão) e
+            # já faz o page.update().
+            atualizar_estado_botoes_tabela()
 
         # O botão da lixeira permanece o mesmo (ft.IconButton suporta ícones nativamente)
         botao_excluir = ft.IconButton(
@@ -1097,20 +1100,36 @@ def main(page: ft.Page):
     # (isso só acontece em "Gerar Gráfico"). `botao_comparar` é definido
     # mais abaixo; resolvido por closure, sem problema (mesmo padrão já
     # usado em `aplicar_importacao`/`gerar_grafico`).
-    def tabela_tem_ponto_valido():
+    def contar_pontos_validos():
+        n = 0
         for linha in dt.rows:
             p_field, x_field, y_field = (linha.cells[i].content for i in range(3))
             try:
                 parse_ponto(p_field.value, x_field.value, y_field.value)
-                return True
+                n += 1
             except ValueError:
                 continue
-        return False
+        return n
+
+    # "Calcular por Regressão" só acende quando a regressão pode rodar: o
+    # modelo tem parâmetro ajustável (REGRESSAO_MODELOS — fora UNIFAC) e a
+    # tabela tem o mínimo de pontos válidos (nº de parâmetros livres + 1,
+    # seção 2.8 / decisão de 2026-09-13; o mesmo piso que `regress_params_
+    # barker` exige). Pedido do autor, 2026-10-07: acesos só quando aplicável,
+    # como o "Comparar".
+    def regressao_aplicavel(n_pontos):
+        nome = modelo_selecionado["nome"]
+        # Na UI a regressão vale só para os modelos com slider (não UNIQUAC).
+        spec = REGRESSAO_MODELOS.get(nome) if nome in PARAM_SLIDERS else None
+        return spec is not None and n_pontos >= len(spec["livres"]) + 1
+
+    def atualizar_habilitacao_botoes(n_pontos):
+        botao_comparar.disabled = n_pontos == 0
+        botao_limpar_tabela.disabled = n_pontos == 0
+        botao_regressao.disabled = not regressao_aplicavel(n_pontos)
 
     def atualizar_estado_botoes_tabela():
-        tem_dado = tabela_tem_ponto_valido()
-        botao_comparar.disabled = not tem_dado
-        botao_limpar_tabela.disabled = not tem_dado
+        atualizar_habilitacao_botoes(contar_pontos_validos())
         page.update()
 
     # 4. Gráfico P-x-y a partir dos dados brutos da tabela (Etapa 2 — sem
@@ -1464,6 +1483,7 @@ def main(page: ft.Page):
         # comparação calculada antes, pra não sobrar uma curva comparativa
         # desatualizada em relação ao modelo/tabela atual.
         botao_comparar.disabled = not pontos_validos
+        botao_regressao.disabled = not regressao_aplicavel(len(pontos_validos))
         # "Limpar Tabela" fica apagado sem dado nenhum pra apagar — mesmo
         # critério do "Comparar" (pontos_validos), pedido do autor,
         # 2026-09-28. O clique apaga qualquer dado presente, digitado à mão
@@ -2358,6 +2378,9 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
         ),
         on_click=calcular_por_regressao,
+        # Começa apagado; `atualizar_habilitacao_botoes` acende quando há
+        # pontos suficientes para o modelo escolhido.
+        disabled=True,
         style=estilo_botao(),
     )
 

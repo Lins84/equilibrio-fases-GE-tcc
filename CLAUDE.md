@@ -2601,6 +2601,27 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   título. Verificado por captura a 1400 px e 360 px e pelo clique real em
   "Comparar" depois de importar o exemplo (ΔP/Δy aparecem).
 
+- **(2026-10-07) Regressão e Desfazer acesos só quando aplicáveis, como o
+  Comparar.** Pedido do autor: "quero que a regressão por Barker e o desfazer
+  fique aceso apenas quando for aplicável, assim como o comparar". **Regressão:**
+  o botão "Calcular por Regressão (Barker)" nasce apagado e acende só quando a
+  regressão pode rodar — o modelo tem slider (não UNIQUAC/UNIFAC) **e** a tabela
+  tem o mínimo de pontos válidos do modelo (parâmetros livres + 1, o mesmo piso
+  de `regress_params_barker`, seção 2.8: 2 pontos no Margules 1P, 3 nos demais).
+  Reavaliado junto com o Comparar e o "Limpar dados" por
+  `atualizar_habilitacao_botoes` (em `gerar_grafico`, ao sair de um campo da
+  tabela e, novo, ao excluir uma linha — antes a lixeira de linha não reavaliava
+  nenhum botão, também um defeito do Comparar). Trocar de modelo reavalia pelo
+  `gerar_grafico` que já seguia a troca. **Desfazer:** já era assim — nasce
+  apagado, acende ao empilhar um estado (busca no banco ou regressão) e apaga ao
+  esvaziar o histórico ou trocar de modelo; só confirmado, nada mudou. Digitar um
+  valor ou mover o slider não empilha histórico (decisão de 2026-10-06), então
+  esses dois gestos não acendem o Desfazer. Verificado por captura a 1400 px:
+  estado inicial (Comparar, Regressão e Desfazer apagados); 1 ponto digitado
+  (Comparar aceso, Regressão apagada); 2 pontos (Regressão acesa); exclusão de
+  um ponto (volta a apagar); exemplo importado + regressão (Desfazer acende);
+  testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
