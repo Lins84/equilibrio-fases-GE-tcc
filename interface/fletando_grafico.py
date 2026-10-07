@@ -420,7 +420,9 @@ def importar_pontos_texto(
 # criticamente). Os CSVs ficam em referencias/ com a fonte no cabeçalho. Ao
 # carregar, o exemplo também ajusta componentes e temperatura da tela, porque
 # o dado só faz sentido a essa T. Para acrescentar um exemplo, basta uma linha
-# em EXEMPLOS_NIST (x e y do CSV são do componente 1).
+# em EXEMPLOS_NIST (x e y do CSV são do componente 1). O campo "limitacoes"
+# (2026-10-07, pedido do autor) alimenta o "?" de cada exemplo no diálogo
+# "Exemplos"; é redação do assistente a partir de fatos medidos, a revisar.
 PASTA_REFERENCIAS = Path(__file__).resolve().parent.parent / "referencias"
 _CSV_ETANOL_AGUA = PASTA_REFERENCIAS / "nist_thermoml_cristino2013_etanol_agua_isotermas.csv"
 _FONTE_ETANOL_AGUA = "Cristino et al., Fluid Phase Equilib. 341 (2013) 48-53, via NIST ThermoML"
@@ -431,6 +433,9 @@ EXEMPLOS_NIST = [
         "componente1": "ethanol", "componente2": "water",
         "fonte": _FONTE_ETANOL_AGUA,
         "nota": "faixa de x₁ incompleta, T elevada",
+        "limitacoes": (
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Faixa de x₁ incompleta\nHá 12 pontos, com x₁ de 0,16 a 0,997: nada abaixo de 0,16 e um vão de 0,79 a 0,997. Os dois componentes puros não foram medidos. O teste da área (consistência termodinâmica) não é conclusivo sobre uma faixa parcial.\n\n# Temperatura e pressão elevadas\nIsoterma de 90 °C, P de 126 a 159 kPa (acima de 1 atm). O app supõe fase vapor ideal (Raoult modificada); em pressão alta essa hipótese é menos boa, e a temperatura fica bem acima das de aula.\n\n# O que funciona\nNRTL, Wilson e UNIQUAC (parâmetros do banco) e UNIFAC reproduzem o dado sem nenhum ajuste: Wilson ΔP 0,5 % e Δy 0,024; UNIFAC 0,9 % e 0,021; NRTL 1,1 % e 0,029; UNIQUAC 1,3 % e 0,030. A regressão de Barker também converge."
+        ),
     },
     {
         "rotulo": "etanol/água, 108 °C",
@@ -438,6 +443,9 @@ EXEMPLOS_NIST = [
         "componente1": "ethanol", "componente2": "water",
         "fonte": _FONTE_ETANOL_AGUA,
         "nota": "faixa de x₁ incompleta, T elevada",
+        "limitacoes": (
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Faixa de x₁ incompleta\nHá 26 pontos, com x₁ de 0,017 a 0,997: um vão de 0,79 a 0,997. Os dois componentes puros não foram medidos. O teste da área (consistência termodinâmica) não é conclusivo sobre uma faixa parcial.\n\n# Temperatura e pressão elevadas\nIsoterma de 108 °C, P de 156 a 295 kPa (quase 3 atm). O app supõe fase vapor ideal (Raoult modificada); em pressão alta essa hipótese é menos boa, e a temperatura fica bem acima das de aula.\n\n# O que funciona\nNRTL, Wilson e UNIQUAC (parâmetros do banco) e UNIFAC reproduzem o dado sem nenhum ajuste: Wilson ΔP 0,8 % e Δy 0,017; NRTL 1,4 % e 0,022; UNIQUAC 1,6 % e 0,022; UNIFAC 2,3 % e 0,020. A regressão de Barker também converge."
+        ),
     },
     {
         "rotulo": "metanol/dimetilbuteno, 70 °C",
@@ -446,6 +454,9 @@ EXEMPLOS_NIST = [
         "componente1": "methanol", "componente2": "2,3-dimethyl-2-butene",
         "fonte": "Feng, Dong e Li, Fluid Phase Equilib. 309 (2011) 201-205, via NIST ThermoML",
         "nota": "azeótropo de pressão máxima em x₁ ≈ 0,58 (mínimo ponto de ebulição)",
+        "limitacoes": (
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL e Wilson) e o 2,3-dimetil-2-buteno não está na tabela de grupos UNIFAC, então UNIQUAC e UNIFAC não funcionam e \"Buscar do Banco\" não encontra o par. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Pressão\nP de 91 a 191 kPa (acima de 1 atm em boa parte da faixa); o app supõe fase vapor ideal.\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 com os dois puros medidos (P dentro de 0,1 % da pressão de vapor do thermo) e passa no teste da área (D ≈ 4 %). Depois de ajustados por Barker, os modelos erram ΔP em 1 a 2 % e Δy em 0,011 a 0,025, e reproduzem o azeótropo de pressão máxima a menos de 0,015 em x₁ (experimental 0,575; Wilson 0,579).\n\n# Cosmético\nO campo \"Componente 2\" mostra o nome cortado; o valor está inteiro."
+        ),
     },
     {
         "rotulo": "clorofórmio/MEK, 30 °C",
@@ -454,6 +465,9 @@ EXEMPLOS_NIST = [
         "componente1": "chloroform", "componente2": "2-butanone",
         "fonte": "Clara, Marigliano e Solimo, J. Chem. Eng. Data 51 (2006) 1473-1478, via NIST ThermoML",
         "nota": "desvio negativo, azeótropo de pressão mínima em x₁ ≈ 0,19 (máximo ponto de ebulição)",
+        "limitacoes": (
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL, Wilson e UNIQUAC) e o clorofórmio não está na tabela de grupos UNIFAC, então \"Buscar do Banco\", UNIQUAC e UNIFAC não funcionam. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Azeótropo: o modelo não acerta a composição\nO modelo ajustado reproduz a existência e o tipo do azeótropo de pressão mínima e a pressão (≈ 15 kPa), mas o coloca em x₁ ≈ 0,14 a 0,15, contra 0,19 do dado: a região é quase plana e a composição é pouco determinada.\n\n# Pontos do dado\nA pressão medida da 2-butanona pura (15,74 kPa) fica 3,2 % acima da pressão de vapor do thermo (15,25 kPa), o que desloca um pouco o erro ΔP. Há dois pontos em x₁ = 0,252, então a mensagem após \"Comparar\" conta 21 composições distintas (o erro usa os 22 pontos).\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 e passa no teste da área (D ≈ 3 %). Por Barker, ΔP fica em 1,5 a 1,6 % e Δy em 0,008 a 0,009; o Van Laar sai com A₁₂ e A₂₁ negativos (−0,97 e −1,33), como se espera de um desvio negativo."
+        ),
     },
 ]
 
@@ -1101,7 +1115,7 @@ def main(page: ft.Page):
         # No celular o diálogo tem margem lateral; 420px é o teto no desktop.
         return max(220, min(420, (page.width or 420) - 120))
 
-    def opcao_dialogo(icone, texto, ao_clicar):
+    def opcao_dialogo(icone, texto, ao_clicar, largura=None):
         return ft.Button(
             content=ft.Row(
                 controls=[ft.Icon(icone), ft.Text(texto, expand=True)],
@@ -1109,7 +1123,7 @@ def main(page: ft.Page):
             ),
             on_click=ao_clicar,
             style=estilo_botao(),
-            width=largura_dialogo(),
+            width=largura or largura_dialogo(),
         )
 
     def mostrar_dialogo_opcoes(titulo, opcoes):
@@ -1133,11 +1147,44 @@ def main(page: ft.Page):
 
     # Botão "Exemplos" (2026-10-07, pedido do autor): os exemplos embutidos saíram
     # do diálogo "Importar dados" e ganharam botão próprio, ao lado dele.
+    # O "?" de cada exemplo abre as limitações dele (2026-10-07, pedido do autor).
     def abrir_exemplos(e):
-        mostrar_dialogo_opcoes("Exemplos", [
-            opcao_dialogo(ft.Icons.SCIENCE, ex["rotulo"], importar_exemplo(ex))
-            for ex in EXEMPLOS_NIST
-        ])
+        def linha_exemplo(ex):
+            return ft.Row(
+                controls=[
+                    opcao_dialogo(
+                        ft.Icons.SCIENCE, ex["rotulo"], importar_exemplo(ex),
+                        largura=largura_dialogo() - 44,
+                    ),
+                    ft.IconButton(
+                        icon=ft.Icons.HELP_OUTLINE,
+                        icon_size=20,
+                        icon_color=ft.Colors.BLUE_700,
+                        padding=2,
+                        tooltip="Limitações deste exemplo",
+                        on_click=abrir_limitacoes_exemplo(ex),
+                    ),
+                ],
+                spacing=4,
+            )
+
+        mostrar_dialogo_opcoes("Exemplos", [linha_exemplo(ex) for ex in EXEMPLOS_NIST])
+
+    def abrir_limitacoes_exemplo(ex):
+        def ao_clicar(e):
+            page.pop_dialog()
+            page.show_dialog(
+                estilo_dialogo_ajuda(
+                    "Limitações: " + ex["rotulo"],
+                    ft.Container(width=largura_dialogo(), content=corpo_ajuda(ex["limitacoes"])),
+                    [
+                        ft.TextButton("Voltar aos exemplos", on_click=lambda e: (page.pop_dialog(), abrir_exemplos(e))),
+                        ft.TextButton("Fechar", on_click=lambda e: page.pop_dialog()),
+                    ],
+                    rolavel=True,
+                )
+            )
+        return ao_clicar
 
     # Ajuda: lista de tópicos -> página do tópico, cada uma um diálogo novo
     # (a regra do app é não mutar controle já criado; mesmo padrão de "Colar

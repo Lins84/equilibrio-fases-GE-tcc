@@ -2742,6 +2742,34 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   360 px (o diálogo rola); testes passam. Dois tópicos com texto; sete seguem
   "Conteúdo em breve.".
 
+- **(2026-10-07) "?" por exemplo no diálogo "Exemplos", com as limitações.**
+  Pedido do autor: "quero uma interrogação para os exemplos informando as
+  limitações que encontramos neles". Cada exemplo ganhou, ao lado, um "?"
+  (mesmo ícone do "?" de ajuda dos cards) que fecha a lista e abre o diálogo
+  "Limitações: <exemplo>" (rolável, com "Voltar aos exemplos" e "Fechar").
+  Código: chave `limitacoes` em cada item de `EXEMPLOS_NIST` (texto no formato
+  dos tópicos de ajuda, com subtítulos `# `, lido por `corpo_ajuda`),
+  `opcao_dialogo(..., largura=None)` e `abrir_limitacoes_exemplo`. **Conteúdo —
+  redação do assistente, a revisar pelo autor; todos os números foram
+  recalculados antes de escrever** (checagem com as funções do app): etanol/água
+  90 e 108 °C — faixa de x₁ incompleta (0,16–0,997 com vão de 0,79 a 0,997, e
+  0,017–0,997 com o mesmo vão), puros não medidos, teste da área inconclusivo,
+  T e P elevadas com a hipótese de vapor ideal, e o que funciona (modelos do
+  banco e UNIFAC sem ajuste, ΔP 0,5–2,3 %, Δy 0,017–0,030); metanol/
+  dimetilbuteno 70 °C — só a regressão de Barker se aplica (sem NRTL/Wilson no
+  banco; UNIQUAC e UNIFAC falham porque o 2,3-dimetil-2-buteno não está na
+  tabela de grupos), azeótropo de pressão máxima reproduzido a menos de 0,015
+  em x₁, nome do componente 2 cortado no campo (cosmético); clorofórmio/MEK
+  30 °C — só a regressão se aplica (sem parâmetros no banco; clorofórmio fora da
+  tabela de grupos), azeótropo do modelo em x₁ ≈ 0,14–0,15 contra 0,19, MEK puro
+  3,2 % acima da Psat do `thermo`, x₁ = 0,252 repetido (a mensagem pós-"Comparar"
+  conta 21 composições distintas). **Escolhas do assistente, a confirmar:** um "?"
+  por exemplo (em vez de um aviso único no diálogo); incluir o que funciona, além
+  do que limita; a seção "Cosmético" do metanol/dimetilbuteno. Verificado por
+  captura a 1400 px (lista, limitações do etanol/água 90 °C e do clorofórmio/MEK,
+  "Voltar aos exemplos") e a 360 px (lista e limitações do metanol/dimetilbuteno);
+  os testes passam.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
