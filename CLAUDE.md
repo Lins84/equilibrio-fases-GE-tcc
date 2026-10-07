@@ -2140,6 +2140,57 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   corte); novo teste `teste_exemplos_nist` em `teste_importar_texto.py`;
   testes passam. A mensagem com a fonte some quando o usuário clica em
   "Comparar" (a mensagem de status é única) — a citação continua no CSV e aqui.
+  **Terceira rodada de busca no ThermoML, 2026-10-07 — pedido do autor: "vc se
+  prendeu a etanol e água? ... qualquer outro par servia ... busque por outros
+  pares que satisfaçam a maior parte dos pontos em aberto, pois a questão do
+  azeótropo é de grande importância".** **Resposta ao pergunta:** sim — etanol/
+  água foi só o par padrão do app e do CSV removido, sem mérito próprio.
+  **Método:** consultas à API do ThermoML (títulos com "isothermal/vapor/
+  vapour/equilibri*" e pares clássicos: acetona, metanol, etanol, aromáticos,
+  clorados, água) e filtro local pelo `data_summary` (binário, com P **e**
+  fração molar de y, ≥ 8 pontos); depois leitura do JSON de cada candidato,
+  checagem de T, faixa de x₁, azeótropo, teste da área e modelos do app. O
+  arquivo é dominado por refrigerantes (HFC/HFO); entre os de interesse didático
+  (T ≤ 100 °C): **descartados** 2-propanol + n-hexano e + n-heptano (Fluid
+  Phase Equilib./JCED 2003-04: "near the critical region", T ≈ 210 °C),
+  cloroformio + MIBK (`10.1016/j.jct.2006.07.004`, 303,15 K, 16 pontos, desvio
+  negativo, **reprovado no teste da área: D = 33–46 %**, e P do MIBK puro 12 %
+  acima da Psat do thermo), propan-1-ol + dodecano (sem azeótropo), cicloexano +
+  cicloexanona (sem azeótropo), ácido fórmico + água (associação em fase vapor
+  invalida a Raoult com gás ideal). **Dois candidatos aprovados:**
+  (1) **Metanol + 2,3-dimetil-2-buteno**, Fluid Phase Equilib. 2011,
+  `10.1016/j.fluid.2011.07.014`: 4 isotermas (343,15; 353,15; 363,15; 373,15 K =
+  70–100 °C), 19–23 pontos cada, **x₁ de 0 a 1 com os dois puros medidos** (P
+  dos puros dentro de 0,1 % da Psat do thermo), **azeótropo de pressão máxima**
+  (mínimo ponto de ebulição) em x₁ ≈ 0,58–0,63 (P_az 191 a 499 kPa contra puros
+  de 91–125 a 219–354 kPa), **teste da área D = 2,8 / 4,4 / 4,8 / 6,5 %**
+  (< 10 %, **consistente**). Barker: ΔP 1,0–2,0 %, Δy 0,011–0,025 (Wilson o
+  melhor). O azeótropo previsto pelos modelos ajustados cai a 0,004–0,015 do
+  experimental em x₁ (343 K: 0,575 exp. × 0,579 Wilson; 373 K: 0,626 × 0,641).
+  (2) **Clorofórmio + 2-butanona (MEK)**, J. Chem. Eng. Data 2006,
+  `10.1021/je060150a`, **303,15 K (30 °C)**, 22 pontos, x₁ de 0 a 1, desvio
+  **negativo** e **azeótropo de pressão mínima** (máximo ponto de ebulição) em
+  x₁ ≈ 0,19–0,20, P ≈ 15,3 kPa (confirmado pelos autores no resumo), **D =
+  3,4 %** (consistente). Barker: ΔP 1,5–1,6 %, Δy 0,008–0,009; parâmetros do
+  Van Laar A₁₂ = −0,97, A₂₁ = −1,33 (ambos < 0, como previsto). O azeótropo dos
+  modelos ajustados sai em x₁ ≈ 0,146 (contra 0,19–0,20) — o modelo reproduz a
+  existência e a P (15,0 kPa), mas **não a composição com precisão** (a região
+  fica quase plana). **Efeito sobre achados anteriores:** o dado do (2) é a
+  **confirmação com dado real** do bug do Van Laar com desvio negativo: sem o
+  chute extra a regressão termina em A₁₂ = 0,995, A₂₁ = −0,03, resíduo 0,176,
+  `sucesso=False`; com o chute extra, resíduo 0,0125 e parâmetros acima.
+  Os dois pares cobrem os **dois tipos de azeótropo** (mínimo e máximo ponto de
+  ebulição) e o **desvio negativo real**; etanol/água cobre a validação com
+  banco IPDB. **Limites:** nenhum dos dois pares tem parâmetros no IPDB (NRTL,
+  Wilson, UNIQUAC) nem grupos UNIFAC na tabela do app, então **só a regressão
+  de Barker** (botão "Calcular por Regressão") se aplica — é o caso de uso
+  original da regressão (par sem banco); o metanol/olefina é menos conhecido
+  pelos alunos que etanol/água; os dados são do TRC/NIST, não avaliados
+  criticamente. CSVs-rascunho fora do repositório. **Nada foi incorporado
+  ao repositório nem à UI; aguarda decisão do autor** (propor: fixtures de
+  teste + exemplos "Metanol/2,3-dimetil-2-buteno, 70 °C" e "Clorofórmio/
+  2-butanona, 30 °C", com componentes e T preenchidos, e decidir se os de
+  etanol/água a 90–108 °C permanecem).
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado
