@@ -466,7 +466,32 @@ EXEMPLOS_NIST = [
 # aprovada em linhas gerais pelo autor ("vamos seguir sua recomendação");
 # os títulos exatos seguem a confirmar.
 AJUDA_TOPICOS = [
-    {"id": "primeiros_passos", "titulo": "Primeiros passos (3 etapas)", "conteudo": None},
+    {
+        "id": "primeiros_passos",
+        "titulo": "Primeiros passos (3 etapas)",
+        # Rascunho do assistente (2026-10-07), a revisar pelo autor.
+        "conteudo": (
+            "Em 3 etapas, usando um exemplo pronto:\n\n"
+            "# 1. Carregue dados\n"
+            "No card \"Dados experimentais\", toque em \"Exemplos\" e escolha um. "
+            "O app preenche a tabela, os componentes e a temperatura e já desenha "
+            "os dois gráficos.\n\n"
+            "# 2. Ajuste o modelo\n"
+            "No card \"Sistema\", escolha o modelo de Gᴱ. No card \"Parâmetros do "
+            "modelo\", arraste o slider ou digite o valor do parâmetro e veja a "
+            "curva mudar. O selo ao lado do título diz de onde veio o valor "
+            "(Fornecido, Banco de dados ou Calculado).\n\n"
+            "# 3. Compare com o experimental\n"
+            "Toque em \"Comparar\": o app calcula o modelo nos pontos da tabela "
+            "(marcadores vazados) e mostra o desvio em P (ΔP, em %) e em y₁ (Δy). "
+            "Para o app buscar o parâmetro que melhor ajusta os dados, toque em "
+            "\"Calcular por Regressão (Barker)\".\n\n"
+            "Com os seus próprios dados: digite P (em kPa), x₁ e y₁ na tabela "
+            "ou use \"Importar dados\"; informe os componentes (nome em inglês, "
+            "como ethanol e water, ou número CAS) e a temperatura em °C; "
+            "se digitou à mão, toque em \"Gerar Gráfico\"."
+        ),
+    },
     {"id": "dados", "titulo": "Dados experimentais: digitar, importar e exemplos", "conteudo": None},
     {"id": "sistema", "titulo": "Sistema: componentes, temperatura e modelo Gᴱ", "conteudo": None},
     {"id": "parametros", "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão", "conteudo": None},
@@ -1077,8 +1102,9 @@ def main(page: ft.Page):
     # Ajuda: lista de tópicos -> página do tópico, cada uma um diálogo novo
     # (a regra do app é não mutar controle já criado; mesmo padrão de "Colar
     # texto"). "Voltar" reabre a lista.
-    def estilo_dialogo_ajuda(titulo, conteudo, acoes):
+    def estilo_dialogo_ajuda(titulo, conteudo, acoes, rolavel=False):
         return ft.AlertDialog(
+            scrollable=rolavel,
             bgcolor=ft.Colors.WHITE,
             shape=ft.RoundedRectangleBorder(
                 radius=12, side=ft.BorderSide(1.5, ft.Colors.BLUE_200)
@@ -1088,24 +1114,33 @@ def main(page: ft.Page):
             actions=acoes,
         )
 
+    def corpo_ajuda(conteudo):
+        # Texto do tópico em parágrafos (separados por linha em branco). Uma
+        # linha que começa com "# " é um subtítulo: sai em negrito azul.
+        if conteudo is None:
+            return ft.Text("Conteúdo em breve.", size=14, color=ft.Colors.GREY_800, italic=True)
+        blocos = []
+        for paragrafo in conteudo.split("\n\n"):
+            linhas = paragrafo.split("\n")
+            if linhas[0].startswith("# "):
+                blocos.append(
+                    ft.Text(linhas[0][2:], size=14, weight=ft.FontWeight.BOLD, color=ft.Colors.BLUE_800)
+                )
+                linhas = linhas[1:]
+            if linhas:
+                blocos.append(ft.Text("\n".join(linhas), size=14, color=ft.Colors.TEAL_900))
+        return ft.Column(controls=blocos, spacing=ESPACO_PEQUENO, tight=True)
+
     def mostrar_topico_ajuda(topico):
-        texto = topico["conteudo"] or "Conteúdo em breve."
         page.show_dialog(
             estilo_dialogo_ajuda(
                 topico["titulo"],
-                ft.Container(
-                    width=largura_dialogo(),
-                    content=ft.Text(
-                        texto,
-                        size=14,
-                        color=ft.Colors.TEAL_900 if topico["conteudo"] else ft.Colors.GREY_800,
-                        italic=topico["conteudo"] is None,
-                    ),
-                ),
+                ft.Container(width=largura_dialogo(), content=corpo_ajuda(topico["conteudo"])),
                 [
                     ft.TextButton("Todos os tópicos", on_click=voltar_aos_topicos),
                     ft.TextButton("Fechar", on_click=lambda e: page.pop_dialog()),
                 ],
+                rolavel=True,
             )
         )
 
