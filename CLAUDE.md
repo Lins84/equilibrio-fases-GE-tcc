@@ -237,11 +237,9 @@ Snapshot; o histórico por sessão vem logo abaixo.
   itens levantados em 2026-09-30/10-01 estão todos feitos, e os ajustes
   seguintes vieram por pedido do autor. O modo isobárico (T-x-y) está
   adiado para depois do piloto, em "Atualizações futuras". Não há decisão de
-  rumo em aberto neste momento, mas há **escolhas do assistente a confirmar
-  pelo autor** (registradas nas entradas de "Decisões de engenharia do
-  aluno"): chute inicial extra do Van Laar na regressão, só duas das cinco
-  isotermas de etanol/água como exemplo na UI, regras de validação do campo de
-  parâmetro e o chip laranja do UNIQUAC com r/q via UNIFAC. **Pendência de
+  rumo em aberto neste momento; as escolhas do assistente que estavam
+  marcadas "a confirmar" foram **confirmadas pelo autor em 2026-10-07** (ver
+  "Decisões de engenharia do aluno", última entrada). **Pendência de
   informação (2026-10-07):** origem do dado de 1,4-dioxano/metanol a 308,5 K,
   de um exercício do professor sem fonte conhecida — o autor vai perguntar ao
   professor; até lá a frase da seção 2 do mapeamento fica em redação
@@ -2432,6 +2430,26 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   o de reserva foi simulado num processo à parte com a tabela do ChemSep
   esvaziada (nenhum par real do app cai nele hoje: etanol, água, metanol e
   dioxano constam no ChemSep).
+
+- **(2026-10-07) Confirmação, pelo autor, das escolhas do assistente
+  pendentes ("Confirmo as escolhas do assistente").** Depois de o assistente
+  listar as pendências, o autor confirmou de uma vez as escolhas que as
+  entradas acima marcavam como "a confirmar", que passam a valer como
+  decisões do projeto: (1) **chute inicial extra do Van Laar** na regressão de
+  Barker (`chutes_extras`), em vez de restringir o sinal dos parâmetros;
+  (2) **só duas das cinco isotermas de etanol/água** (90 e 108 °C) como
+  exemplos do botão "Importar dados", com o rótulo da temperatura
+  arredondado para caber a 360 px; (3) **regras de validação do campo de
+  parâmetro digitável** (valor não numérico ou infinito recusado, com o campo
+  voltando ao anterior; Λ₁₂ e Λ₂₁ do Wilson só maiores que zero; α₁₂ do NRTL
+  sem limite além de ser número); (4) **chip laranja "Banco, r/q via UNIFAC"**
+  no selo do UNIQUAC quando os r/q vêm dos grupos UNIFAC; (5) **passo 0,2 no
+  eixo x** dos dois gráficos; (6) **apagar o CSV antigo sem fonte** em vez de
+  mantê-lo marcado (continua recuperável no commit `0cce3f8`); e, no mesmo
+  grupo, o rótulo curto do exemplo de importação e a largura do diálogo
+  (420 px no desktop, largura da página − 120 no celular). **Não confirmado
+  por essa resposta, segue aberto:** a origem do dado de 1,4-dioxano/metanol
+  (depende do professor).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
