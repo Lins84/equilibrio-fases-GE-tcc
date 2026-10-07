@@ -547,7 +547,58 @@ AJUDA_TOPICOS = [
             "avisa, e o erro ΔP da comparação perde o sentido."
         ),
     },
-    {"id": "sistema", "titulo": "Sistema: componentes, temperatura e modelo Gᴱ", "conteudo": None},
+    {
+        "id": "sistema",
+        "titulo": "Sistema: componentes, temperatura e modelo Gᴱ",
+        # Rascunho do assistente (2026-10-07), a revisar pelo autor. Fatos
+        # conferidos rodando o motor: nomes aceitos pelo thermo, T acima da
+        # crítica sem aviso, mensagens de erro e o que NÃO é reiniciado ao
+        # trocar componentes/temperatura.
+        "conteudo": (
+            "Este card define o sistema binário que o app calcula. Os gráficos "
+            "são refeitos quando você sai de um campo ou aperta Enter; no "
+            "modelo, assim que você escolhe.\n\n"
+            "# Componentes\n"
+            "Digite o nome em inglês (ethanol, water, methanol, acetone) ou o "
+            "número CAS (64-17-5). Maiúsculas não importam. Nomes em português "
+            "costumam falhar: \"acetona\", \"benzeno\" e \"água\" (com acento) "
+            "não são reconhecidos, enquanto \"etanol\", \"metanol\" e \"agua\" "
+            "funcionam por coincidência. Na dúvida, use inglês ou CAS.\n\n"
+            "O Componente 1 é o dono dos índices 1: x₁ e y₁ da tabela e dos "
+            "gráficos, e os parâmetros A₁₂, τ₁₂ etc. Trocar a ordem dos "
+            "componentes inverte o diagrama. Se o nome não for reconhecido, a "
+            "mensagem \"Curva do modelo não calculada\" aparece no card "
+            "\"Dados experimentais\". Dois componentes iguais não dão erro, mas "
+            "o resultado não tem sentido.\n\n"
+            "# Temperatura\n"
+            "Em °C, com ponto como separador decimal (70.5; \"70,5\" dá erro). "
+            "O cálculo é isotérmico: existe uma única temperatura, e ela deve "
+            "ser a mesma em que os dados da tabela foram medidos, senão a "
+            "comparação não vale. Os exemplos já preenchem a temperatura certa.\n\n"
+            "Mantenha a temperatura abaixo da temperatura crítica dos dois "
+            "componentes (etanol 241,6 °C; água 373,9 °C). Acima dela a pressão "
+            "de vapor deixa de ter sentido e o app não avisa: etanol/água a "
+            "300 °C dá pressões de milhares a dezenas de milhares de kPa, acima "
+            "da pressão crítica do etanol (6268 kPa).\n\n"
+            "# Modelo Gᴱ\n"
+            "Margules 1-P, Margules 2-P, Van Laar, Wilson e NRTL têm parâmetros "
+            "que você ajusta no card \"Parâmetros do modelo\". UNIQUAC e UNIFAC "
+            "não têm slider: calculam os parâmetros sozinhos a partir dos "
+            "componentes. Isso só funciona se o par estiver nos dados do app — "
+            "o UNIQUAC precisa de a₁₂/a₂₁ no banco para o par, e o UNIFAC precisa "
+            "que os dois componentes tenham seus grupos na tabela do projeto. "
+            "Se faltar, aparece uma mensagem de erro; use outro modelo.\n\n"
+            "Trocar de modelo volta os parâmetros aos valores iniciais e "
+            "esvazia o histórico do \"Desfazer\". Para saber quando usar cada "
+            "modelo, veja o tópico \"Modelos de Gᴱ\".\n\n"
+            "# Ao trocar componentes ou temperatura\n"
+            "Os valores dos parâmetros e os pontos da tabela ficam como "
+            "estavam. Se os parâmetros vieram do banco ou da regressão para o "
+            "sistema anterior, o selo de origem continua dizendo \"Banco de "
+            "dados\" ou \"Calculado\" — refaça a busca ou a regressão para o "
+            "novo sistema."
+        ),
+    },
     {"id": "parametros", "titulo": "Parâmetros do modelo: slider, valor digitado, selo de origem, banco e regressão", "conteudo": None},
     {"id": "comparar", "titulo": "Comparar calculado e experimental (ΔP e Δy)", "conteudo": None},
     {"id": "pxy", "titulo": "Diagrama P-x-y", "conteudo": None},

@@ -2770,6 +2770,40 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   "Voltar aos exemplos") e a 360 px (lista e limitações do metanol/dimetilbuteno);
   os testes passam.
 
+- **(2026-10-07) Conteúdo do tópico "Sistema" (rascunho).** Pedido do autor:
+  "mantenha suas escolhas e siga para o próximo tópico" — as escolhas pendentes
+  do assistente (ordem dos tópicos, um "?" por exemplo, "O que funciona" nas
+  limitações) ficam como estão, e o próximo da ordem do fluxo é **"Sistema:
+  componentes, temperatura e modelo Gᴱ"**. Redação **do assistente, a revisar
+  pelo autor**. Seções (subtítulos `# `): **componentes** (nome em inglês ou
+  CAS; maiúsculas não importam; "etanol", "metanol" e "agua" funcionam por
+  coincidência, "acetona", "benzeno" e "água" com acento não; o Componente 1 é
+  o dono dos índices 1; dois componentes iguais não dão erro mas não têm
+  sentido; nome inválido gera "Curva do modelo não calculada" no card "Dados
+  experimentais"); **temperatura** (°C, ponto decimal — "70,5" dá erro —,
+  única e igual à dos dados; abaixo da temperatura crítica); **modelo Gᴱ** (os
+  cinco com parâmetros ajustáveis × UNIQUAC/UNIFAC automáticos, que dependem de
+  o par estar nos dados do app; trocar de modelo reinicia parâmetros e o
+  histórico do "Desfazer"); e **ao trocar componentes ou temperatura**.
+  **Fatos conferidos rodando o motor/lendo o código antes de escrever:** etanol/
+  água a 300 °C **não dá erro** e devolve P de 8,6 a 32,7 MPa — acima da pressão
+  crítica do etanol (6268 kPa; Tc 241,6 °C) —, ou seja, o app **não avisa**
+  quando a temperatura passa da crítica de um componente; etanol/etanol também
+  calcula sem erro; a recalculação é ao sair do campo/Enter (componentes e
+  temperatura) e imediata na escolha do modelo; `parametros_atuais` só muda por
+  slider, valor digitado, banco ou regressão, nunca por troca de componente ou
+  temperatura.
+  **Achado a decidir pelo autor, não corrigido:** (a) trocar componentes ou
+  temperatura **mantém os valores dos parâmetros e o selo de origem** — se vieram
+  de "Buscar do Banco" ou da regressão para o sistema anterior, o selo continua
+  dizendo "Banco de dados"/"Calculado", o que pode enganar; o texto da ajuda
+  descreve o comportamento atual e manda refazer a busca/regressão; (b) a falta
+  de aviso de temperatura acima da crítica. Opções, se o autor quiser tratar:
+  voltar o selo a "Fornecido" (ou avisar) ao mudar o sistema, e uma mensagem
+  quando T passar da menor Tc dos dois componentes. Verificado por captura a
+  1400 px e a 360 px (o diálogo rola); testes passam. Três tópicos com texto;
+  seis seguem "Conteúdo em breve.".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
