@@ -90,7 +90,7 @@ Layout: **tabela de dados à esquerda** + dois gráficos sincronizados à direit
 - Repositório git desde o início do desenvolvimento, mesmo local, para permitir migração suave entre ambientes
 
 ### 2.4 Validação de referência
-Sistema **1,4-Dioxano / Metanol a 308,5 K** já testado contra dados de literatura (desvio significativo da idealidade — bom caso de teste para modelos de atividade). Serve de base para expandir a suíte de testes com exercícios de Koretsky e Smith/Van Ness/Abbott.
+Sistema **1,4-Dioxano / Metanol a 308,5 K**, vindo de um exercício do professor, cuja fonte do dado experimental não é conhecida (desvio significativo da idealidade — bom caso de teste da mecânica dos modelos de atividade). **Não há, no repositório, validação desse par contra dado experimental com fonte citável**: o par é exercitado com parâmetros do banco IPDB e com dados sintéticos (ver `teste_dioxano_nrtl.py` e `teste_regressao_barker.py`); a validação contra dado experimental com fonte é feita com outros pares (etanol/água, metanol/2,3-dimetil-2-buteno e clorofórmio/2-butanona, dados NIST ThermoML). *Redação provisória (2026-10-07): a ser revista quando o professor informar a origem do dado.* Serve de base para expandir a suíte de testes com exercícios de Koretsky e Smith/Van Ness/Abbott.
 
 **Estado da validação em 2026-08-20** (detalhamento na seção 5.1; histórico por sessão no `CLAUDE.md`):
 

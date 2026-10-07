@@ -2232,8 +2232,12 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   líquido-vapor desse par; o dioxano/metanol segue sem dado experimental com
   fonte no repositório — usado só como teste de mecânica do motor (parâmetros
   do IPDB e dados sintéticos). A frase "já testado contra dados de literatura"
-  do mapeamento (seção 2, 308,5 K) **não foi alterada** (decisão do autor
-  pendente).
+  do mapeamento (seção 2, 308,5 K) foi **reescrita no mesmo dia, por ordem do
+  autor ("Sim, reescreva a frase do mapeamento, depois que o professor me
+  disser ai mudamos")**: agora diz que o par vem de exercício do professor, sem
+  fonte conhecida, e que não há validação experimental com fonte desse par no
+  repositório. Redação **provisória**: o autor vai perguntar ao professor a
+  origem do dado e então a frase é revista.
 
 - **(2026-10-06) Texto do dropdown de modelo cortado no celular.** Relatado
   pelo autor com captura do aparelho: "Margules (1-P)" saía cortado
