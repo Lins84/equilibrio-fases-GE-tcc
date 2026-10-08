@@ -122,6 +122,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   Euler, Gibbs-Duhem, limites e redução ao Margules 1-P) e
   `teste_margules_2p_nist_ln_gamma.py` (2026-10-08 — Margules 2-P contra o
   ln γ experimental, método indireto, das 10 isotermas NIST),
+  `teste_van_laar_margules_1p_nist_ln_gamma.py` (2026-10-08 — Van Laar e
+  Margules 1-P contra o mesmo ln γ experimental, mais um estimador linear
+  independente do Barker),
   `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
   `sys.path` para achar o módulo, e exige `flet` instalado — ver ressalva
   no topo do arquivo; importa de `fletando_grafico.py` desde 2026-10-08) e
@@ -255,9 +258,12 @@ Snapshot; o histórico por sessão vem logo abaixo.
   Δy, que precisa ser definido (referência medida nos exemplos NIST: ΔP 0,5–2,3 %
   e Δy 0,017–0,030 com o banco sem ajuste; ΔP 1–2 % e Δy 0,008–0,025 com
   Barker — ordem de grandeza, não critério) e provavelmente ouvir o Dr. Filipe;
-  (2) **validação independente do Van Laar e do Margules 1-P direto** (a `thermo`
-  não tem referência para os dois) e correção das linhas do mapeamento que ainda
-  dizem "validado contra `thermo`" — proposta na entrada de 2026-10-08;
+  (2) **Van Laar e Margules 1-P: falta o teste por primeiros princípios.** A
+  validação contra dado NIST foi feita em 2026-10-08 (ver "Decisões de
+  engenharia do aluno"), por sugestão do autor, e as linhas do mapeamento foram
+  corrigidas; mas dado real prova adequação, não a fórmula — o Van Laar ainda não
+  tem o equivalente do `teste_margules_2p_primeiros_principios.py` (Gᴱ/RT =
+  A₁₂A₂₁x₁x₂/(A₁₂x₁ + A₂₁x₂) → ln γ pela definição). Fazer ou não é do autor;
   (3) **ln γ experimental da tabela** (método indireto) como marcadores cheios no
   gráfico de ln γ — funcionalidade nova, não é do piloto sem decisão;
   (4) **`.replit` reapontado em 2026-10-08, não testado no Replit** — conferir;
@@ -268,7 +274,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (13
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (14
   scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
   manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
@@ -3221,6 +3227,40 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   `on_blur=ao_sair_do_campo` (referência direta) quebrava a carga porque a função é
   definida depois das linhas iniciais — trocado por `lambda`, como já era antes.
   Testes passam.
+
+- **(2026-10-08) Van Laar e Margules 1-P validados com os dados NIST, não
+  com o dioxano nem a planilha.** Ao ler a pendência (2), o autor observou que
+  esses modelos "foram validados e provavelmente com dados do dioxano ou da
+  planilha do YouTube", e que seria melhor usar "dados que já temos
+  oficializados, já que a `thermo` não possui essas funções". **Esclarecimento
+  do assistente:** não foram validados com nenhum dos dois — o dioxano/metanol não
+  tem fonte, a planilha XSEOS só serve ao Margules 2-P, e o único teste do Van
+  Laar até então era a ida e volta da regressão (dado sintético gerado pelo
+  próprio modelo, que não é independente). **Feito:**
+  `testes/teste_van_laar_margules_1p_nist_ln_gamma.py`, no padrão do teste do
+  Margules 2-P: nas 10 isotermas NIST (etanol/água ×5, metanol/dimetilbuteno ×4,
+  clorofórmio/MEK ×1), ln γ experimental pelo método indireto no interior
+  (0,10 ≤ x₁ ≤ 0,90, Psat da `thermo`) contra o modelo ajustado por Barker, e um
+  **estimador linear independente do Barker** — Van Laar: x₁x₂·RT/Gᴱ = x₁/A₂₁ +
+  x₂/A₁₂ (reta em x₁); Margules 1-P: Gᴱ/(RT·x₁x₂) = A (média). **Medido
+  (tolerâncias fixadas depois, nada no motor foi ajustado):** Van Laar RMS de ln γ
+  0,019–0,065 (tolerância 0,080), do mesmo nível do Margules 2-P (0,027–0,065);
+  Margules 1-P 0,041–0,119 (tolerância 0,150) — pior em etanol/água, sistema
+  assimétrico, limite do modelo de um parâmetro e não bug; diferença Barker ×
+  estimador linear até 0,41 no Van Laar (tolerância 0,50, folgada porque a reta usa
+  só o interior e 1/intercepto amplifica ruído) e até 0,28 no Margules 1-P
+  (tolerância 0,35); sinais corretos nas 10 isotermas; Van Laar com A₁₂, A₂₁ < 0 no
+  clorofórmio/MEK (−0,97; −1,33, comparáveis ao estimador linear: −0,88; −1,42).
+  **Sensibilidade do teste:** com o Van Laar propositalmente errado (γ₁ e γ₂
+  trocados) o teste reprova as 10 isotermas e sai com código 1. **Ressalva:** isso
+  mostra que o modelo descreve os dados, não que a fórmula está escrita certa; o
+  Margules 1-P tem também a redução ao 2-P (primeiros princípios), o **Van Laar
+  não tem teste por primeiros princípios** — pendência (2) acima, a decidir pelo
+  autor. **Documentação corrigida junto:** as linhas de Margules 1P e Van Laar da
+  tabela de validação do mapeamento (diziam "`thermo` (faixa completa)", o que era
+  falso), a frase que introduz a tabela, a lista de testes (e a menção ao
+  `teste_dioxano_nrtl.py`, já removido) e o tópico "Sobre" do app (agora cita o
+  Van Laar). 14 scripts de teste, todos automatizados.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
