@@ -3549,6 +3549,16 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   sem confirmação de que alunos de graduação possam usar; texto de chamado para a STI
   entregue no chat, não enviado.
 
+  **Resultado do autor no PC (2026-10-08, Windows, Chrome):** executou o passo a
+  passo (cópia temporária com `calculos/`, `interface/`, `referencias/` e
+  `pyproject.toml`; `main.py` de entrada; `uv run flet publish`; servidor local na
+  porta 8000) e o app em formato web estático (Pyodide) funcionou **"sem diferença
+  sensível"** em relação ao app normal da porta 5000, exceto a primeira carga, que
+  demorou alguns segundos a mais, como previsto. **Ainda não testado:** celular
+  (Passo 6), consumo de memória no navegador, hospedagem pública (GitHub Pages ou
+  similar) e o Mac do orientador. Nenhuma decisão tomada; o formato estático segue
+  como candidato a avaliar, e a escolha de hospedagem é do autor.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
