@@ -15,6 +15,7 @@ from calculos.gemini import (
     REGRESSAO_MODELOS,
     buscar_parametros_banco,
     calculate_vle_isothermal,
+    detectar_instabilidade_liquida,
     montar_parametros_automaticos,
     regress_params_barker,
     uniquac_fonte_rq,
@@ -456,7 +457,7 @@ EXEMPLOS_NIST = [
         "fonte": "Feng, Dong e Li, Fluid Phase Equilib. 309 (2011) 201-205, via NIST ThermoML",
         "nota": "azeótropo de pressão máxima em x₁ ≈ 0,58 (mínimo ponto de ebulição)",
         "limitacoes": (
-            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL e Wilson) e o 2,3-dimetil-2-buteno não está na tabela de grupos UNIFAC, então UNIQUAC e UNIFAC não funcionam e \"Buscar do Banco\" não encontra o par. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Pressão\nP de 91 a 191 kPa (acima de 1 atm em boa parte da faixa); o app supõe fase vapor ideal.\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 com os dois puros medidos (P dentro de 0,1 % da pressão de vapor do thermo) e passa no teste da área (D ≈ 4 %). Depois de ajustados por Barker, os modelos erram ΔP em 1 a 2 % e Δy em 0,011 a 0,025, e reproduzem o azeótropo de pressão máxima a menos de 0,015 em x₁ (experimental 0,575; Wilson 0,579).\n\n# Cosmético\nO campo \"Componente 2\" mostra o nome cortado; o valor está inteiro."
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL e Wilson) e o 2,3-dimetil-2-buteno não está na tabela de grupos UNIFAC, então UNIQUAC e UNIFAC não funcionam e \"Buscar do Banco\" não encontra o par. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Pressão\nP de 91 a 191 kPa (acima de 1 atm em boa parte da faixa); o app supõe fase vapor ideal.\n\n# Aviso de duas fases líquidas\nMargules, Van Laar e NRTL ajustados por Barker a este dado chegam a desvios positivos tão fortes (A/RT ≈ 2,2 no Margules 1-P) que o modelo prevê separação em duas fases líquidas para x₁ entre cerca de 0,34 e 0,67 (Margules e Van Laar), e o app mostra um aviso laranja. O dado é de fase única e o ajuste reproduz P e y bem; o aviso diz que o modelo, extrapolado, prevê uma separação que o dado não mostra. O Wilson não prevê separação de fases e não avisa.\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 com os dois puros medidos (P dentro de 0,1 % da pressão de vapor do thermo) e passa no teste da área (D ≈ 4 %). Depois de ajustados por Barker, os modelos erram ΔP em 1 a 2 % e Δy em 0,011 a 0,025, e reproduzem o azeótropo de pressão máxima a menos de 0,015 em x₁ (experimental 0,575; Wilson 0,579).\n\n# Cosmético\nO campo \"Componente 2\" mostra o nome cortado; o valor está inteiro."
         ),
     },
     {
@@ -969,13 +970,14 @@ AJUDA_TOPICOS = [
             "temperatura chega à crítica de algum componente, mas só avisa: bem "
             "antes disso o vapor ideal já é uma aproximação pior.\n\n"
             "# Uma só fase líquida\n"
-            "O app supõe que o líquido é uma única fase em qualquer composição: não "
-            "verifica a estabilidade nem calcula equilíbrio líquido-líquido. Se os "
-            "parâmetros dão desvio positivo forte (no Margules 1-P, A/RT acima de "
-            "2), o modelo prevê separação em duas fases líquidas (Koretsky, seção "
-            "7.4), e a curva calculada na região instável não corresponde a um "
-            "equilíbrio real. O app não avisa. Por exemplo, o ajuste do Margules "
-            "1-P ao exemplo de metanol/dimetilbuteno a 70 °C dá A/RT = 2,25.\n\n"
+            "O app supõe que o líquido é uma única fase em qualquer composição e não "
+            "calcula equilíbrio líquido-líquido. Se os parâmetros dão desvio positivo "
+            "forte (no Margules 1-P, A/RT acima de 2), o modelo prevê separação em "
+            "duas fases líquidas (Koretsky, seção 7.4), e a curva calculada na região "
+            "instável não corresponde a um equilíbrio real. O app testa isso: quando "
+            "o modelo prevê a separação, aparece um aviso laranja com a faixa de x₁ "
+            "afetada. Por exemplo, o ajuste do Margules 1-P ao exemplo de "
+            "metanol/dimetilbuteno a 70 °C dá A/RT = 2,25 e dispara o aviso.\n\n"
             "# Dados e unidades\n"
             "A pressão da tabela é em kPa e o app não confere a unidade: outra "
             "unidade dá ΔP sem sentido, sem aviso. x₁ e y₁ são frações molares do "
@@ -1025,10 +1027,9 @@ AJUDA_TOPICOS = [
             "UNIQUAC e UNIFAC) foram escritas no código do projeto. Wilson, "
             "NRTL, UNIQUAC e UNIFAC foram conferidas contra as implementações "
             "da thermo; Margules, Van Laar, Wilson, NRTL e UNIQUAC, também "
-            "contra as equações do livro de Koretsky (abaixo). O Margules, que "
-            "a thermo não tem, foi conferido ainda pela definição termodinâmica "
-            "(energia de Gibbs em excesso) e contra os dados NIST abaixo; o Van "
-            "Laar, que a thermo também não tem, foi conferido ainda contra os "
+            "contra as equações do livro de Koretsky (abaixo). O Margules e o "
+            "Van Laar, que a thermo não tem, foram conferidos ainda pela "
+            "definição termodinâmica (energia de Gibbs em excesso) e contra os "
             "dados NIST abaixo.\n\n"
             "# Fontes dos parâmetros\n"
             "NRTL, Wilson e UNIQUAC: parâmetros de interação, e r/q do UNIQUAC, do "
@@ -1108,6 +1109,25 @@ def aviso_ajuste_regressao(resultado, rotulos_por_chave):
         "Atenção: a regressão " + " e ".join(problemas) + ". O modelo "
         "provavelmente não descreve estes dados, ou há erro de digitação na "
         "tabela. Confira com \"Comparar\" antes de usar este ajuste."
+    )
+
+
+def aviso_instabilidade_liquida(x1, gamma1):
+    """Texto de aviso se o modelo prevê duas fases líquidas (fase líquida única
+    instável) em algum trecho de x₁, ou None. `x1` e `gamma1` são as listas de
+    `calculate_vle_isothermal` na malha padrão. O diagrama P-x-y de Raoult
+    modificada supõe uma só fase líquida, então não vale nesse trecho — pedido
+    de aviso do autor em 2026-10-08 ("se o custo for baixo, implemente")."""
+    faixa = detectar_instabilidade_liquida(x1, gamma1)
+    if faixa is None:
+        return None
+    ini, fim = (f"{v:.2f}".replace(".", ",") for v in faixa)
+    return (
+        "Atenção: com estes parâmetros o modelo prevê duas fases líquidas "
+        f"(fase líquida instável) para x₁ entre cerca de {ini} e {fim}. O "
+        "diagrama P-x-y calculado supõe uma só fase líquida, então não vale "
+        "nessa faixa. Se o sistema real é miscível em tudo, isso indica que o "
+        "modelo ou os parâmetros não descrevem bem essa região."
     )
 
 
@@ -2373,6 +2393,7 @@ def main(page: ft.Page):
 
         erro_modelo = None
         aviso_critica = None
+        aviso_instabilidade = None
         revalidar_selo_ao_mudar_sistema()
         try:
             nome_modelo = modelo_selecionado["nome"]
@@ -2420,10 +2441,14 @@ def main(page: ft.Page):
             aviso_critica = aviso_temperatura_critica(
                 comp1, comp2, T_C, resultado.get("Tc_C", [])
             )
+            aviso_instabilidade = aviso_instabilidade_liquida(
+                resultado["x1"], resultado["gamma1"]
+            )
         except Exception as exc:
             erro_modelo = str(exc)
 
         if not series:
+            aviso_instabilidade_txt.visible = False
             chart.visible = False
             legenda.visible = False
             chart_gamma.visible = False
@@ -2486,6 +2511,8 @@ def main(page: ft.Page):
             mensagens.append(aviso_critica)
         mensagem_status.value = " ".join(mensagens)
         mensagem_status.color = "#9A3B00" if mensagens else ""
+        aviso_instabilidade_txt.value = aviso_instabilidade or ""
+        aviso_instabilidade_txt.visible = bool(aviso_instabilidade)
 
         # `atualizar_pagina=False` só na carga inicial da página (ver
         # montar_layout/main) — junta o que seria 2 `page.update()`
@@ -2918,6 +2945,14 @@ def main(page: ft.Page):
     aviso_parametro = ft.Text(
         "", color=ft.Colors.RED_800, size=14, visible=False
     )
+    # Aviso de duas fases líquidas (2026-10-08): fica no card de parâmetros, perto
+    # do que o causa (a mensagem de status mora no fim do card "Dados
+    # experimentais", fora da tela quando a tabela é longa). Controle próprio,
+    # criado uma vez e só `value`/`visible` mudam; `gerar_grafico` o atualiza a
+    # cada cálculo (as dicas de botão apagado não o apagam).
+    aviso_instabilidade_txt = ft.Text(
+        "", color="#9A3B00", size=14, visible=False
+    )
 
     def construir_sliders(nome_modelo):
         sliders_area.controls.clear()
@@ -3298,6 +3333,7 @@ def main(page: ft.Page):
             "Parâmetros do modelo",
             sliders_area,
             aviso_parametro,
+            aviso_instabilidade_txt,
             # "Comparar" (2026-10-07, pedido do autor: "colocar o botão comparar
             # junto com o card de parâmetros"): numa linha própria, sob os
             # sliders. O selo de origem foi para o cabeçalho do card

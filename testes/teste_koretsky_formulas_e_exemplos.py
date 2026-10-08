@@ -28,12 +28,20 @@ D. PROBLEMA 7.70 (p. 464): acetona/clorofórmio a 35,17 °C, UNIQUAC com os
    parâmetros do livro (q′ = q, então o `model_uniquac` vale direto); o livro
    reporta P = 261,9 torr e y₁ = 0,143 medidos para x₁ = 0,20.
 
+E. UNIQUAC com q′ (2026-10-08): o `model_uniquac` aceita q′ opcional (qp1/qp2) e
+   reproduz a Tabela 7.4 no Exemplo 7.12 e nos Problemas 7.68 e 7.69, em toda a
+   faixa de x₁ (erro ~1e-13); no 7.68 o γ₁ com q′ (2,235) fica a 2,8 % do medido
+   (2,30), contra 8 % sem q′ (2,49).
+
 Observações de honestidade:
   * O Exemplo 7.12 (p. 442) imprime a₂₁ = −1380,3, mas o próprio exemplo usa
     τ₂₁ = 0,014, que só sai com a₂₁ = +1380,3; o teste usa o sinal que o
     cálculo do livro implica (erro tipográfico do livro).
-  * O UNIQUAC do app usa q (sem q′), como o ChemSep/thermo; o livro usa q′ para
-    álcoois e água nos Problemas 7.68 e 7.69, onde as respostas diferem.
+  * O UNIQUAC da UI usa q (sem q′), como o ChemSep/thermo; o livro usa q′ para
+    álcoois e água nos Problemas 7.68 e 7.69, onde as respostas diferem. Desde
+    2026-10-08 o `model_uniquac` aceita q′ (qp1/qp2, opcionais; bloco E confere com
+    a Tabela 7.4), mas a UI NÃO o liga: com os a₁₂/a₂₁ do banco ChemSep, q′ piora o
+    ajuste aos dados NIST (ver CLAUDE.md).
   * As tolerâncias dos blocos B a D foram fixadas depois de medir (valor medido
     ao lado de cada constante): verificação de sanidade, não calibração —
     nada no motor foi ajustado a esses números.
@@ -272,11 +280,53 @@ def bloco_d():
     confere(abs(y1 - 0.143) < TOL_Y_PROB770, f"y₁ = {y1:.4f} contra 0,143 medido")
 
 
+# --------------------------------------------------------------------------
+# E. UNIQUAC com q′ (2026-10-08): Exemplo 7.12 e Problemas 7.68 e 7.69
+# --------------------------------------------------------------------------
+
+# (nome, x1, T [K], r1, q1, q′1, r2, q2, q′2, a12, a21), todos do livro (p. 443 e pp. 463-464)
+CASOS_QPRIME = (
+    ("Exemplo 7.12 etanol/n-heptano", 0.3022, 323.15, 2.11, 1.97, 0.92, 5.17, 4.40, 4.40, -105.23, 1380.3),
+    ("Problema 7.68 acetona/água", 0.30, 334.25, 2.57, 2.34, 2.34, 0.92, 1.40, 1.00, 530.99, -100.71),
+    ("Problema 7.69 etanol/benzeno", 0.415, 318.15, 2.11, 1.97, 0.92, 3.19, 2.40, 2.40, -75.13, 242.53),
+)
+TOL_G_PROB768 = (0.05, 0.08)   # medido com q′: γ₁ 2,235 (−2,8 % de 2,30) e γ₂ 1,245 (−5,7 % de 1,32)
+
+
+def bloco_e():
+    print("E. UNIQUAC com q′ (parâmetro opcional qp1/qp2 do model_uniquac)")
+    for nome, x1, T, r1, q1, qp1, r2, q2, qp2, a12, a21 in CASOS_QPRIME:
+        base = dict(r1=r1, q1=q1, r2=r2, q2=q2, a12=a12, a21=a21, T_K=T)
+        com = dict(base, qp1=qp1, qp2=qp2)
+        # contra a Tabela 7.4 do livro, na faixa inteira (interior) e no ponto do problema
+        g = np.array([MODELS_GE["UNIQUAC"](float(x), com) for x in X1_INT])
+        gl = np.array([livro_uniquac(x, r1, q1, qp1, r2, q2, qp2, a12, a21, T) for x in X1_INT])
+        e = np.abs(np.log(g) - np.log(gl)).max()
+        confere(e < TOL_FORMULA, f"{nome}: app com q′ contra a Tabela 7.4, erro máx {e:.1e}")
+        # sensibilidade: ignorar q′ tem de mudar o resultado quando q′ ≠ q
+        if abs(qp1 - q1) + abs(qp2 - q2) > 0:
+            g_sem = np.array([MODELS_GE["UNIQUAC"](float(x), base) for x in X1_INT])
+            d = np.abs(np.log(g_sem) - np.log(g)).max()
+            confere(d > 0.05, f"{nome}: com e sem q′ diferem (ln γ até {d:.2f}) — o teste enxerga q′")
+        else:
+            confere(np.allclose(MODELS_GE["UNIQUAC"](0.4, com), MODELS_GE["UNIQUAC"](0.4, base), rtol=0, atol=1e-14),
+                    f"{nome}: q′ = q devolve o UNIQUAC original")
+    # Problema 7.68: γ medidos (γ₁ = 2,30 e γ₂ = 1,32), x₁ = 0,30
+    _, x1, T, r1, q1, qp1, r2, q2, qp2, a12, a21 = CASOS_QPRIME[1]
+    base = dict(r1=r1, q1=q1, r2=r2, q2=q2, a12=a12, a21=a21, T_K=T)
+    g1, g2 = MODELS_GE["UNIQUAC"](x1, dict(base, qp1=qp1, qp2=qp2))
+    s1, s2 = MODELS_GE["UNIQUAC"](x1, base)
+    confere(abs(g1 / 2.30 - 1) < TOL_G_PROB768[0] and abs(g2 / 1.32 - 1) < TOL_G_PROB768[1],
+            f"Problema 7.68 com q′: γ₁ = {g1:.3f} e γ₂ = {g2:.3f} contra 2,30 e 1,32 medidos "
+            f"(sem q′: {s1:.3f} e {s2:.3f})")
+
+
 def main():
     bloco_a()
     bloco_b()
     bloco_c()
     bloco_d()
+    bloco_e()
     print()
     if falhas:
         print(f"FALHA: {len(falhas)} verificação(ões) fora da tolerância:")

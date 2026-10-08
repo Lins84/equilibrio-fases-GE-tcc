@@ -48,9 +48,14 @@ def model_uniquac(x1, params):
         r2, q2  : parâmetros estruturais do componente 2
         a12, a21: parâmetros de interação (em K)  →  τij = exp(-aij / T_K)
         T_K     : temperatura em Kelvin (adicionado automaticamente pelo calculador)
+    Opcionais:
+        qp1, qp2: q′ (q modificado de Anderson e Prausnitz) da parte residual,
+                  usado para água e álcoois leves; se ausentes, valem q1 e q2
+                  (UNIQUAC original).
     """
     r1, q1 = params['r1'], params['q1']
     r2, q2 = params['r2'], params['q2']
+    qp1, qp2 = params.get('qp1', q1), params.get('qp2', q2)
     a12, a21 = params['a12'], params['a21']
     T_K = params['T_K']
     x2 = 1 - x1
@@ -66,6 +71,10 @@ def model_uniquac(x1, params):
     Phi2 = x2 * r2 / denom_r
     th1 = x1 * q1 / denom_q
     th2 = x2 * q2 / denom_q
+    # Frações de área da parte residual (com q′)
+    denom_qp = x1 * qp1 + x2 * qp2
+    thp1 = x1 * qp1 / denom_qp
+    thp2 = x2 * qp2 / denom_qp
 
     l1 = z / 2 * (r1 - q1) - (r1 - 1)
     l2 = z / 2 * (r2 - q2) - (r2 - 1)
@@ -84,10 +93,10 @@ def model_uniquac(x1, params):
                   + l2 - Phi2 / x2 * (x1 * l1 + x2 * l2))
 
     # Parte residual
-    S1 = th1 + th2 * tau21
-    S2 = th2 + th1 * tau12
-    lnγ1_R = q1 * (1 - np.log(S1) - th1 / S1 - th2 * tau12 / S2)
-    lnγ2_R = q2 * (1 - np.log(S2) - th2 / S2 - th1 * tau21 / S1)
+    S1 = thp1 + thp2 * tau21
+    S2 = thp2 + thp1 * tau12
+    lnγ1_R = qp1 * (1 - np.log(S1) - thp1 / S1 - thp2 * tau12 / S2)
+    lnγ2_R = qp2 * (1 - np.log(S2) - thp2 / S2 - thp1 * tau21 / S1)
 
     if x1 == 0:
         return np.exp(lnγ1_C + lnγ1_R), 1.0
@@ -703,6 +712,38 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
             for c in (comp1, comp2)
         ],
     }
+
+
+def detectar_instabilidade_liquida(x1, gamma1):
+    """Faixa de composição em que a fase líquida do modelo é instável, ou None.
+
+    A uma T e P constantes, uma fase líquida só é estável se a atividade do
+    componente 1 cresce com x₁: d ln(x₁γ₁)/dx₁ > 0 (equivalente a
+    d²(Gmist/RT)/dx₁² > 0; Koretsky, cap. 7-8). Onde isso falha, o modelo prevê
+    duas fases líquidas e o diagrama P-x-y de Raoult modificada (uma só fase
+    líquida) não vale. No Margules 1-P a condição se reduz a A/RT > 2 (derivada de
+    1/(x₁x₂) − 2A/RT, mínimo 4 − 2A/RT em x₁ = 0,5).
+
+    `x1` e `gamma1` são as listas devolvidas por `calculate_vle_isothermal` na malha
+    padrão (várias composições, crescentes). Devolve (x_min, x_max) — os x₁ extremos
+    dos trechos instáveis da malha, em ponto médio de intervalo — ou None se
+    estável em todo o intervalo ou se a malha não tem pontos suficientes.
+    O trecho x₁ = 0 é ignorado (ln 0)."""
+    x = np.asarray(x1, dtype=float)
+    g = np.asarray(gamma1, dtype=float)
+    if x.size < 4:
+        return None
+    mascara = (x > 0) & np.isfinite(g) & (g > 0)
+    x, g = x[mascara], g[mascara]
+    if x.size < 3:
+        return None
+    ln_a1 = np.log(x * g)
+    inclinacao = np.diff(ln_a1) / np.diff(x)
+    meio = 0.5 * (x[1:] + x[:-1])
+    instavel = inclinacao <= 0
+    if not instavel.any():
+        return None
+    return float(meio[instavel].min()), float(meio[instavel].max())
 
 
 # --- Regressão de parâmetros — método de Barker (direto) ---

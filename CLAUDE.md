@@ -89,7 +89,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   (método de Barker, seção 2.8 do mapeamento — `scipy.optimize`, já
   instalado indiretamente via `thermo`); `verificar_xml_chemsep`
   (2026-10-07), que alerta quando uma atualização do `chemicals` pode ter
-  alterado o XML de r/q do UNIQUAC. Todos os modelos e adaptadores
+  alterado o XML de r/q do UNIQUAC; `detectar_instabilidade_liquida`
+  (2026-10-08), que acusa em que faixa de x₁ o modelo prevê duas fases líquidas;
+  e o `model_uniquac` aceita q′ opcional (`qp1`/`qp2`, não usado pela UI). Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
 
 **UI — `interface/`:**
@@ -125,9 +127,13 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   `teste_van_laar_margules_1p_nist_ln_gamma.py` (2026-10-08 — Van Laar e
   Margules 1-P contra o mesmo ln γ experimental, mais um estimador linear
   independente do Barker),
+  `teste_van_laar_primeiros_principios.py` (2026-10-08 — Van Laar pela definição
+  termodinâmica, como o do Margules 2-P),
+  `teste_instabilidade_liquida.py` (2026-10-08 — aviso de duas fases líquidas),
   `teste_koretsky_formulas_e_exemplos.py` (2026-10-08 — fórmulas das Tabelas
   7.2 e 7.4 do Koretsky contra `MODELS_GE` e exemplos/problemas resolvidos do
-  livro com resposta publicada: Exemplos 8.5 e 8.9-8.11, Problema 7.70),
+  livro com resposta publicada: Exemplos 8.5 e 8.9-8.11, Problemas 7.68 a 7.70
+  e Exemplo 7.12 com q′),
   `teste_psat_koretsky_apendice_a.py` (2026-10-08 — Psat e constantes críticas
   da `thermo` contra o Apêndice A do Koretsky),
   `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
@@ -263,26 +269,62 @@ Snapshot; o histórico por sessão vem logo abaixo.
   Δy, que precisa ser definido (referência medida nos exemplos NIST: ΔP 0,5–2,3 %
   e Δy 0,017–0,030 com o banco sem ajuste; ΔP 1–2 % e Δy 0,008–0,025 com
   Barker — ordem de grandeza, não critério) e provavelmente ouvir o Dr. Filipe;
-  (2) **Van Laar: falta o teste por primeiros princípios.** A validação contra
-  dado NIST (2026-10-08, por sugestão do autor) prova adequação aos dados; a
-  fórmula do Van Laar agora também tem **fonte de livro** (Koretsky, Tabela 7.2,
-  conferida pelo `teste_koretsky_formulas_e_exemplos.py`), mas ainda não tem o
-  equivalente do `teste_margules_2p_primeiros_principios.py` (Gᴱ/RT =
-  A₁₂A₂₁x₁x₂/(A₁₂x₁ + A₂₁x₂) → ln γ pela definição). Fazer ou não é do autor;
+  (2) ~~Van Laar: falta o teste por primeiros princípios.~~ **Feito em
+  2026-10-08** (autor: "2 faz"): `testes/teste_van_laar_primeiros_principios.py`
+  (Gᴱ/RT = A₁₂A₂₁x₁x₂/(A₁₂x₁ + A₂₁x₂) → ln γ pela definição, por passo
+  complexo; Euler, Gibbs-Duhem, limites, linearização clássica e redução ao
+  Margules 1-P; só pares de mesmo sinal, porque com sinais opostos o denominador
+  se anula no interior e o modelo é singular; auto-teste com γ₁ e γ₂ trocados);
+  erro ≤ 1e-12. Mapeamento e tópico "Sobre" atualizados;
   (3) **ln γ experimental da tabela** (método indireto) como marcadores cheios no
-  gráfico de ln γ — funcionalidade nova, não é do piloto sem decisão;
+  gráfico de ln γ — funcionalidade nova, não é do piloto sem decisão. O autor
+  perguntou em 2026-10-08 se tem relevância ou cai na redundância dos vazados já
+  retirados; resposta do assistente no chat (não é redundante, porque desta vez há
+  um dado para comparar com a curva; custo e ressalvas lá). **Aguarda decisão do
+  autor;**
   (4) **`.replit` reapontado em 2026-10-08, não testado no Replit** — conferir;
+  **suspenso por ordem do autor em 2026-10-08** ("esqueça o Replit até a segunda
+  ordem"): não lembrar nem mexer até ele pedir;
   (5) **origem do dado de 1,4-dioxano/metanol** (abaixo, depende do professor);
   (6) **revisar os tópicos de ajuda "Modelos de Gᴱ" e "Limitações"**, escritos em
   2026-10-08 como rascunho do assistente a partir do Koretsky (o roteiro "Qual
   usar" é síntese do assistente);
-  (7) **UNIQUAC sem q′:** o app usa q na parte residual (como o ChemSep/`thermo`),
-  mas o Koretsky usa um q′ modificado para álcoois e água (Tabela 7.4); nos
-  Problemas 7.68 e 7.69 isso muda a resposta. Implementar q′ é decisão do autor
-  (precisa de fonte para o q′ de cada composto);
-  (8) **aviso de instabilidade da fase líquida:** o app não avisa quando um
-  modelo prevê duas fases líquidas (Margules 1-P com A/RT > 2); decidir se vale
-  um aviso;
+  (7) ~~UNIQUAC sem q′~~ **Feito no motor, não ligado na UI (2026-10-08, autor:
+  "7 prossiga")**: o `model_uniquac` aceita `qp1`/`qp2` opcionais (q′ de Anderson e
+  Prausnitz na parte residual; se ausentes, valem q — comportamento anterior
+  idêntico) e reproduz a Tabela 7.4 do Koretsky no Exemplo 7.12 e nos Problemas
+  7.68 e 7.69, em toda a faixa de x₁ (erro ~1e-13; `teste_koretsky_formulas_e_exemplos.py`,
+  bloco E). **A UI continua com q, de propósito:** (a) o próprio XML do ChemSep já
+  traz o q′ (`UniquacQP`: água 1,00, metanol 0,96, etanol 0,92, 1-propanol 0,89;
+  37 de 429 compostos, os demais valem q), então a fonte existia; (b) mas os
+  a₁₂/a₂₁ do banco foram ajustados com q, e com q′ o ajuste aos dados NIST de
+  etanol/água piora (ΔP 4,0–5,0 % contra 1,3–3,5 % com q, nas 5 isotermas;
+  `teste_validacao_nist_etanol_agua.py` registra isso). Com os parâmetros do livro
+  o resultado é misto: no Problema 7.68 o γ₁ com q′ é 2,235 (−2,8 % do medido 2,30)
+  contra 2,49 sem q′ (+8 %), mas o γ₂ fica em 1,245 contra 1,32 (−5,7 %); no 7.69
+  o P calculado com q′ é 31,7 kPa contra 41,3 medidos (−23 %; sem q′, 34,3 kPa,
+  −17 %). Ligar q′ na UI só faria sentido para parâmetros ajustados com q′ (não
+  há fonte dessas no app; a UI não tem entrada manual de a₁₂/a₂₁). Decisão de
+  ligar ou não é do autor;
+  (8) ~~aviso de instabilidade da fase líquida~~ **Feito em 2026-10-08** (autor:
+  "8 se o custo for baixo, implemente"): `detectar_instabilidade_liquida(x1,
+  gamma1)` (em `gemini.py`) aplica a condição d ln(x₁γ₁)/dx₁ > 0 à malha do
+  cálculo, valendo para qualquer modelo (no Margules 1-P reduz-se exatamente a
+  A/RT > 2) e devolvendo a faixa de x₁ instável; a UI mostra um texto laranja no
+  card "Parâmetros do modelo" (`aviso_instabilidade_liquida`, controle
+  `aviso_instabilidade_txt`; **no card de parâmetros e não na mensagem de status**,
+  porque esta fica no fim do card "Dados experimentais", fora da tela com tabela
+  longa — visto na captura). Não bloqueia o gráfico. Medido: sem aviso em
+  etanol/água (todos os modelos do banco e os ajustes de Barker às 5 isotermas) e
+  em clorofórmio/MEK; aviso em 1-butanol/água (UNIFAC e UNIQUAC, que de fato se
+  separa). **Achado:** nos dados do exemplo metanol/dimetilbuteno, Margules 1-P/2-P,
+  Van Laar e NRTL ajustados por Barker chegam a A/RT ≈ 2,2 e o aviso aparece (x₁
+  de ≈ 0,34 a 0,67 a 70 °C), embora o dado seja de fase única — é o que o modelo
+  prevê, não falso positivo; o Wilson não prevê separação e não avisa. O texto do
+  aviso diz isso ("se o sistema real é miscível em tudo, o modelo ou os parâmetros
+  não descrevem bem essa região"), e os tópicos de ajuda "Limitações" e o "?" do
+  exemplo metanol/dimetilbuteno foram ajustados só nessa frase (antes diziam "o
+  app não avisa"). `testes/teste_instabilidade_liquida.py`;
   (9) **ajustar o texto dos tópicos de ajuda "Modelos de Gᴱ" e "Limitações"
   (cosmético):** pedido do autor em 2026-10-08, depois de ler os dois tópicos no
   celular; os ajustes de redação ainda não foram especificados;
@@ -291,7 +333,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (16
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (18
   scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
   manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
@@ -3364,6 +3406,32 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   a 50 °C (Exemplo 7.12, p. 443), **não incorporados** (seriam uma fonte de
   validação do UNIQUAC/NRTL do banco contra γ medido). Fora do escopo do app: a
   maior parte dos pontos 7.1-7.62 (fugacidade por equação de estado).
+
+- **(2026-10-08) Ordens do autor sobre as pendências: Van Laar, q′, aviso de
+  instabilidade; o resto aguarda.** Resposta item a item à lista de pendências:
+  **(1)** veredito "bom/ruim": "vou falar com o orientador" — aguarda; **(2)**
+  "faz" — feito (`teste_van_laar_primeiros_principios.py`); **(3)** ln γ
+  experimental: o autor perguntou se tem relevância ou cai na redundância dos
+  vazados — respondido no chat, **aguarda decisão**; **(4)** "esqueça o Replit até a
+  segunda ordem" — suspenso; **(5)** dioxano/metanol: aguardando o contato com o
+  orientador; **(6) e (9)**: "aguardar pedido"; **(7)** "prossiga" — feito no motor,
+  **não ligado na UI** (ver pendência 7: com os a₁₂/a₂₁ do ChemSep, q′ piora o
+  ajuste aos dados NIST; o que existe é a capacidade, conferida contra o livro, e a
+  decisão de ligar fica com o autor); **(8)** "se o custo for baixo, implemente" —
+  custo baixo (uma função de 15 linhas e um texto), implementado. **Escolhas do
+  assistente, a confirmar:** (a) o aviso de instabilidade fica **no card
+  "Parâmetros do modelo"**, e não na mensagem de status, por visibilidade; (b) o
+  aviso é geral (qualquer modelo), por d ln(x₁γ₁)/dx₁ ≤ 0 na malha de 101 pontos,
+  e não só o A/RT > 2 do Margules 1-P — a faixa informada é aproximada (erro de até
+  ~0,02 em x₁ pela malha); (c) apesar de (6) e (9) aguardarem pedido, mudei **duas
+  frases factuais** dos tópicos "Limitações" e do "?" do exemplo
+  metanol/dimetilbuteno que passariam a ser falsas ("o app não avisa"); o resto do
+  texto dos tópicos ficou como estava; (d) o tópico "Sobre" passou a dizer que o
+  Van Laar também foi conferido pela definição termodinâmica. **Achado cosmético
+  não tratado:** a nota do exemplo clorofórmio/MEK diz que a mensagem após
+  "Comparar" "conta 21 composições distintas", o que deixou de valer quando a
+  mensagem passou a contar os pontos do erro (decisão de 2026-10-08, item 7 da
+  auditoria) — entra em (9), ajuste de texto.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
