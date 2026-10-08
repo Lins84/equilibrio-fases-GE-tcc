@@ -125,6 +125,11 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   `teste_van_laar_margules_1p_nist_ln_gamma.py` (2026-10-08 — Van Laar e
   Margules 1-P contra o mesmo ln γ experimental, mais um estimador linear
   independente do Barker),
+  `teste_koretsky_formulas_e_exemplos.py` (2026-10-08 — fórmulas das Tabelas
+  7.2 e 7.4 do Koretsky contra `MODELS_GE` e exemplos/problemas resolvidos do
+  livro com resposta publicada: Exemplos 8.5 e 8.9-8.11, Problema 7.70),
+  `teste_psat_koretsky_apendice_a.py` (2026-10-08 — Psat e constantes críticas
+  da `thermo` contra o Apêndice A do Koretsky),
   `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
   `sys.path` para achar o módulo, e exige `flet` instalado — ver ressalva
   no topo do arquivo; importa de `fletando_grafico.py` desde 2026-10-08) e
@@ -258,23 +263,32 @@ Snapshot; o histórico por sessão vem logo abaixo.
   Δy, que precisa ser definido (referência medida nos exemplos NIST: ΔP 0,5–2,3 %
   e Δy 0,017–0,030 com o banco sem ajuste; ΔP 1–2 % e Δy 0,008–0,025 com
   Barker — ordem de grandeza, não critério) e provavelmente ouvir o Dr. Filipe;
-  (2) **Van Laar e Margules 1-P: falta o teste por primeiros princípios.** A
-  validação contra dado NIST foi feita em 2026-10-08 (ver "Decisões de
-  engenharia do aluno"), por sugestão do autor, e as linhas do mapeamento foram
-  corrigidas; mas dado real prova adequação, não a fórmula — o Van Laar ainda não
-  tem o equivalente do `teste_margules_2p_primeiros_principios.py` (Gᴱ/RT =
+  (2) **Van Laar: falta o teste por primeiros princípios.** A validação contra
+  dado NIST (2026-10-08, por sugestão do autor) prova adequação aos dados; a
+  fórmula do Van Laar agora também tem **fonte de livro** (Koretsky, Tabela 7.2,
+  conferida pelo `teste_koretsky_formulas_e_exemplos.py`), mas ainda não tem o
+  equivalente do `teste_margules_2p_primeiros_principios.py` (Gᴱ/RT =
   A₁₂A₂₁x₁x₂/(A₁₂x₁ + A₂₁x₂) → ln γ pela definição). Fazer ou não é do autor;
   (3) **ln γ experimental da tabela** (método indireto) como marcadores cheios no
   gráfico de ln γ — funcionalidade nova, não é do piloto sem decisão;
   (4) **`.replit` reapontado em 2026-10-08, não testado no Replit** — conferir;
   (5) **origem do dado de 1,4-dioxano/metanol** (abaixo, depende do professor);
-  (6) tópicos de ajuda **"Modelos de Gᴱ" e "Limitações"**, ainda em branco.
+  (6) **revisar os tópicos de ajuda "Modelos de Gᴱ" e "Limitações"**, escritos em
+  2026-10-08 como rascunho do assistente a partir do Koretsky (o roteiro "Qual
+  usar" é síntese do assistente);
+  (7) **UNIQUAC sem q′:** o app usa q na parte residual (como o ChemSep/`thermo`),
+  mas o Koretsky usa um q′ modificado para álcoois e água (Tabela 7.4); nos
+  Problemas 7.68 e 7.69 isso muda a resposta. Implementar q′ é decisão do autor
+  (precisa de fonte para o q′ de cada composto);
+  (8) **aviso de instabilidade da fase líquida:** o app não avisa quando um
+  modelo prevê duas fases líquidas (Margules 1-P com A/RT > 2); decidir se vale
+  um aviso;
   **Pendência de informação (2026-10-07):** origem do dado de
   1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (14
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (16
   scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
   manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
@@ -3261,6 +3275,92 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   falso), a frase que introduz a tabela, a lista de testes (e a menção ao
   `teste_dioxano_nrtl.py`, já removido) e o tópico "Sobre" do app (agora cita o
   Van Laar). 14 scripts de teste, todos automatizados.
+
+- **(2026-10-08) Koretsky como fonte conferida: Gibbs-Duhem, fórmulas, exemplos
+  e Apêndice A; ordens do autor sobre o que fazer com ele.** O autor trouxe, do
+  Google Drive e em recortes de PDF, o livro *Engineering and Chemical
+  Thermodynamics* (Koretsky, 2ª ed., Wiley, 2013), "um dos livros de referência
+  além do Van Ness", para (a) conferir a fonte pendente do Gibbs-Duhem e (b) ver
+  se traz tabelas úteis. O livro inteiro não coube (limite de 10 MB do conector;
+  a leitura em texto parou na p. 109), então o autor mandou os recortes: cap. 6
+  (pp. 340-342), cap. 7 (pp. 422-496), Apêndice A e pp. 442-483. **Lido:** pp.
+  340-342, 422-496 e 639-640 (Tabela A.1). **Não lido:** o resto do livro, em
+  particular os problemas do cap. 8 (onde pode estar a origem do exercício de
+  1,4-dioxano/metanol do professor; o Exemplo 8.7, p. 488, usa dioxano/água).
+  *(1) Gibbs-Duhem — fonte confirmada.* Koretsky, seção 6.3, pp. 340-341, Eq.
+  (6.19): Σ nᵢ dK̄ᵢ = 0 a T e P constantes; seção 7.4, p. 422, Eq. (7.42):
+  Σ xᵢ d ln γᵢ = 0; p. 423, Eq. (7.43), forma binária a T e P constantes; Eqs.
+  (7.48) e (7.49): Ḡᵢᴱ = RT ln γᵢ e gᴱ = RT Σ xᵢ ln γᵢ; Eq. (7.50) e p. 428:
+  teste da área, deduzido a T e P constantes mas aplicável direto a dados
+  isotérmicos porque a dependência de γ com P é pequena (sustenta a redação do
+  tópico "ln γ"). A citação de Smith, Van Ness e Abbott, que era de memória,
+  saiu desse tópico; continua em "Sobre" só para o método de Barker (do
+  mapeamento). Eqs. (8.17) a (8.20) (azeótropo: x = y e γₐ/γ_b = P_b^sat/Pₐ^sat)
+  sustentam a relação do azeótropo no mesmo tópico. *Autor: "1 sim, se for
+  relevante" — citado em "ln γ", "Diagrama P-x-y" (azeótropos de pressão máxima
+  mais comuns, p. 486) e "Sobre".*
+  *(2) Teste das fórmulas ("2 sim").* `testes/teste_koretsky_formulas_e_exemplos.py`,
+  bloco A: as Tabelas 7.2 e 7.4 transcritas à parte (notação do livro, A e B em
+  J/mol) contra `MODELS_GE` em 101 composições e vários conjuntos de parâmetros —
+  Margules 1-P, Margules 2-P (formas A,B e A_ab,A_ba), Van Laar, Wilson, NRTL e
+  UNIQUAC (com q′ = q): erro máximo ~1e-13. Isso dá ao **Margules 1-P e ao Van
+  Laar uma fonte de livro** para a fórmula (a `thermo` não os tem). A transcrição
+  da Tabela 7.4 (com q′) reproduz o Exemplo 7.12 do livro (γ₁ = 2,67; γ₂ = 1,32)
+  **com a₂₁ = +1380,3**: o livro imprime −1380,3, mas o próprio exemplo usa
+  τ₂₁ = 0,014, que só sai com o sinal positivo (erro tipográfico do livro).
+  Sensibilidade: com o Van Laar (γ₁ e γ₂ trocados) ou o Margules 2-P (A₁₂ e A₂₁
+  trocados) injetados, o teste reprova e sai com código 1.
+  *(3) Exemplos e problemas com resposta publicada ("3 sim").* Blocos B a D do
+  mesmo teste. **B:** Tabela E8.9A (p. 492, benzeno/ciclo-hexano a 10 °C, 12
+  pontos P-x-y, que o livro atribui à coletânea DECHEMA de Gmehling et al.;
+  incluída no teste como constante, com a citação): com A = 1401 J/mol o app
+  reproduz P_calc e γ da Tabela E8.9B com diferença máxima de 2,5 Pa e 0,004; a
+  regressão de Barker dá A = 1406 J/mol no Margules 1-P (livro: 1401, 1399 e 1424
+  conforme a função-objetivo) e A₁₂ = 0,5637, A₂₁ = 0,6265 no 2-P (livro: 0,5641 e
+  0,6227, de A = 1397 e B = 69; regressão linear do livro: 1402 e 75,1); a
+  diferença vem de o app minimizar P e y juntos e o livro só P. **C:** Exemplo
+  8.5 (etanol/água a 70 °C, A = 3590 e B = −1180 J/mol, y₁ = 0,48): app x₁ =
+  0,114 e P = 0,548 bar, livro 0,12 e 0,55 bar (experimental 0,13 e 0,57).
+  **D:** Problema 7.70 (acetona/clorofórmio a 35,17 °C, UNIQUAC com os parâmetros
+  do livro, q′ = q): P = 268,1 torr (+2,35 % contra 261,9 medido) e y₁ = 0,153
+  (0,143 medido). Tolerâncias fixadas depois de medir; nada no motor foi ajustado.
+  **Achado, não corrigido:** o UNIQUAC do app usa q (sem q′), como o ChemSep; nos
+  Problemas 7.68 (acetona/água) e 7.69 (etanol/benzeno) o livro usa q′ e as
+  respostas do app diferem (7.68: γ₁ = 2,49 sem q′ e 2,24 com q′, contra 2,30
+  medido; 7.69: P 17 % abaixo do medido sem q′) — pendência (7) da lista.
+  *(4) Apêndice A ("conferência de Psat") — `testes/teste_psat_koretsky_apendice_a.py`.*
+  Tabela A.1.1 (Antoine: ln Psat[bar] = A − B/(T[K] + C), válida de Tmin a Tmax)
+  para 11 compostos, lida da imagem; a Psat da `thermo` concorda dentro da faixa
+  em geral a menos de 1,5 % (9 dos 11) e no máximo 3,1 % (acetona a 251 K, ponta
+  fria); constantes críticas: Tc a 0,3 %, Pc a 2,6 %, ω a 0,011. Os maiores
+  desvios são da Antoine de 3 parâmetros do livro, não da `thermo`: no ponto de
+  ebulição normal a `thermo` reproduz 101,325 kPa com erro ≤ 0,05 % e a Antoine do
+  livro erra até 1,8 % (clorofórmio). O livro não tem 2-butanona,
+  2,3-dimetil-2-buteno nem 1,4-dioxano. *(Item 2 do Apêndice: sem dado binário de
+  ELV nas tabelas; as tabelas de dados úteis do livro são esta e o E8.9A.)*
+  *(5) Tópicos de ajuda ("4 sim").* Escritos como rascunho do assistente, a
+  revisar pelo autor: **"Modelos de Gᴱ e quando usar cada um"** (o que é gᴱ e como
+  dele saem os γ; cada um dos 7 modelos com o que o livro diz — Margules 1-P
+  simétrico e a interpretação molecular de A, Van Laar com A e B de mesmo sinal,
+  Wilson com Λ positivos e sem imiscibilidade parcial, NRTL e UNIQUAC para
+  parcialmente miscíveis, UNIFAC preditivo; a estatística de 3563 pares DECHEMA, p.
+  437; um roteiro "Qual usar", que é **síntese do assistente**; e como os modelos
+  foram conferidos) e **"Limitações e cuidados"** (só isotérmico e parâmetros
+  válidos à T dos dados; vapor ideal e Raoult modificada sem Poynting; uma só fase
+  líquida e A/RT > 2 no Margules 1-P — limite **derivado pelo assistente** de
+  d²(gᴱ/RT)/dx₁² = 1/(x₁x₂) − 2A/RT —; unidades e ausência de teste de
+  consistência; Psat conferida contra o Apêndice A; o que o app não faz).
+  Verificado por captura de tela a 1400 px (os dois tópicos, com rolagem); o "Sobre"
+  ganhou o bloco "Livro de referência" e a frase das equações cita o Koretsky.
+  *(6) "Veja se tem algo que dê um ganho sensível" (pp. 442-483).* O que foi achado:
+  os Problemas 7.68 a 7.70 e o Exemplo 7.12 (UNIQUAC com parâmetros publicados) e o
+  Exemplo 8.5 (já incorporados acima); a observação do q′ (pendência 7); o texto
+  sobre dependência com T (Eqs. 7.75 a 7.81; o Exemplo 7.13 estima A a 60 °C a
+  partir de dado a 10 °C com erro de cerca de 5 %), que o app não usa — parâmetros
+  de uma T não são extrapolados; e 12 pontos de γ experimental de etanol/n-heptano
+  a 50 °C (Exemplo 7.12, p. 443), **não incorporados** (seriam uma fonte de
+  validação do UNIQUAC/NRTL do banco contra γ medido). Fora do escopo do app: a
+  maior parte dos pontos 7.1-7.62 (fugacidade por equação de estado).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
