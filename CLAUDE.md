@@ -3494,6 +3494,23 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   UNIFAC, não se aplica); (f) glifo: o prime "′" aparece como "'" na fonte
   renderizada (cosmético).
 
+- **(2026-10-08) Confirmação, pelo autor, das escolhas do assistente de 2026-10-08
+  ("Todos").** Ao ser perguntado qual das escolhas pendentes liberava, o autor
+  respondeu "Todos". Passam a valer como decisões do projeto: (1) **contato
+  (e-mail) no final do tópico "Sobre"**, depois de "Licenças"; (2) **q′ do UNIQUAC
+  desligado por padrão**, com a caixa apagada e o motivo quando o par não tem
+  q′ ≠ q, selo próprio "Banco, com q′" e volta a desligada ao trocar de par sem
+  efeito ou sair do UNIQUAC; (3) **círculo nos dois componentes** do ln γ
+  experimental da tabela (a cor distingue γ₁ de γ₂), marcadores desenhados depois
+  das curvas e eixo vertical incluindo os marcadores; (4) **aviso de instabilidade
+  da fase líquida no card "Parâmetros do modelo"** (e não na mensagem de status),
+  geral para qualquer modelo, pela condição d ln(x₁γ₁)/dx₁ > 0 na malha de 101
+  pontos. **Interpretação do assistente, a confirmar:** "Todos" foi lido como
+  referente a essas quatro escolhas (a lista que a pergunta anterior apresentava),
+  não como liberação dos itens que aguardam o orientador (1 e 5) nem dos ajustes
+  de texto dos tópicos "Modelos de Gᴱ" e "Limitações" (6 e 9), que seguem
+  aguardando pedido explícito.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
