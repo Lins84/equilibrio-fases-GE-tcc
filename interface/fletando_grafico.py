@@ -3043,7 +3043,7 @@ def main(page: ft.Page):
         gerar_grafico()
 
     checkbox_qprime = ft.Checkbox(
-        label="Usar q′ (Anderson e Prausnitz)",
+        label="Usar q′",
         value=False,
         # Cor só no estado marcado; sem isso a caixa desmarcada também saía
         # azul cheia (visto na captura).
@@ -3053,7 +3053,7 @@ def main(page: ft.Page):
     )
     icone_qprime = icone_info(
         lambda: (
-            "q′ é uma área de superfície modificada que o UNIQUAC usa na parte "
+            "q′ (de Anderson e Prausnitz) é uma área de superfície modificada que o UNIQUAC usa na parte "
             "residual para água e álcoois leves (Koretsky, Tabela 7.4). O ChemSep "
             "traz o q′ de alguns compostos; em quase todos os outros q′ é igual a "
             "q, e a opção não muda nada. Os parâmetros de interação do banco foram "

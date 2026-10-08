@@ -316,7 +316,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   `teste_koretsky_formulas_e_exemplos.py`, bloco E). O q′ vem do próprio XML do
   ChemSep (`UniquacQP`: água 1,00, metanol 0,96, etanol 0,92, 1-propanol 0,89;
   37 de 429 compostos trazem o valor, 14 com q′ ≠ q; nos demais vale q).
-  **Na UI:** caixa "Usar q′ (Anderson e Prausnitz)" no card "Parâmetros do modelo",
+  **Na UI:** caixa "Usar q′" (com o ⓘ na mesma linha; o nome "Anderson e Prausnitz" está no ⓘ) no card "Parâmetros do modelo",
   **só no UNIQUAC, desligada por padrão**, com ⓘ explicando; **habilitada só quando o
   par tem algum composto com q′ ≠ q no ChemSep** (`uniquac_qprime_do_par`); senão fica
   apagada com a razão ao lado ("Sem efeito neste par: …") e se desliga sozinha ao
