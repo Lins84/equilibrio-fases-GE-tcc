@@ -16,6 +16,7 @@ from calculos.gemini import (
     buscar_parametros_banco,
     calculate_vle_isothermal,
     detectar_instabilidade_liquida,
+    ln_gamma_experimental,
     montar_parametros_automaticos,
     regress_params_barker,
     uniquac_fonte_rq,
@@ -698,7 +699,8 @@ AJUDA_TOPICOS = [
             "com a mesma cor e forma da fase (quadrado: líquido; círculo: vapor). "
             "A distância entre um marcador cheio (dado da tabela) e o vazado do "
             "mesmo ponto é o erro. O gráfico de ln γ não muda com \"Comparar\": "
-            "não há ln γ experimental para comparar.\n\n"
+            "os pontos da tabela já aparecem nele sem precisar clicar (veja o "
+            "tópico do ln γ).\n\n"
             "# O que são ΔP e Δy\n"
             "ΔP é o erro relativo da pressão, em %, em relação à pressão medida. "
             "Δy é o erro absoluto da fração molar do vapor (sem unidade; 0,02 é "
@@ -842,11 +844,19 @@ AJUDA_TOPICOS = [
             "Dá para conferir lendo as duas curvas no x₁ do azeótropo e as "
             "pressões de vapor dos puros nas pontas do P-x-y.\n\n"
             "# Detalhes da tela\n"
-            "As curvas são calculadas em 101 valores de x₁. O app não calcula "
-            "ln γ a partir dos pontos da tabela (ela traz P e y₁, não γ), então "
-            "este gráfico mostra só o que o modelo prevê e não muda com "
-            "\"Comparar\". Para conferir o modelo contra os dados, use o "
-            "diagrama P-x-y e os erros ΔP e Δy.\n\n"
+            "As curvas são o que o modelo prevê, calculado em 101 valores de x₁.\n\n"
+            "Os marcadores cheios (coluna \"Tabela\" da legenda) são o ln γ "
+            "\"experimental\" dos pontos da tabela. A tabela traz P e y₁, não γ; o "
+            "app calcula γ de cada componente pela lei de Raoult modificada, "
+            "γᵢ = yᵢ·P/(xᵢ·Pᵢˢᵃᵗ), com a pressão de vapor da thermo na "
+            "temperatura do card \"Sistema\" (vapor ideal). São valores derivados "
+            "dos dados, não medidos. Só aparecem os pontos com x₁ entre 0,10 e "
+            "0,90: perto dos extremos a divisão por um x pequeno amplifica o erro "
+            "de P e de y₁, e o ponto deixa de ser confiável. A distância entre "
+            "um marcador e a curva mostra onde o modelo se afasta do dado, e o "
+            "erro de pressão aparece ampliado (dividido pela fração molar). "
+            "Esses marcadores seguem a tabela: mudam quando ela é editada, e não "
+            "dependem de \"Comparar\". Para os números do erro, use ΔP e Δy.\n\n"
             "Passando o cursor sobre um ponto, o balão mostra x₁ e o ln γ do "
             "componente. O eixo vertical se ajusta aos valores (o zero aparece "
             "como \"0\"). Com UNIQUAC e UNIFAC o gráfico aparece normalmente, "
@@ -1013,9 +1023,6 @@ AJUDA_TOPICOS = [
             "Universidade Federal do Ceará (UFC). O VLE Interativo foi "
             "desenvolvido como Trabalho de Conclusão de Curso, para o ensino do "
             "equilíbrio líquido-vapor com modelos de Gᴱ.\n\n"
-            "# Contato: sugestões e feedback\n"
-            "Sugestões de implementações futuras e feedback de quem usou o app são "
-            "bem-vindos: leolins22@gmail.com\n\n"
             "# Linguagem e bibliotecas\n"
             "Python (Python Software Foundation): a linguagem de todo o app.\n\n"
             "Flet 1.0 e flet-charts 1.0, de Appveyor Systems Inc. e dos "
@@ -1068,7 +1075,10 @@ AJUDA_TOPICOS = [
             "procedência não rastreada e com três casas decimais.\n\n"
             "# Licenças\n"
             "Cada biblioteca e cada base de dados mantém a licença e os direitos "
-            "dos seus autores; os créditos acima são deles."
+            "dos seus autores; os créditos acima são deles.\n\n"
+            "# Contato: sugestões e feedback\n"
+            "Sugestões de implementações futuras e feedback de quem usou o app são "
+            "bem-vindos: leolins22@gmail.com"
         ),
     },
 ]
@@ -2165,11 +2175,13 @@ def main(page: ft.Page):
     legenda = montar_legenda_pxy(coluna_comparativo_pxy)
     legenda.visible = False
 
-    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — só a curva
-    # do modelo na malha genérica de 101 pontos. Não tem γ "experimental":
-    # γ1/γ2 sempre vêm da fórmula do modelo Gᴱ, nunca de inverter a Lei de
-    # Raoult a partir de P/y medidos (método indireto de regressão descartado
-    # na seção 2.8). "Comparar" não mexe neste gráfico (2026-10-08).
+    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — a curva do
+    # modelo na malha genérica de 101 pontos e, desde 2026-10-08 (pedido do
+    # autor, faixa 0,10 a 0,90), o ln γ "experimental" dos pontos da tabela
+    # como marcadores cheios, pelo método indireto (`ln_gamma_experimental`).
+    # O método indireto continua descartado para a REGRESSÃO (seção 2.8: usa
+    # Barker); aqui é só exibição, por isso a faixa restrita. "Comparar" não
+    # mexe neste gráfico.
     chart_gamma = fch.LineChart(
         data_series=[],
         min_x=0,
@@ -2199,6 +2211,11 @@ def main(page: ft.Page):
                     "",
                     [ft.Text("ln γ₁", size=14), ft.Text("ln γ₂", size=14)],
                     56,
+                ),
+                coluna_legenda(
+                    "Tabela",
+                    [glifo_legenda(COR_GAMMA1, "circulo"), glifo_legenda(COR_GAMMA2, "circulo")],
+                    60,
                 ),
                 coluna_legenda(
                     "Modelo",
@@ -2440,6 +2457,27 @@ def main(page: ft.Page):
                 points=[ponto_grafico(x, g, "x₁", "ln γ₂") for x, g in zip(resultado["x1"], ln_gamma2)],
             ))
             valores_gamma += ln_gamma1 + ln_gamma2
+            # ln γ "experimental" dos pontos da tabela (método indireto, só
+            # 0,10 ≤ x₁ ≤ 0,90 — ver `ln_gamma_experimental`): marcadores
+            # cheios, mesma regra do P-x-y (cheio = tabela). Depois das curvas
+            # para ficarem por cima delas. Círculo nos dois componentes: aqui
+            # quem distingue é a cor (γ₁ verde, γ₂ roxo), não a forma.
+            if pontos_validos:
+                exp_gamma = ln_gamma_experimental(pontos_validos, comp1, comp2, T_C)
+                if exp_gamma:
+                    series_gamma.append(fch.LineChartData(
+                        color=COR_GAMMA1,
+                        stroke_width=0,
+                        point=fch.ChartCirclePoint(radius=4.5, color=COR_GAMMA1, stroke_width=0),
+                        points=[ponto_grafico(x, g1, "x₁", "ln γ₁", negrito=False) for x, g1, _ in exp_gamma],
+                    ))
+                    series_gamma.append(fch.LineChartData(
+                        color=COR_GAMMA2,
+                        stroke_width=0,
+                        point=fch.ChartCirclePoint(radius=4.5, color=COR_GAMMA2, stroke_width=0),
+                        points=[ponto_grafico(x, g2, "x₁", "ln γ₂", negrito=False) for x, _, g2 in exp_gamma],
+                    ))
+                    valores_gamma += [g for _, g1, g2 in exp_gamma for g in (g1, g2)]
             modelo_ok = True
             aviso_critica = aviso_temperatura_critica(
                 comp1, comp2, T_C, resultado.get("Tc_C", [])

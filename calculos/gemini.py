@@ -714,6 +714,38 @@ def calculate_vle_isothermal(component1_id, component2_id, T_C, model_name, mode
     }
 
 
+# Faixa de composição em que o ln γ experimental é calculado para exibição
+# (decisão do autor, 2026-10-08: 0,10 a 0,90). O método indireto divide por x₁
+# e por x₂ e amplifica o ruído de P e y perto de x₁ → 0 e 1 (é o motivo de a
+# regressão usar o método de Barker, seção 2.8 do mapeamento); no interior o
+# resultado é confiável, nas pontas não.
+LN_GAMMA_EXP_X_MIN = 0.10
+LN_GAMMA_EXP_X_MAX = 0.90
+
+
+def ln_gamma_experimental(pontos, component1_id, component2_id, T_C,
+                          x_min=LN_GAMMA_EXP_X_MIN, x_max=LN_GAMMA_EXP_X_MAX):
+    """ln γ₁ e ln γ₂ "experimentais" dos pontos (P kPa, x₁, y₁), pelo método
+    indireto: a Lei de Raoult modificada, γᵢ = yᵢ·P/(xᵢ·Psatᵢ), com Psat da `thermo`
+    à temperatura T_C (°C). Devolve [(x₁, ln γ₁, ln γ₂), ...] ordenada por x₁,
+    só com os pontos de x_min ≤ x₁ ≤ x_max; ponto com P, x₁ ou y₁ fora do
+    domínio (P ≤ 0, y₁ fora de (0, 1)) é ignorado.
+
+    É um dado derivado da tabela, não uma medida: carrega a hipótese de vapor
+    ideal e o erro de P e y ampliado (ver LN_GAMMA_EXP_X_MIN)."""
+    T_K = T_C + 273.15
+    psat1 = Chemical(component1_id, T=T_K).Psat / 1000.0
+    psat2 = Chemical(component2_id, T=T_K).Psat / 1000.0
+    saida = []
+    for P, x1, y1 in pontos:
+        if not (x_min <= x1 <= x_max) or P <= 0 or not (0.0 < y1 < 1.0):
+            continue
+        g1 = y1 * P / (x1 * psat1)
+        g2 = (1.0 - y1) * P / ((1.0 - x1) * psat2)
+        saida.append((float(x1), float(np.log(g1)), float(np.log(g2))))
+    return sorted(saida)
+
+
 def detectar_instabilidade_liquida(x1, gamma1):
     """Faixa de composição em que a fase líquida do modelo é instável, ou None.
 

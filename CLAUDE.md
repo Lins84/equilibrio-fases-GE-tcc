@@ -91,6 +91,7 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   (2026-10-07), que alerta quando uma atualização do `chemicals` pode ter
   alterado o XML de r/q do UNIQUAC; `detectar_instabilidade_liquida`
   (2026-10-08), que acusa em que faixa de x₁ o modelo prevê duas fases líquidas;
+  `ln_gamma_experimental` (2026-10-08), ln γ da tabela pelo método indireto;
   e o `model_uniquac` aceita q′ opcional (`qp1`/`qp2`, não usado pela UI). Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
 
@@ -130,6 +131,7 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   `teste_van_laar_primeiros_principios.py` (2026-10-08 — Van Laar pela definição
   termodinâmica, como o do Margules 2-P),
   `teste_instabilidade_liquida.py` (2026-10-08 — aviso de duas fases líquidas),
+  `teste_ln_gamma_experimental.py` (2026-10-08 — ln γ experimental da tabela, faixa 0,10–0,90),
   `teste_koretsky_formulas_e_exemplos.py` (2026-10-08 — fórmulas das Tabelas
   7.2 e 7.4 do Koretsky contra `MODELS_GE` e exemplos/problemas resolvidos do
   livro com resposta publicada: Exemplos 8.5 e 8.9-8.11, Problemas 7.68 a 7.70
@@ -276,12 +278,25 @@ Snapshot; o histórico por sessão vem logo abaixo.
   Margules 1-P; só pares de mesmo sinal, porque com sinais opostos o denominador
   se anula no interior e o modelo é singular; auto-teste com γ₁ e γ₂ trocados);
   erro ≤ 1e-12. Mapeamento e tópico "Sobre" atualizados;
-  (3) **ln γ experimental da tabela** (método indireto) como marcadores cheios no
-  gráfico de ln γ — funcionalidade nova, não é do piloto sem decisão. O autor
-  perguntou em 2026-10-08 se tem relevância ou cai na redundância dos vazados já
-  retirados; resposta do assistente no chat (não é redundante, porque desta vez há
-  um dado para comparar com a curva; custo e ressalvas lá). **Aguarda decisão do
-  autor;**
+  (3) ~~ln γ experimental da tabela~~ **Feito em 2026-10-08** (autor: "faça o
+  item 3 com a faixa 0,10–0,90", depois de perguntar se tinha relevância ou
+  caía na redundância dos vazados): `ln_gamma_experimental` (em `gemini.py`) dá
+  o ln γ₁ e ln γ₂ de cada ponto da tabela pelo método indireto, γᵢ =
+  yᵢ·P/(xᵢ·Pᵢˢᵃᵗ), Psat da `thermo` na T do card "Sistema" (vapor ideal), só para
+  0,10 ≤ x₁ ≤ 0,90 (constantes `LN_GAMMA_EXP_X_MIN/MAX`; ponto com P ≤ 0 ou y₁ em 0
+  ou 1 é ignorado); no gráfico de ln γ aparecem como marcadores cheios (círculo
+  verde = γ₁, roxo = γ₂; mesma regra "cheio = tabela" do P-x-y), por cima das
+  curvas, com tooltip em peso normal e coluna "Tabela" na legenda (card e lupa).
+  Não depende de "Comparar" e acompanha a tabela. **Não reabre a decisão de
+  2026-09-13**: a regressão continua por Barker; o indireto é só exibição, e a
+  faixa restrita é a proteção contra a amplificação do erro nas pontas. Os
+  tópicos de ajuda "ln γ" e "Comparar" foram atualizados (diziam que não há ln γ
+  experimental). `testes/teste_ln_gamma_experimental.py` (igual à implementação
+  independente do teste do Margules 2-P nas 10 isotermas NIST; ida e volta com o
+  NRTL a 4e-16; faixa, ordem e pontos inválidos). Verificado por captura a 1400
+  px (etanol/água 90 °C; os marcadores se afastam da curva do Margules 1-P
+  simétrico, como se espera de um sistema assimétrico), com o balão e a lupa, e a
+  360 px (legenda cabe);
   (4) **`.replit` reapontado em 2026-10-08, não testado no Replit** — conferir;
   **suspenso por ordem do autor em 2026-10-08** ("esqueça o Replit até a segunda
   ordem"): não lembrar nem mexer até ele pedir;
@@ -333,7 +348,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (18
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (19
   scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
   manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
@@ -3439,6 +3454,21 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   das bibliotecas (texto do assistente, a revisar). O e-mail passa a ficar público
   no app e no repositório, por pedido dele. **Escolha do assistente, a confirmar:** o
   endereço é texto simples, sem link clicável (o diálogo é texto formatado simples).
+
+- **(2026-10-08) ln γ experimental no gráfico, faixa 0,10–0,90; contato do "Sobre"
+  no fim.** Ordens do autor: **(3)** "faça o item 3 com a faixa 0,10–0,90" — feito
+  (ver pendência 3); a pergunta dele sobre redundância foi respondida antes: não é
+  a mesma coisa que os vazados, porque agora há um dado independente (a tabela)
+  para comparar com a curva. **(7)** o autor perguntou qual o ganho de implementar
+  q′ — respondido no chat (para a UI, nenhum com os parâmetros do banco; o ganho é
+  reproduzir exercícios de livro com parâmetros ajustados com q′). **"Sobre"**:
+  "coloque no começo ou no final" — o contato foi para o **final** do tópico, depois
+  de "Licenças" (escolha do assistente, a confirmar: contato como último item;
+  voltar ao começo é mover quatro linhas). **Escolhas do assistente, a confirmar:**
+  círculo nos dois componentes (a cor distingue γ₁ de γ₂), marcadores desenhados
+  depois das curvas, e o eixo vertical passa a incluir os marcadores (um ponto
+  muito fora, por dado errado, achata o gráfico — a faixa 0,10–0,90 limita isso,
+  não elimina).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
