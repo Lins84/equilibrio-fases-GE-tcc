@@ -244,10 +244,25 @@ Snapshot; o histórico por sessão vem logo abaixo.
 - **Pendências.** A fase de estética foi **encerrada pelo autor em
   2026-10-07**; o tooltip dos gráficos fica como está; a visualização no
   aparelho real (Termux) foi considerada ok pelo autor. O modo isobárico
-  (T-x-y) está adiado para depois do piloto, em "Atualizações futuras". Não há
-  decisão de rumo em aberto neste momento; as escolhas do assistente que
-  estavam marcadas "a confirmar" foram **confirmadas pelo autor em
-  2026-10-07** (ver "Decisões de engenharia do aluno", últimas entradas).
+  (T-x-y) está adiado para depois do piloto, em "Atualizações futuras". As
+  escolhas do assistente que estavam marcadas "a confirmar" foram
+  **confirmadas pelo autor em 2026-10-07** (ver "Decisões de engenharia do
+  aluno", últimas entradas).
+  **Decisões pendentes (atualizado em 2026-10-08), todas do autor:**
+  (1) **Veredito "bom/ruim" depois de "Comparar"** (pedido de registro do
+  autor em 2026-10-08): hoje a mensagem só informa o nº de pontos e onde estão
+  os maiores desvios de P e de y₁; um veredito exigiria um **limiar** de ΔP e de
+  Δy, que precisa ser definido (referência medida nos exemplos NIST: ΔP 0,5–2,3 %
+  e Δy 0,017–0,030 com o banco sem ajuste; ΔP 1–2 % e Δy 0,008–0,025 com
+  Barker — ordem de grandeza, não critério) e provavelmente ouvir o Dr. Filipe;
+  (2) **validação independente do Van Laar e do Margules 1-P direto** (a `thermo`
+  não tem referência para os dois) e correção das linhas do mapeamento que ainda
+  dizem "validado contra `thermo`" — proposta na entrada de 2026-10-08;
+  (3) **ln γ experimental da tabela** (método indireto) como marcadores cheios no
+  gráfico de ln γ — funcionalidade nova, não é do piloto sem decisão;
+  (4) **`.replit` reapontado em 2026-10-08, não testado no Replit** — conferir;
+  (5) **origem do dado de 1,4-dioxano/metanol** (abaixo, depende do professor);
+  (6) tópicos de ajuda **"Modelos de Gᴱ" e "Limitações"**, ainda em branco.
   **Pendência de informação (2026-10-07):** origem do dado de
   1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
