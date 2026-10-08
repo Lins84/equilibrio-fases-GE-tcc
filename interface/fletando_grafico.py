@@ -794,7 +794,62 @@ AJUDA_TOPICOS = [
             "abra de novo."
         ),
     },
-    {"id": "gamma", "titulo": "Coeficientes de atividade (ln γ)", "conteudo": None},
+    {
+        "id": "gamma",
+        "titulo": "Coeficientes de atividade (ln γ)",
+        # Rascunho do assistente (2026-10-08), a revisar pelo autor. Fatos
+        # conferidos rodando o motor (etanol/água a 70 °C: valores nas pontas,
+        # Gibbs-Duhem por derivada numérica, simetria do Margules 1-P,
+        # relação do azeótropo) e lendo `gerar_grafico`/`ponto_grafico`.
+        "conteudo": (
+            "O gráfico mostra, para o modelo escolhido, o logaritmo natural do "
+            "coeficiente de atividade de cada componente (ln γ₁ e ln γ₂, eixo "
+            "vertical) contra x₁, a fração molar do Componente 1 no líquido.\n\n"
+            "# O que ln γ diz\n"
+            "O coeficiente de atividade γ mede o desvio do líquido em relação à "
+            "solução ideal (γ = 1, ln γ = 0). ln γ > 0: o componente \"escapa\" "
+            "mais do líquido do que o ideal (desvio positivo, pressão acima da "
+            "de Raoult). ln γ < 0: escapa menos (desvio negativo). A curva "
+            "verde é a de γ₁ e a roxa, a de γ₂ (as cores da legenda).\n\n"
+            "# Como ler as curvas\n"
+            "Cada componente puro é ideal: ln γ₁ = 0 em x₁ = 1 e ln γ₂ = 0 em "
+            "x₁ = 0. O valor na ponta oposta é o da diluição infinita: ln γ₁ em "
+            "x₁ = 0 (o componente 1 muito diluído no 2) e ln γ₂ em x₁ = 1. É o "
+            "ponto de maior desvio de cada curva. Por exemplo, para etanol/água a "
+            "70 °C com os parâmetros do banco, ln γ₁ em x₁ = 0 sai em torno de "
+            "1,7 (γ ≈ 5,7) e ln γ₂ em x₁ = 1, em torno de 1,0. Os quatro modelos "
+            "que se aplicam a esse par (NRTL, Wilson, UNIQUAC e UNIFAC) dão de 1,7 "
+            "a 1,95 e de 1,0 a 1,05, respectivamente.\n\n"
+            "As duas curvas não são independentes: pela equação de "
+            "Gibbs-Duhem, quando uma sobe a outra desce (x₁·d ln γ₁/dx₁ + "
+            "x₂·d ln γ₂/dx₁ = 0, a T constante). Todos os modelos do app "
+            "obedecem a isso, e uma curva em que as duas sobem juntas indica "
+            "defeito, não física. No Margules 1-P, as curvas são uma o espelho "
+            "da outra em torno de x₁ = 0,5, e o parâmetro A é o valor de "
+            "ln γ nas pontas. Desvio positivo dá curvas acima de zero; desvio "
+            "negativo (A < 0, por exemplo clorofórmio/MEK), abaixo.\n\n"
+            "# Relação com o P-x-y e o azeótropo\n"
+            "O ln γ é o que dá forma ao diagrama P-x-y: sem desvio (ln γ = 0) as "
+            "curvas do diagrama seriam as de Raoult. Num azeótropo, x₁ = y₁ e "
+            "portanto γ₁P₁ˢᵃᵗ = γ₂P₂ˢᵃᵗ, ou seja, ln γ₁ − ln γ₂ = ln(P₂ˢᵃᵗ/P₁ˢᵃᵗ). "
+            "No etanol/água a 70 °C com o NRTL do banco, o cruzamento no ponto "
+            "x₁ ≈ y₁ ≈ 0,88 dá ln γ₁ − ln γ₂ = −0,84, contra −0,84 de "
+            "ln(P₂ˢᵃᵗ/P₁ˢᵃᵗ): é uma conferência que você pode fazer lendo as duas "
+            "curvas nesse x₁.\n\n"
+            "# Detalhes da tela\n"
+            "A legenda tem as colunas \"Modelo\" (as curvas, calculadas em 101 "
+            "valores de x₁) e, depois de \"Comparar\", \"Comparativo\" (círculos "
+            "vazados: o mesmo modelo, avaliado nos x₁ da tabela). Não há ln γ "
+            "experimental no app: a tabela traz P e y₁, não γ, então este gráfico "
+            "só mostra o que o modelo prevê. Para conferir o modelo contra "
+            "dados, use o diagrama P-x-y e os erros ΔP e Δy.\n\n"
+            "Passando o cursor sobre um ponto, o balão mostra x₁ e o ln γ do "
+            "componente. O eixo vertical se ajusta aos valores (o zero aparece "
+            "como \"0\"). Com UNIQUAC e UNIFAC o gráfico aparece normalmente, "
+            "com os parâmetros automáticos. No computador, a lupa ao lado do "
+            "título abre o gráfico ampliado, tal como está no momento do clique."
+        ),
+    },
     {"id": "modelos", "titulo": "Modelos de Gᴱ e quando usar cada um", "conteudo": None},
     {"id": "limitacoes", "titulo": "Limitações e cuidados (isotérmico, unidades, gás ideal)", "conteudo": None},
     {

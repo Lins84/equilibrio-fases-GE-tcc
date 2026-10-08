@@ -3007,6 +3007,31 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   seções aparecem); testes passam. Sete tópicos com texto; três seguem "Conteúdo em
   breve.": "ln γ", "Modelos de Gᴱ" e "Limitações".
 
+- **(2026-10-08) Conteúdo do tópico "Coeficientes de atividade (ln γ)"
+  (rascunho).** Pedido do autor: "confirmo suas escolhas, siga para o próximo
+  tópico" — o próximo da ordem é o do gráfico de ln γ. Redação **do assistente, a
+  revisar pelo autor**. Seções (subtítulos `# `): **o que ln γ diz** (γ = 1/ln γ = 0
+  é ideal; positivo = desvio positivo, negativo = desvio negativo; curva verde = γ₁,
+  roxa = γ₂); **como ler as curvas** (zero no componente puro, diluição infinita na
+  ponta oposta, Gibbs-Duhem, simetria do Margules 1-P, sinal de A); **relação com o
+  P-x-y e o azeótropo** (ln γ₁ − ln γ₂ = ln(P₂ˢᵃᵗ/P₁ˢᵃᵗ) em x₁ = y₁); **detalhes da
+  tela** (colunas "Modelo" e "Comparativo", tooltip, eixo, lupa só no desktop).
+  **Fatos conferidos rodando o motor (etanol/água, 70 °C):** ln γ₁∞ = 1,73 (NRTL),
+  1,94 (Wilson), 1,69 (UNIQUAC) e 1,95 (UNIFAC); ln γ₂∞ = 0,98, 1,05, 1,01 e 1,03 —
+  daí "1,7 a 1,95" e "1,0 a 1,05" no texto —; ln γ = 0 nos componentes puros; a
+  equação de Gibbs-Duhem por derivada numérica fecha com resíduo ≤ 0,002 nos quatro
+  modelos; o Margules 1-P (A = 1,2) dá curvas espelhadas e ln γ máximo = A; com A < 0
+  não há ln γ positivo; o azeótropo do NRTL do banco cai em x₁ ≈ y₁ ≈ 0,88 com
+  ln γ₁ − ln γ₂ = −0,840 contra ln(P₂ˢᵃᵗ/P₁ˢᵃᵗ) = −0,836 (a pequena diferença é da malha
+  de 101 pontos, que não cai exatamente no azeótropo; no texto, "−0,84" dos dois
+  lados). **Escolhas do assistente, a confirmar:** citar números de um exemplo
+  (etanol/água, 70 °C) no texto, o que o prende a esse par; a afirmação "uma curva em
+  que as duas sobem juntas indica defeito" (consequência de Gibbs-Duhem, vale para
+  os modelos do app); dizer que não há ln γ experimental no app. Verificado por
+  captura a 1400 px (abre pelo "?" do card, rola) e a 360 px (abre pelo sumário da
+  Ajuda); os testes passam. Oito tópicos com texto; dois seguem "Conteúdo em breve.":
+  "Modelos de Gᴱ" e "Limitações".
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
