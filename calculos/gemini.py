@@ -530,6 +530,64 @@ def uniquac_rq_from_chemsep(cas):
     return _tabela_rq_chemsep().get(cas)
 
 
+@lru_cache(maxsize=1)
+def _tabela_qprime_chemsep():
+    """{CAS: q′} do UNIQUAC no banco ChemSep (`UniquacQP`), só dos compostos que
+    trazem o valor (37 de 429; nos demais vale q). q′ é o q modificado de
+    Anderson e Prausnitz, usado na parte residual para água e álcoois leves
+    (Koretsky, Tabela 7.4); difere de q em 14 compostos (água, metanol, etanol,
+    propanóis, butanóis, fenol e poucos outros). Arquivo ausente ou ilegível
+    devolve tabela vazia, como `_tabela_rq_chemsep`."""
+    caminho = _caminho_xml_chemsep()
+    if caminho is None:
+        return {}
+    try:
+        raiz = ET.parse(caminho).getroot()
+    except (OSError, ET.ParseError):
+        return {}
+    tabela = {}
+    for composto in raiz.iter("compound"):
+        cas = composto.find("CAS")
+        qp = composto.find("UniquacQP")
+        if cas is not None and qp is not None:
+            try:
+                tabela[cas.get("value")] = float(qp.get("value"))
+            except (TypeError, ValueError):
+                continue
+    return tabela
+
+
+def uniquac_qprime_do_par(component1_id, component2_id):
+    """Informação sobre o q′ do UNIQUAC para o par (opção "usar q′" da UI,
+    2026-10-08). Devolve {"afeta": bool, "qp1", "qp2", "motivo": str}.
+
+    `afeta` é True só quando o par usa os r/q do ChemSep (o q′ é do mesmo banco e
+    emparelha com o q dele) e algum dos dois componentes tem q′ diferente de q. Nos
+    demais casos usar q′ não muda nada: q′ = q (a maioria dos compostos, que não
+    traz q′ no ChemSep) ou os r/q vêm dos grupos UNIFAC, para os quais não há q′.
+    `qp1`/`qp2` valem o q′ do ChemSep quando existe e o próprio q quando não."""
+    (r1, q1), (r2, q2), fonte = _uniquac_rq_do_par(component1_id, component2_id)
+    if fonte != "chemsep":
+        return {
+            "afeta": False, "qp1": q1, "qp2": q2,
+            "motivo": "os r/q deste par vêm dos grupos UNIFAC (o ChemSep não tem r/q "
+                      "para ele), e para eles não há q′",
+        }
+    tabela = _tabela_qprime_chemsep()
+    qp1 = tabela.get(Chemical(component1_id).CAS, q1)
+    qp2 = tabela.get(Chemical(component2_id).CAS, q2)
+    if qp1 <= 0 or qp2 <= 0:
+        return {
+            "afeta": False, "qp1": q1, "qp2": q2,
+            "motivo": "o ChemSep dá q′ nulo para um dos componentes",
+        }
+    afeta = abs(qp1 - q1) > 1e-9 or abs(qp2 - q2) > 1e-9
+    return {
+        "afeta": afeta, "qp1": qp1, "qp2": qp2,
+        "motivo": "" if afeta else "nenhum dos dois componentes tem q′ diferente de q no ChemSep",
+    }
+
+
 def uniquac_params_from_ipdb(cas1, cas2):
     """Busca bij (K) na tabela 'ChemSep UNIQUAC' do IPDB e retorna os
     parâmetros de interação a12/a21 prontos para model_uniquac (r1/q1/r2/q2
@@ -579,13 +637,14 @@ def uniquac_fonte_rq(component1_id, component2_id):
     return _uniquac_rq_do_par(component1_id, component2_id)[2]
 
 
-def montar_parametros_automaticos(model_name, component1_id, component2_id):
+def montar_parametros_automaticos(model_name, component1_id, component2_id, usar_qprime=False):
     """Resolve automaticamente os parâmetros de um modelo Gᴱ a partir dos
     componentes escolhidos, para os modelos cuja origem hoje é banco de
     dados/preditiva (seção 2.8 do mapeamento) — sem entrada manual na UI:
 
     - UNIFAC: grupos de cada componente (preditivo, sem IPDB).
-    - UNIQUAC: r/q do ChemSep (ou, se faltar, via grupos UNIFAC) + a12/a21 via IPDB.
+    - UNIQUAC: r/q do ChemSep (ou, se faltar, via grupos UNIFAC) + a12/a21 via IPDB;
+      com `usar_qprime=True`, também o q′ do ChemSep (ver `uniquac_qprime_do_par`).
 
     Não cobre Margules/Van Laar/Wilson/NRTL — esses seguem com parâmetro
     fornecido manualmente (sliders) na UI. Levanta ValueError com mensagem
@@ -600,10 +659,18 @@ def montar_parametros_automaticos(model_name, component1_id, component2_id):
         (r1, q1), (r2, q2), _ = _uniquac_rq_do_par(component1_id, component2_id)
         cas1 = Chemical(component1_id).CAS
         cas2 = Chemical(component2_id).CAS
-        return {
+        parametros = {
             "r1": r1, "q1": q1, "r2": r2, "q2": q2,
             **uniquac_params_from_ipdb(cas1, cas2),
         }
+        # q′ opcional (2026-10-08): só entra quando muda alguma coisa. Os a₁₂/a₂₁ do
+        # ChemSep foram ajustados com q, então usar q′ costuma piorar o ajuste
+        # (teste_validacao_nist_etanol_agua.py); por isso o padrão é desligado.
+        if usar_qprime:
+            info = uniquac_qprime_do_par(component1_id, component2_id)
+            if info["afeta"]:
+                parametros["qp1"], parametros["qp2"] = info["qp1"], info["qp2"]
+        return parametros
 
     raise ValueError(f"modelo '{model_name}' não tem resolução automática de parâmetros")
 

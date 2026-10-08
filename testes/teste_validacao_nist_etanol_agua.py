@@ -40,7 +40,7 @@ CSV = Path(__file__).resolve().parent.parent / "referencias" / "nist_thermoml_cr
 
 TOL_IPDB_DP, TOL_IPDB_DY = 7.0, 0.06      # % e fração molar (RMS); pior medido: 4,7 % e 0,038
 TOL_BARKER_DP, TOL_BARKER_DY = 5.0, 0.04  # pior medido: 2,9 % e 0,018
-QPRIME_ETANOL, QPRIME_AGUA = 0.92, 1.00   # q′ do ChemSep/Koretsky (UniquacQP do XML do ChemSep)
+QPRIME_ETANOL, QPRIME_AGUA = 0.92, 1.00   # q′ do ChemSep/Koretsky (UniquacQP do XML do ChemSep), via a opção `usar_qprime` da UI
 TOL_RESIDUO_BARKER = 0.04                  # pior medido: 0,023
 
 
@@ -83,7 +83,8 @@ def main():
         # q′ (Anderson e Prausnitz) com os a₁₂/a₂₁ do ChemSep: NÃO deve ser usado. Esses
         # parâmetros foram ajustados com q; trocar por q′ só na parte residual piora o ajuste
         # (medido: ΔP 4,0–5,0 % contra 1,3–3,5 % com q). Registra a razão de a UI não ligar q′.
-        pq = dict(rq, qp1=QPRIME_ETANOL, qp2=QPRIME_AGUA)
+        pq = montar_parametros_automaticos("UNIQUAC", "ethanol", "water", usar_qprime=True)
+        assert (pq["qp1"], pq["qp2"]) == (QPRIME_ETANOL, QPRIME_AGUA)
         dP_q = deltas("UNIQUAC", rq, T_C, pts)[0]
         dP_qp = deltas("UNIQUAC", pq, T_C, pts)[0]
         ok = dP_qp > dP_q

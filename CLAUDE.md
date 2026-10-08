@@ -92,7 +92,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   alterado o XML de r/q do UNIQUAC; `detectar_instabilidade_liquida`
   (2026-10-08), que acusa em que faixa de x₁ o modelo prevê duas fases líquidas;
   `ln_gamma_experimental` (2026-10-08), ln γ da tabela pelo método indireto;
-  e o `model_uniquac` aceita q′ opcional (`qp1`/`qp2`, não usado pela UI). Todos os modelos e adaptadores
+  e o `model_uniquac` aceita q′ opcional (`qp1`/`qp2`); `uniquac_qprime_do_par` e
+  `montar_parametros_automaticos(..., usar_qprime=)` o ligam à opção "Usar q′" da UI
+  (desligada por padrão). Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
 
 **UI — `interface/`:**
@@ -132,6 +134,7 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   termodinâmica, como o do Margules 2-P),
   `teste_instabilidade_liquida.py` (2026-10-08 — aviso de duas fases líquidas),
   `teste_ln_gamma_experimental.py` (2026-10-08 — ln γ experimental da tabela, faixa 0,10–0,90),
+  `teste_uniquac_qprime.py` (2026-10-08 — opção "usar q′" do UNIQUAC: padrão desligado, q′ do ChemSep, par sem efeito, fallback UNIFAC),
   `teste_koretsky_formulas_e_exemplos.py` (2026-10-08 — fórmulas das Tabelas
   7.2 e 7.4 do Koretsky contra `MODELS_GE` e exemplos/problemas resolvidos do
   livro com resposta publicada: Exemplos 8.5 e 8.9-8.11, Problemas 7.68 a 7.70
@@ -304,23 +307,31 @@ Snapshot; o histórico por sessão vem logo abaixo.
   (6) **revisar os tópicos de ajuda "Modelos de Gᴱ" e "Limitações"**, escritos em
   2026-10-08 como rascunho do assistente a partir do Koretsky (o roteiro "Qual
   usar" é síntese do assistente);
-  (7) ~~UNIQUAC sem q′~~ **Feito no motor, não ligado na UI (2026-10-08, autor:
-  "7 prossiga")**: o `model_uniquac` aceita `qp1`/`qp2` opcionais (q′ de Anderson e
-  Prausnitz na parte residual; se ausentes, valem q — comportamento anterior
-  idêntico) e reproduz a Tabela 7.4 do Koretsky no Exemplo 7.12 e nos Problemas
-  7.68 e 7.69, em toda a faixa de x₁ (erro ~1e-13; `teste_koretsky_formulas_e_exemplos.py`,
-  bloco E). **A UI continua com q, de propósito:** (a) o próprio XML do ChemSep já
-  traz o q′ (`UniquacQP`: água 1,00, metanol 0,96, etanol 0,92, 1-propanol 0,89;
-  37 de 429 compostos, os demais valem q), então a fonte existia; (b) mas os
-  a₁₂/a₂₁ do banco foram ajustados com q, e com q′ o ajuste aos dados NIST de
-  etanol/água piora (ΔP 4,0–5,0 % contra 1,3–3,5 % com q, nas 5 isotermas;
-  `teste_validacao_nist_etanol_agua.py` registra isso). Com os parâmetros do livro
-  o resultado é misto: no Problema 7.68 o γ₁ com q′ é 2,235 (−2,8 % do medido 2,30)
-  contra 2,49 sem q′ (+8 %), mas o γ₂ fica em 1,245 contra 1,32 (−5,7 %); no 7.69
-  o P calculado com q′ é 31,7 kPa contra 41,3 medidos (−23 %; sem q′, 34,3 kPa,
-  −17 %). Ligar q′ na UI só faria sentido para parâmetros ajustados com q′ (não
-  há fonte dessas no app; a UI não tem entrada manual de a₁₂/a₂₁). Decisão de
-  ligar ou não é do autor;
+  (7) ~~UNIQUAC sem q′~~ **Feito em 2026-10-08, como opção desligada por
+  padrão** (autor: "7 prossiga"; depois da pergunta sobre o ganho, propôs "um
+  check box que dá a opção de usar q′" e liberou: "Libera, faça o checkbox"). O
+  `model_uniquac` aceita `qp1`/`qp2` opcionais (q′ de Anderson e Prausnitz na parte
+  residual; se ausentes, valem q) e reproduz a Tabela 7.4 do Koretsky no Exemplo 7.12
+  e nos Problemas 7.68 e 7.69, em toda a faixa de x₁ (erro ~1e-13;
+  `teste_koretsky_formulas_e_exemplos.py`, bloco E). O q′ vem do próprio XML do
+  ChemSep (`UniquacQP`: água 1,00, metanol 0,96, etanol 0,92, 1-propanol 0,89;
+  37 de 429 compostos trazem o valor, 14 com q′ ≠ q; nos demais vale q).
+  **Na UI:** caixa "Usar q′ (Anderson e Prausnitz)" no card "Parâmetros do modelo",
+  **só no UNIQUAC, desligada por padrão**, com ⓘ explicando; **habilitada só quando o
+  par tem algum composto com q′ ≠ q no ChemSep** (`uniquac_qprime_do_par`); senão fica
+  apagada com a razão ao lado ("Sem efeito neste par: …") e se desliga sozinha ao
+  trocar para um par sem efeito; também vale em "Comparar". Ligada, o selo vira
+  **"Banco, com q′"** (laranja, cautela) e o ⓘ avisa que os a₁₂/a₂₁ do banco foram
+  ajustados com q. **Por que desligada:** com os a₁₂/a₂₁ do banco, q′ piora o ajuste
+  aos dados NIST de etanol/água (ΔP 4,0–5,0 % contra 1,3–3,5 % com q, nas 5
+  isotermas; `teste_validacao_nist_etanol_agua.py` registra isso, agora usando a
+  própria opção). Com os parâmetros do livro o resultado é misto: no Problema 7.68 o
+  γ₁ com q′ é 2,235 (−2,8 % do medido 2,30) contra 2,49 sem q′ (+8 %), mas o γ₂ fica em
+  1,245 contra 1,32 (−5,7 %); no 7.69 o P com q′ é 31,7 kPa contra 41,3 medidos
+  (−23 %; sem q′, 34,3 kPa, −17 %). Se o r/q do par vem dos grupos UNIFAC (ChemSep
+  sem r/q), a opção não se aplica. `testes/teste_uniquac_qprime.py`. Verificado por
+  captura a 1400 px (etanol/água 90 °C: ligar a caixa troca o selo e piora a curva;
+  acetona/clorofórmio: caixa apagada com o motivo) e a 360 px;
   (8) ~~aviso de instabilidade da fase líquida~~ **Feito em 2026-10-08** (autor:
   "8 se o custo for baixo, implemente"): `detectar_instabilidade_liquida(x1,
   gamma1)` (em `gemini.py`) aplica a condição d ln(x₁γ₁)/dx₁ > 0 à malha do
@@ -348,7 +359,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (19
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (20
   scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
   manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
@@ -3469,6 +3480,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   depois das curvas, e o eixo vertical passa a incluir os marcadores (um ponto
   muito fora, por dado errado, achata o gráfico — a faixa 0,10–0,90 limita isso,
   não elimina).
+
+- **(2026-10-08) Opção "Usar q′" no UNIQUAC (checkbox), desligada por padrão.** O
+  autor propôs ("é que tal um check box que dá a opção de usar q′") e, depois de o
+  assistente levar a análise (efeito só em 14 compostos; piora o ajuste com os
+  a₁₂/a₂₁ do banco; risco de o aluno achar que ligar é "mais correto"), liberou:
+  "Libera, faça o checkbox". Implementação na pendência 7. **Escolhas do assistente,
+  a confirmar:** (a) padrão **desligado**; (b) caixa **apagada com o motivo** quando
+  o par não tem q′ ≠ q (em vez de escondê-la); (c) selo próprio "Banco, com q′" com o
+  aviso de que os parâmetros foram ajustados com q; (d) ao trocar para um par sem
+  efeito ou sair do UNIQUAC, a caixa **volta a desligada** (sem estado escondido);
+  (e) a opção usa o q′ do ChemSep, a mesma fonte dos r/q (se os r/q vêm dos grupos
+  UNIFAC, não se aplica); (f) glifo: o prime "′" aparece como "'" na fonte
+  renderizada (cosmético).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

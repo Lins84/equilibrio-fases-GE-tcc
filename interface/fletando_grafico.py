@@ -20,6 +20,7 @@ from calculos.gemini import (
     montar_parametros_automaticos,
     regress_params_barker,
     uniquac_fonte_rq,
+    uniquac_qprime_do_par,
 )
 
 # Selo de origem do parâmetro (seção 2.8 do mapeamento): cor de fundo, cor
@@ -35,6 +36,9 @@ ORIGENS_SELO = {
     # tem r/q para o par): variante de menor confiança, mesmo padrão e mesmas
     # cores do "Calculado". 2026-10-06.
     "banco_rq_unifac": (ft.Colors.ORANGE_100, "#7A3300", "Banco, r/q via UNIFAC"),
+    # UNIQUAC com a opção "usar q′" ligada (2026-10-08): os a₁₂/a₂₁ do banco foram
+    # ajustados com q, então a combinação é menos confiável; mesma cor de cautela.
+    "banco_qprime": (ft.Colors.ORANGE_100, "#7A3300", "Banco, com q′"),
 }
 
 # Sliders por modelo — nome do parâmetro (chave esperada por MODELS_GE em
@@ -674,7 +678,17 @@ AJUDA_TOPICOS = [
             "sempre com \"Comparar\".\n\n"
             "# UNIQUAC e UNIFAC\n"
             "Não têm slider: os parâmetros saem sozinhos dos componentes, e os "
-            "botões de banco e regressão não aparecem."
+            "botões de banco e regressão não aparecem.\n\n"
+            "No UNIQUAC há uma opção, \"Usar q′\", que vem desligada. q′ é o q "
+            "modificado que o Koretsky usa para água e álcoois leves; o app o lê "
+            "do ChemSep. Só faz diferença quando algum dos dois componentes tem q′ "
+            "diferente de q (água, metanol, etanol, propanóis, butanóis e poucos "
+            "outros); nos demais pares a caixa fica apagada, com o motivo ao lado. "
+            "Ligada, o selo passa a \"Banco, com q′\": os a₁₂/a₂₁ do banco foram "
+            "ajustados com q, e a combinação costuma piorar o ajuste (etanol/água "
+            "contra dados NIST: erro de pressão de 4 a 5 % com q′, contra 1 a "
+            "3,5 % com q). A opção serve para ver o efeito e para comparar com "
+            "exercícios que usam q′; confira com \"Comparar\"."
         ),
     },
     {
@@ -917,10 +931,12 @@ AJUDA_TOPICOS = [
             "a₂₁, em K). Funciona para muitos pares de substâncias polares e "
             "apolares, inclusive parcialmente miscíveis (Koretsky, p. 441). No app "
             "não há slider: r, q, a₁₂ e a₂₁ saem do banco ChemSep (com r e q dos "
-            "grupos UNIFAC se faltarem). O app usa q na parte residual, como o "
-            "ChemSep; o Koretsky usa um q′ modificado para álcoois e água, e por "
-            "isso resultados de exercícios do livro com esses compostos podem "
-            "diferir.\n\n"
+            "grupos UNIFAC se faltarem). Por padrão o app usa q na parte residual, "
+            "como o ChemSep; o Koretsky usa um q′ modificado para álcoois e água, "
+            "e por isso resultados de exercícios do livro com esses compostos podem "
+            "diferir. A opção \"Usar q′\", no card \"Parâmetros do modelo\", liga o "
+            "q′ do ChemSep; como os a₁₂/a₂₁ do banco foram ajustados com q, isso "
+            "costuma piorar o ajuste aos dados.\n\n"
             "# UNIFAC\n"
             "Preditivo: divide cada molécula em grupos funcionais e calcula os γ a "
             "partir de parâmetros de interação entre os grupos, sem precisar de "
@@ -2422,7 +2438,13 @@ def main(page: ft.Page):
             if nome_modelo in PARAM_SLIDERS:
                 params_modelo = dict(parametros_atuais)
             else:
-                params_modelo = montar_parametros_automaticos(nome_modelo, comp1, comp2)
+                if nome_modelo == "UNIQUAC":
+                    # Antes de montar os parâmetros: confere se a opção "usar q′"
+                    # se aplica ao par (desliga e desabilita a caixa se não).
+                    atualizar_opcao_qprime(comp1, comp2)
+                params_modelo = montar_parametros_automaticos(
+                    nome_modelo, comp1, comp2, usar_qprime=usar_qprime["v"]
+                )
                 if nome_modelo == "UNIQUAC":
                     atualizar_selo_uniquac(comp1, comp2)
 
@@ -2618,7 +2640,9 @@ def main(page: ft.Page):
             if nome_modelo in PARAM_SLIDERS:
                 params_modelo = dict(parametros_atuais)
             else:
-                params_modelo = montar_parametros_automaticos(nome_modelo, comp1, comp2)
+                params_modelo = montar_parametros_automaticos(
+                    nome_modelo, comp1, comp2, usar_qprime=usar_qprime["v"]
+                )
 
             T_C = float(campo_temperatura.value)
             resultado = calculate_vle_isothermal(
@@ -2920,7 +2944,17 @@ def main(page: ft.Page):
             "a₁₂/a₂₁ do banco IPDB/ChemSep (tabela 'ChemSep UNIQUAC') para "
             f"{comp1}/{comp2}."
         )
-        if uniquac_fonte_rq(comp1, comp2) == "chemsep":
+        if usar_qprime["v"]:
+            atualizar_selo_origem(
+                "banco_qprime",
+                "A opção \"usar q′\" está ligada: a parte residual usa o q′ do "
+                "ChemSep para água e álcoois. Mas os a₁₂/a₂₁ do banco foram "
+                "ajustados com q, e essa combinação costuma piorar o ajuste "
+                "(etanol/água contra dados NIST: erro de pressão de 4 a 5 % com "
+                "q′, contra 1 a 3,5 % com q). Use \"Comparar\" para conferir; "
+                f"{banco}",
+            )
+        elif uniquac_fonte_rq(comp1, comp2) == "chemsep":
             atualizar_selo_origem(
                 "banco",
                 "r/q estruturais do banco ChemSep — os mesmos com que os "
@@ -2995,9 +3029,73 @@ def main(page: ft.Page):
         "", color="#9A3B00", size=14, visible=False
     )
 
+    # Opção "usar q′" do UNIQUAC (2026-10-08, pedido do autor): q′ é o q
+    # modificado de Anderson e Prausnitz (Koretsky, Tabela 7.4) para água e
+    # álcoois leves, vindo do próprio ChemSep. Desligada por padrão porque os
+    # a₁₂/a₂₁ do banco foram ajustados com q (com q′ o ajuste piora, medido nos
+    # dados NIST). Só aparece no UNIQUAC; habilitada só quando o par tem algum
+    # composto com q′ ≠ q (senão não mudaria nada). Controles criados uma vez e
+    # reaproveitados entre montagens (só `value`/`disabled`/`visible` mudam).
+    usar_qprime = {"v": False}
+
+    def ao_mudar_qprime(e):
+        usar_qprime["v"] = bool(e.control.value)
+        gerar_grafico()
+
+    checkbox_qprime = ft.Checkbox(
+        label="Usar q′ (Anderson e Prausnitz)",
+        value=False,
+        # Cor só no estado marcado; sem isso a caixa desmarcada também saía
+        # azul cheia (visto na captura).
+        fill_color={ft.ControlState.SELECTED: ft.Colors.BLUE_700},
+        label_style=ft.TextStyle(size=14, color=ft.Colors.BLUE_GREY_900),
+        on_change=ao_mudar_qprime,
+    )
+    icone_qprime = icone_info(
+        lambda: (
+            "q′ é uma área de superfície modificada que o UNIQUAC usa na parte "
+            "residual para água e álcoois leves (Koretsky, Tabela 7.4). O ChemSep "
+            "traz o q′ de alguns compostos; em quase todos os outros q′ é igual a "
+            "q, e a opção não muda nada. Os parâmetros de interação do banco foram "
+            "ajustados com q, e ligar o q′ costuma piorar o ajuste (etanol/água "
+            "contra dados NIST: erro de pressão de 4 a 5 % com q′, contra 1 a "
+            "3,5 % com q). A opção serve para comparar com exercícios que usam "
+            "q′ e para ver o efeito. Confira com \"Comparar\"."
+        ),
+        titulo="O que é q′?",
+    )
+    nota_qprime = ft.Text("", size=14, color=ft.Colors.GREY_800, visible=False)
+    linha_qprime = ft.Column(
+        controls=[ft.Row([checkbox_qprime, icone_qprime], spacing=0, tight=True), nota_qprime],
+        spacing=0,
+        visible=False,
+    )
+
+    def atualizar_opcao_qprime(comp1, comp2):
+        """Estado da caixa "usar q′" para o par atual (chamado a cada cálculo do
+        UNIQUAC). Se o par não tem q′ ≠ q, a caixa fica desligada e apagada, com a
+        razão ao lado; se o par muda para um sem efeito, ela se desliga sozinha."""
+        try:
+            info = uniquac_qprime_do_par(comp1, comp2)
+        except Exception:
+            info = {"afeta": False, "motivo": "não foi possível consultar o q′ deste par"}
+        if not info["afeta"]:
+            usar_qprime["v"] = False
+            checkbox_qprime.value = False
+        checkbox_qprime.disabled = not info["afeta"]
+        nota_qprime.value = (
+            "" if info["afeta"] else f"Sem efeito neste par: {info['motivo']}."
+        )
+        nota_qprime.visible = not info["afeta"]
+
     def construir_sliders(nome_modelo):
         sliders_area.controls.clear()
         aviso_parametro.visible = False
+        # Opção q′ só no UNIQUAC; ao sair dele ela volta a desligada.
+        linha_qprime.visible = (nome_modelo == "UNIQUAC")
+        if nome_modelo != "UNIQUAC":
+            usar_qprime["v"] = False
+            checkbox_qprime.value = False
         parametros_atuais.clear()
         sliders_por_chave.clear()
 
@@ -3375,6 +3473,7 @@ def main(page: ft.Page):
             sliders_area,
             aviso_parametro,
             aviso_instabilidade_txt,
+            linha_qprime,
             # "Comparar" (2026-10-07, pedido do autor: "colocar o botão comparar
             # junto com o card de parâmetros"): numa linha própria, sob os
             # sliders. O selo de origem foi para o cabeçalho do card
