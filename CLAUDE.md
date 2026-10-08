@@ -3433,6 +3433,13 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   mensagem passou a contar os pontos do erro (decisão de 2026-10-08, item 7 da
   auditoria) — entra em (9), ajuste de texto.
 
+- **(2026-10-08) Contato no tópico "Sobre".** Pedido do autor: no "Sobre", colocar o
+  e-mail leolins22@gmail.com para sugestões de implementações futuras e feedback de
+  usuários. Seção nova "Contato: sugestões e feedback", logo depois do autor e antes
+  das bibliotecas (texto do assistente, a revisar). O e-mail passa a ficar público
+  no app e no repositório, por pedido dele. **Escolha do assistente, a confirmar:** o
+  endereço é texto simples, sem link clicável (o diálogo é texto formatado simples).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
