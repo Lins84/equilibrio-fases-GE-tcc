@@ -118,7 +118,13 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
 
 - `testes/` — scripts avulsos, rodados direto com `python3` **a partir da
   raiz** (não há runner/pytest): `teste_margules_2p_MEK_tolueno.py`
-  (validação numérica contra planilha XSEOS, sem dependências externas),
+  (conferência secundária do `model_margules_2p` contra a planilha XSEOS —
+  desde 2026-10-08 chama o modelo real; antes comparava uma cópia da fórmula),
+  `teste_margules_2p_primeiros_principios.py` (2026-10-08 — Margules 2-P pela
+  definição termodinâmica: grandeza parcial molar de Gᴱ/RT por passo complexo,
+  Euler, Gibbs-Duhem, limites e redução ao Margules 1-P) e
+  `teste_margules_2p_nist_ln_gamma.py` (2026-10-08 — Margules 2-P contra o
+  ln γ experimental, método indireto, das 10 isotermas NIST),
   `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
   `sys.path` para achar o módulo, e exige `flet` instalado — ver ressalva
   no topo do arquivo) e `teste_dioxano_nrtl.py` (teste manual visual —
@@ -255,8 +261,8 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (12
-  scripts em `testes/`, 11 automatizados; o `teste_dioxano_nrtl.py` é visual e
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (14
+  scripts em `testes/`, 13 automatizados; o `teste_dioxano_nrtl.py` é visual e
   manual). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
   ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
@@ -270,7 +276,12 @@ Os 6 modelos Gᴱ então registrados em `MODELS_GE` (`model_margules_1p`,
 com as implementações de referência do `thermo` (`Wilson_gammas`,
 `UNIQUAC_gammas`, `UNIFAC.from_subgroups`), varrendo toda a faixa de
 composição (x1 de 0 a 1, incluindo os extremos) — não apenas com valores de
-exemplo. Três bugs foram encontrados e corrigidos nessa auditoria:
+exemplo. **Ressalva (2026-10-08):** a `thermo` (e a `chemicals`) **não têm
+Margules nem Van Laar** (busca no código instalado), então a comparação com a
+`thermo` vale só para Wilson, UNIQUAC e UNIFAC (e NRTL, depois); o Margules 2-P
+ganhou validação própria em 2026-10-08 e o Margules 1-P pela redução ao 2-P; o
+Van Laar segue sem referência independente. Três bugs foram encontrados e
+corrigidos nessa auditoria:
 
 1. **`model_wilson`** — nos limites exatos x1=0 e x2=0, a fórmula trocava
    γ1↔γ2 e usava o parâmetro de interação errado no termo logarítmico
@@ -1261,6 +1272,10 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   (23/07); o `model_margules_2p` só apareceu em `e383f1c` (26/07) — três
   dias depois. A referência externa existia antes do código, então não
   havia como o código "definir" o que seria considerado certo.
+  **Ressalva (2026-10-08):** a referência (a planilha) existia antes, mas o teste
+  nunca chamou o `model_margules_2p` — comparava a planilha com uma cópia da
+  fórmula escrita dentro do próprio teste, então não validava o código do app.
+  Corrigido em 2026-10-08 (ver a entrada de mesma data, mais abaixo).
 - **(2026-07-27) Critério de validação: varrer toda a faixa de
   composição, não pontos de exemplo.** x1 de 0 a 1 em 101 pontos,
   incluindo os extremos exatos. **Foi esse critério que achou os bugs**:
@@ -3031,6 +3046,77 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   captura a 1400 px (abre pelo "?" do card, rola) e a 360 px (abre pelo sumário da
   Ajuda); os testes passam. Oito tópicos com texto; dois seguem "Conteúdo em breve.":
   "Modelos de Gᴱ" e "Limitações".
+  **Revisado em 2026-10-08, depois das três perguntas do autor** (ver entrada
+  seguinte): saíram os números do exemplo etanol/água e do azeótropo; a frase de
+  Gibbs-Duhem passou a dizer a condição em que vale; o texto agora diz que os
+  círculos vazados caem sobre a curva e não medem erro neste gráfico.
+
+- **(2026-10-08) Perguntas do autor sobre o tópico ln γ; conferência do
+  Margules 2-P com fonte robusta (A + B + C1 + D).** O autor questionou três
+  escolhas do assistente no tópico "ln γ" e, na mesma mensagem, liberou "A + B +
+  C1, e depois o D" para o Margules 2-P. **(1) "É uma boa, num texto geral, se
+  prender a um par?"** Não: o texto de ajuda é geral e os números dependiam do
+  par, da T, do modelo e do banco; saíram. **(2) "Duas curvas subindo juntas
+  indicam defeito — qual fonte?"** A afirmação é consequência da equação de
+  Gibbs-Duhem (x₁·d ln γ₁ + x₂·d ln γ₂ = 0 a T e P constantes: inclinações de
+  sinais opostos), válida para modelos derivados de uma Gᴱ(T, x) e sem o termo de
+  pressão; a redação "defeito, não física" era forte demais e foi trocada pela
+  condição de validade. Fonte citada: Smith, Van Ness e Abbott (capítulo de ELV),
+  **do conhecimento do assistente, sem conferir edição e seção** — o autor deve
+  conferir antes de usar no TCC. Verificado numericamente: resíduo ≤ 0,002 nos
+  quatro modelos com banco (derivada por diferença finita) e ≤ 1e-10 no Margules
+  2-P (passo complexo). **(3) "Se não há ln γ experimental no app, os pontos
+  vazados são desnecessários?"** No gráfico de ln γ, em termos de informação,
+  **sim**: o comparativo é o mesmo modelo avaliado nos x₁ da tabela e cai sobre a
+  curva, e não há marcador cheio para medir distância (no P-x-y há, e a distância
+  é o erro). Só marcam em que x₁ está a tabela e mantêm o mesmo código visual dos
+  dois gráficos. **Decisão do autor pendente:** manter, retirar do ln γ, ou
+  passar a desenhar o ln γ experimental da tabela (método indireto) como
+  marcadores cheios — o que daria ao gráfico uma comparação de verdade, mas é
+  funcionalidade nova e reabre o argumento de 2026-09-13 (o método indireto
+  amplifica ruído perto de x₁ → 0 e 1; para exibição, restringir a faixa).
+  O texto de ajuda foi ajustado só para dizer o que os vazados são hoje.
+  *Margules 2-P.* Diagnóstico: o teste existente comparava a planilha XSEOS com
+  uma cópia da fórmula dentro do próprio teste e **nunca chamava o
+  `model_margules_2p`**; a planilha tem 3 casas e procedência sem rastreio; e a
+  `thermo` **não tem Margules nem Van Laar** (busca em `thermo` e `chemicals`), então
+  o "`thermo` + planilha" do mapeamento (tabela de validação) estava errado.
+  **A (feito):** `testes/teste_margules_2p_primeiros_principios.py` —
+  Gᴱ/RT = x₁x₂(A₂₁x₁ + A₁₂x₂), ln γᵢ como grandeza parcial molar pela definição
+  (derivada por passo complexo, independente da fórmula fechada), identidade de
+  Euler, Gibbs-Duhem, limites (ln γ₁(0) = A₁₂, ln γ₂(1) = A₂₁, puros), redução ao
+  Margules 1-P com A₁₂ = A₂₁ e auto-teste (reprova o modelo com A₁₂ e A₂₁ trocados);
+  6 pares de parâmetros, incluindo negativos e de sinais opostos, 101 pontos de x₁
+  com extremos; erro ≤ 1e-12. **B (feito):** `teste_margules_2p_MEK_tolueno.py`
+  agora converte A/B → A₁₂ = (A−B)/RT e A₂₁ = (A+B)/RT e compara a planilha com o
+  `model_margules_2p` real (diferença máxima 0,0005 = arredondamento da planilha),
+  confere a conversão contra a cópia da fórmula (1e-16) e sai com código 1 se
+  falhar (antes só imprimia). **C1 (feito):** `teste_margules_2p_nist_ln_gamma.py`
+  — nas 10 isotermas NIST (etanol/água ×5, metanol/dimetilbuteno ×4,
+  clorofórmio/MEK ×1), ln γ experimental pelo método indireto nos pontos com
+  0,10 ≤ x₁ ≤ 0,90, Psat da `thermo`; confere (1) sinal de A₁₂ e A₂₁ ajustados =
+  sinal do desvio medido, (2) RMS de ln γ do Margules 2-P ajustado por Barker
+  (**0,027 a 0,065**, tolerância 0,08; Van Laar e Wilson impressos para contexto) e
+  (3) a linearização clássica Gᴱ/(RT·x₁x₂) = A₁₂·x₂ + A₂₁·x₁ (estimador independente
+  do Barker): diferença nos parâmetros de 0,05 a 0,42 (tolerância 0,50, folgada de
+  propósito: a linearização usa só o interior e extrapola às pontas). **Achado:**
+  no metanol/dimetilbuteno o Wilson descreve o ln γ melhor (RMS 0,024–0,047) que o
+  Margules 2-P e o Van Laar (0,053–0,065), que coincidem porque A₁₂ ≈ A₂₁ — limite
+  do modelo de 2 parâmetros nesse par, não bug. **O que C1 prova e o que não
+  prova:** adequação do modelo a dado real, não a fórmula (essa é a de A).
+  **D (feito):** mapeamento (linha de validação e lista de testes), tópico "Sobre"
+  (a planilha passa a "conferência secundária"; a frase das equações diz que
+  Wilson, NRTL, UNIQUAC e UNIFAC foram conferidas contra a `thermo` e o Margules
+  pela definição e pelos dados NIST), lista de testes e contagem do `CLAUDE.md`
+  (14 scripts, 13 automatizados) e duas ressalvas em registros antigos
+  (2026-07-23 e 2026-07-27). **Pendente, a decidir pelo autor — não alterado:**
+  (a) o mapeamento ainda diz, na frase que introduz a tabela e nas linhas de
+  **Margules 1P** e **Van Laar**, "validado contra `thermo`", o que é falso para os
+  dois; o Margules 1P agora tem validação indireta (redução ao 2-P) e o Van Laar
+  **não tem validação independente** — proposta: estender o teste de primeiros
+  princípios ao Van Laar (Gᴱ/RT = A₁₂A₂₁x₁x₂/(A₁₂x₁ + A₂₁x₂)) e ao Margules 1-P
+  direto, e então corrigir essas linhas; (b) a decisão sobre os círculos vazados no
+  ln γ (acima).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

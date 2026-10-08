@@ -1,14 +1,33 @@
 """
-Caso de teste de validação para o modelo Margules 2P (three-suffix),
-sistema Metil-etil-cetona (1) / Tolueno (2) a 323,15 K.
+Conferência SECUNDÁRIA do `model_margules_2p` contra uma planilha, sistema
+Metil-etil-cetona (1) / Tolueno (2) a 323,15 K.
 
-Fonte: planilha Excel do pacote XSEOS (canal "Youtermo", YouTube).
+Fonte: planilha Excel do pacote XSEOS (canal "Youtermo", YouTube). Procedência
+sem rastreio e só três casas decimais: serve para pegar erro grosseiro, não
+como validação do modelo. A validação do modelo está em
+`teste_margules_2p_primeiros_principios.py` (definição termodinâmica) e
+`teste_margules_2p_nist_ln_gamma.py` (dado experimental com fonte).
 
-Modelo (forma A/B de Smith/Van Ness/Abbott):
+Correção de 2026-10-08: até então este teste comparava a planilha com uma CÓPIA
+da fórmula escrita aqui dentro (`_margules_2p_referencia`), e nunca chamava o
+`model_margules_2p` do `calculos/gemini.py`. Agora a comparação principal é
+com o modelo real, depois de converter A/B para A12/A21; a cópia ficou só para
+conferir a conversão.
+
+Modelo (forma A/B de Smith/Van Ness/Abbott, usada na planilha):
     g^E = xa*xb*[A + B*(xa - xb)]
     RT*ln(gamma_a) = (A + 3B)*xb^2 - 4B*xb^3
     RT*ln(gamma_b) = (A - 3B)*xa^2 + 4B*xa^3
+Forma do app (adimensional): A12 = (A - B)/RT e A21 = (A + B)/RT.
+
+Roda a partir da raiz: PYTHONPATH=. .venv/bin/python testes/teste_margules_2p_MEK_tolueno.py
 """
+
+import sys
+
+import numpy as np
+
+from calculos.gemini import model_margules_2p
 
 R = 8.314  # J/(mol.K)
 T = 323.15  # K
@@ -70,20 +89,36 @@ def _margules_2p_referencia(x1, A, B, R, T):
     return ln_gamma1, ln_gamma2
 
 
+def _gemini_margules_2p(x1, A, B, R, T):
+    """`model_margules_2p` do app, com A/B (J/mol) convertidos para A12/A21."""
+    RT = R * T
+    g1, g2 = model_margules_2p(x1, {"A12": (A - B) / RT, "A21": (A + B) / RT})
+    return float(np.log(g1)), float(np.log(g2))
+
+
 if __name__ == "__main__":
-    print("Comparando implementação de referência com os dados de validação:\n")
-    comparar_com_implementacao(_margules_2p_referencia)
+    tolerancia = 0.001  # a planilha traz 3 casas decimais
+    falhas = []
 
-    print("\nVerificando se todas as diferenças ficam abaixo de 0.001...")
-    tolerancia = 0.001
-    todas_ok = True
+    print("1) model_margules_2p (calculos/gemini.py) contra a planilha:\n")
+    comparar_com_implementacao(_gemini_margules_2p)
     for x1, ln_g1_ref, ln_g2_ref in DADOS_REFERENCIA:
-        ln_g1_calc, ln_g2_calc = _margules_2p_referencia(x1, A, B, R, T)
-        if abs(ln_g1_calc - ln_g1_ref) >= tolerancia or abs(ln_g2_calc - ln_g2_ref) >= tolerancia:
-            todas_ok = False
-            print(f"  FALHA em x1={x1}: diferença acima da tolerância.")
+        ln_g1, ln_g2 = _gemini_margules_2p(x1, A, B, R, T)
+        if abs(ln_g1 - ln_g1_ref) >= tolerancia or abs(ln_g2 - ln_g2_ref) >= tolerancia:
+            falhas.append(f"modelo do app em x1={x1}")
 
-    if todas_ok:
-        print(f"OK: todas as diferenças estão abaixo de {tolerancia}.")
-    else:
-        print("FALHA: uma ou mais diferenças excederam a tolerância.")
+    print("\n2) Conversão A/B -> A12/A21 (cópia da fórmula da planilha contra o app, x1 de 0 a 1):")
+    maior = 0.0
+    for x1 in np.linspace(0.0, 1.0, 101):
+        ref = _margules_2p_referencia(x1, A, B, R, T)
+        app = _gemini_margules_2p(x1, A, B, R, T)
+        maior = max(maior, abs(ref[0] - app[0]), abs(ref[1] - app[1]))
+    print(f"   diferença máxima: {maior:.1e}")
+    if maior > 1e-12:
+        falhas.append(f"conversão A/B diferente do app: {maior:.2e}")
+
+    print()
+    if falhas:
+        print(f"FALHA: {falhas}")
+        sys.exit(1)
+    print(f"OK: modelo do app dentro de {tolerancia} da planilha e conversão A/B exata.")
