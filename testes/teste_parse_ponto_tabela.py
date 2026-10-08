@@ -8,10 +8,15 @@ repositório. O `sys.path` abaixo é necessário porque o Python coloca em
 módulo de interface não é encontrado.
 
 Ressalva: as funções testadas são lógica pura (não usam `flet`), mas
-vivem em `interface/fletando.py`, cujo topo importa `flet`/`flet_charts`.
+vivem em `interface/fletando_grafico.py`, cujo topo importa `flet`/`flet_charts`.
 Importar o módulo executa esses imports, então este teste **exige as
 dependências instaladas**. Extrair as duas funções para um módulo próprio
 resolveria isso — é decisão de arquitetura, pendente do autor.
+
+Correção de 2026-10-08: até então o teste importava as mesmas funções de
+`interface/fletando.py`, um protótipo antigo (removido nessa data), e não da
+linha viva da UI. As duas cópias eram idênticas, mas o teste não protegia o
+código que o app realmente usa.
 """
 
 import sys
@@ -19,7 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "interface"))
 
-from fletando import parse_ponto, pontos_para_series
+from fletando_grafico import parse_ponto, pontos_para_series
 
 
 def teste_parse_ponto_valores_validos():

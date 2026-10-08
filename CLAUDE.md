@@ -92,17 +92,14 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   alterado o XML de r/q do UNIQUAC. Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
 
-**UI — `interface/` (protótipos Flet, em ordem de evolução):**
+**UI — `interface/`:**
 
-- `interface/main.py` (~34 linhas) — o mais antigo/simples: gráfico
-  estático de exemplo via matplotlib, exibido como `ft.Image`.
-- `interface/fletando.py` (~218 linhas) — tabela dinâmica de pontos P/x/y
-  com adição/remoção de linhas via `ft.DataTable`.
 - `interface/fletando_grafico.py` (~1525 linhas) — **a linha viva da UI,
   já integrada ao motor de cálculo**: tabela editável de pontos
   experimentais P/x/y (com botão "Importar dados" — arquivo CSV ou texto
   colado —, botão "Exemplos" — quatro exemplos embutidos com dado NIST —,
-  "Desfazer" e "Limpar Tabela"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
+  "Limpar dados"; os gráficos se atualizam sozinhos ao sair de um campo da
+  tabela — desde 2026-10-08 não há botão "Gerar Gráfico" nem "Desfazer"), escolha de modelo Gᴱ e de componentes/temperatura, sliders de
   parâmetros, gráfico P-x-y com a curva do modelo
   (`calculate_vle_isothermal`) sobreposta aos pontos, e gráfico de ln γ vs
   x1. Botões de apoio ao parâmetro: "Buscar do Banco (IPDB)" (NRTL/Wilson),
@@ -127,13 +124,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   ln γ experimental, método indireto, das 10 isotermas NIST),
   `teste_parse_ponto_tabela.py` (lógica da tabela; insere `interface/` no
   `sys.path` para achar o módulo, e exige `flet` instalado — ver ressalva
-  no topo do arquivo) e `teste_dioxano_nrtl.py` (teste manual visual —
-  app Flet próprio que roda `calculate_vle_isothermal` com NRTL e
-  parâmetros reais via `nrtl_params_from_ipdb`/IPDB para dioxano/metanol
-  a 70 °C, e plota o diagrama P-x-y calculado; recuperado em 2026-09-26
-  de um commit que existia só numa cópia do Replit sem sincronia por
-  git, nunca antes enviado ao GitHub — mesmo teste citado na sessão de
-  2026-07-29 acima) e `teste_regressao_barker.py` (valida
+  no topo do arquivo; importa de `fletando_grafico.py` desde 2026-10-08) e
+  `teste_regressao_barker.py` (valida
   `regress_params_barker`: gera dados sintéticos sem ruído a partir de
   parâmetros conhecidos — Margules 1P, NRTL com α12 fixo, UNIQUAC com
   r/q via grupos UNIFAC — e confere que a regressão os recupera; cobre
@@ -183,8 +175,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
 **Integração cálculo ↔ UI: concluída em 2026-09-26** (commit `deba9cc`).
 `fletando_grafico.py` importa `calculos.gemini` e chama
 `calculate_vle_isothermal`. Os protótipos `main.py` e `fletando.py`
-continuam como estavam, sem ligação com o motor de cálculo, e ficam só
-como registro da evolução da UI.
+(sem ligação com o motor de cálculo) foram **removidos em 2026-10-08** a
+pedido do autor; continuam no histórico do git.
 
 > **Nota para a integração:** com a separação em pastas, um script rodado
 > de dentro de `interface/` não enxerga `calculos/` automaticamente (o
@@ -261,9 +253,9 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (14
-  scripts em `testes/`, 13 automatizados; o `teste_dioxano_nrtl.py` é visual e
-  manual). A interface é verificada visualmente pelo autor no dispositivo
+- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (13
+  scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
+  manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
   real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
   ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
   limites de cada uma.
@@ -3157,6 +3149,63 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   automatizados; (7) cosmético: a mensagem pós-"Comparar" ("calculada em N
   ponto(s)") conta composições distintas, não os pontos usados no erro.
   Nada acima foi alterado.
+
+- **(2026-10-08) Decisões do autor sobre a auditoria: retirar protótipos,
+  "Desfazer" e "Gerar Gráfico" (automatizado), teste manual do dioxano; manter
+  lupa e ⓘ; mensagem do "Comparar" mais conclusiva.** Resposta item a item à
+  lista de "inutilidades" da entrada anterior: **(1) "retire, é inútil e já
+  atrapalhou bastante ao iniciar novas seções"** — removidos `interface/main.py`
+  e `interface/fletando.py` (protótipos antigos). Consequências tratadas:
+  `.replit` apontava para eles (`entrypoint`, `deployment.run` e um workflow
+  "Start application"); agora `entrypoint` e `deployment.run` usam
+  `interface/fletando_grafico.py` (com `uv run`, como o workflow "Start Grafico",
+  que já era o que o botão Run executa) e o workflow antigo saiu — **não testado no
+  Replit** (só nesta nuvem), a conferir pelo autor. **Achado:** o
+  `teste_parse_ponto_tabela.py` importava `parse_ponto`/`pontos_para_series` de
+  `fletando.py`, ou seja, testava a cópia do protótipo, não o código da linha
+  viva (as duas eram idênticas, conferido por diff); passou a importar de
+  `fletando_grafico.py`. **(2) "mantém, serve para dar ênfase numa imagem
+  projetada em sala" (lupa) e (3) mesmo sentido (ⓘ do ΔP/Δy)** — mantidos, sem
+  mudança; o motivo (ênfase na projeção em sala) fica registrado como razão de
+  ser desses dois recursos. **(4) "pode retirar" ("Desfazer")** — removidos o
+  botão, o histórico de até 5 estados (`empilhar_historico`, `desfazer`,
+  `historico_parametros`), a dica ao tocar no botão apagado e os trechos de ajuda
+  que o citavam. **(5) "retire e automatize como sugeriu" ("Gerar Gráfico")** —
+  botão removido (e com ele o estilo "primário" de botão, que só ele usava); os
+  pontos da tabela agora entram nos gráficos **ao sair do campo ou apertar Enter,
+  desde que o conteúdo da tabela tenha mudado** desde o último desenho
+  (`assinatura_tabela`, `ao_sair_do_campo`): entrar e sair de uma célula sem editar
+  não redesenha nem apaga a comparação; a cada tecla roda só `invalidar_comparacao`
+  (já era assim); excluir linha também redesenha. A mensagem "Tabela editada: a
+  comparação foi escondida. Clique em "Comparar" de novo." sobrevive ao redesenho
+  (flag `comparacao_escondida`). **Mudança de comportamento na contagem de
+  "linhas ignoradas":** só conta a linha com os três campos preenchidos e número
+  inválido; linha incompleta (um ponto ainda sendo digitado) deixa de gerar aviso —
+  sem isso, cada Tab no meio de uma linha mostraria o aviso. Isso **supera a parte
+  "Gerar Gráfico" da decisão de 2026-09-21** (gatilho manual) para os pontos da
+  tabela; o gatilho da **regressão** continua manual (botão dedicado). Textos de
+  ajuda atualizados (primeiros passos, dados experimentais, sistema, parâmetros,
+  comparar, P-x-y). **(6) "não vejo relevância em manter"** — removido
+  `testes/teste_dioxano_nrtl.py` (app Flet manual que só plotava o NRTL do
+  dioxano/metanol; o gráfico do app já mostra isso). A contagem de testes passa a
+  **13 scripts, todos automatizados**. **(7) "faça algo melhor, mais conclusivo"** —
+  a mensagem pós-"Comparar" deixou de dizer "calculada em N ponto(s)" (que contava
+  composições x₁ distintas, não os pontos do erro) e passou a: "Comparação feita
+  com N ponto(s) da tabela. Maior desvio de pressão: X % em x₁ = …. Maior desvio de
+  y₁: … em x₁ = …." — N é o nº de pontos que entram no erro, e os dois "maior
+  desvio" dizem **onde** o modelo mais se afasta (o que o RMS esconde; útil para
+  achar ponto digitado errado ou a região em que o modelo falha). Não há veredito
+  ("bom/ruim"): isso exigiria um limiar, que é decisão do autor. Verificado por
+  captura a 1400 px: digitar P, x₁ e y₁ de uma linha (Tab entre os campos) faz o
+  ponto aparecer sem clique, e o foco continua passando de célula em célula;
+  exemplo metanol/dimetilbuteno + "Comparar" dá ΔP = 31,78 %/Δy = 0,1530 (iguais
+  aos de antes) com a mensagem nova (40,35 % em x₁ = 0,183; 0,2856 em
+  x₁ = 0,068); entrar e sair de célula sem editar mantém a comparação; editar um
+  valor a esconde, com a mensagem, e o gráfico se atualiza ao sair; excluir linha
+  redesenha; a 360 px carrega. Bug achado e corrigido durante a verificação:
+  `on_blur=ao_sair_do_campo` (referência direta) quebrava a carga porque a função é
+  definida depois das linhas iniciais — trocado por `lambda`, como já era antes.
+  Testes passam.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

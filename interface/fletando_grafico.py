@@ -503,8 +503,8 @@ AJUDA_TOPICOS = [
             "\"Calcular por Regressão (Barker)\".\n\n"
             "Com os seus próprios dados: digite P (em kPa), x₁ e y₁ na tabela "
             "ou use \"Importar dados\"; informe os componentes (nome em inglês, "
-            "como ethanol e water, ou número CAS) e a temperatura em °C; "
-            "se digitou à mão, toque em \"Gerar Gráfico\"."
+            "como ethanol e water, ou número CAS) e a temperatura em °C. Os "
+            "pontos digitados entram nos gráficos quando você sai do campo."
         ),
     },
     {
@@ -519,9 +519,11 @@ AJUDA_TOPICOS = [
             "Preencha P, x₁ e y₁ de cada linha, usando ponto como separador "
             "decimal (a vírgula não é aceita na tabela). \"Adicionar Novo "
             "Ponto\" cria uma linha; a lixeira vermelha exclui a linha. Linhas "
-            "com algum campo vazio ou inválido são ignoradas, com aviso. "
-            "Depois de digitar, toque em \"Gerar Gráfico\" para ver os pontos "
-            "nos gráficos.\n\n"
+            "incompletas (com algum campo vazio) ficam de fora até serem "
+            "preenchidas; as que têm os três campos mas com número inválido "
+            "são ignoradas, com aviso. Os gráficos se atualizam sozinhos "
+            "quando você sai de um campo (ou aperta Enter) e o conteúdo da "
+            "tabela mudou.\n\n"
             "# Importar dados\n"
             "\"Importar dados\" substitui o conteúdo da tabela e já desenha os "
             "gráficos. Há duas formas:\n"
@@ -590,9 +592,8 @@ AJUDA_TOPICOS = [
             "o UNIQUAC precisa de a₁₂/a₂₁ no banco para o par, e o UNIFAC precisa "
             "que os dois componentes tenham seus grupos na tabela do projeto. "
             "Se faltar, aparece uma mensagem de erro; use outro modelo.\n\n"
-            "Trocar de modelo volta os parâmetros aos valores iniciais e "
-            "esvazia o histórico do \"Desfazer\". Para saber quando usar cada "
-            "modelo, veja o tópico \"Modelos de Gᴱ\".\n\n"
+            "Trocar de modelo volta os parâmetros aos valores iniciais. Para "
+            "saber quando usar cada modelo, veja o tópico \"Modelos de Gᴱ\".\n\n"
             "# Ao trocar componentes ou temperatura\n"
             "Os valores dos parâmetros e os pontos da tabela ficam como "
             "estavam. Se os parâmetros vieram do banco ou da regressão para o "
@@ -669,14 +670,9 @@ AJUDA_TOPICOS = [
             "que há erro de digitação. O aviso não cobre tudo — um resíduo alto "
             "com os parâmetros dentro dos limites passa sem aviso. Confira "
             "sempre com \"Comparar\".\n\n"
-            "# Desfazer\n"
-            "Volta ao estado anterior de valores e selo. Guarda até 5 estados, "
-            "e só os de \"Buscar do Banco\" e da regressão — arrastar ou "
-            "digitar não entra no histórico. Trocar de modelo apaga o "
-            "histórico.\n\n"
             "# UNIQUAC e UNIFAC\n"
             "Não têm slider: os parâmetros saem sozinhos dos componentes, e os "
-            "botões de banco, regressão e Desfazer não aparecem."
+            "botões de banco e regressão não aparecem."
         ),
     },
     {
@@ -721,20 +717,21 @@ AJUDA_TOPICOS = [
             "confiável, não um critério de aprovação: o dado também tem erro.\n\n"
             "# Cuidados\n"
             "A comparação some quando deixa de valer: ao mexer em qualquer "
-            "parâmetro, trocar de modelo, mudar o sistema, importar dados ou "
-            "clicar em \"Gerar Gráfico\", e também ao editar ou excluir um ponto "
-            "da tabela. Os marcadores vazados, o ΔP e o Δy desaparecem e é "
-            "preciso clicar em \"Comparar\" de novo. Isso evita mostrar um erro "
-            "que já não vale.\n\n"
-            "Editar a tabela não atualiza os marcadores cheios do gráfico: para "
-            "isso, clique em \"Gerar Gráfico\".\n\n"
+            "parâmetro, trocar de modelo, mudar o sistema, importar dados, e "
+            "também ao editar ou excluir um ponto da tabela. Os marcadores "
+            "vazados, o ΔP e o Δy desaparecem e é preciso clicar em "
+            "\"Comparar\" de novo. Isso evita mostrar um erro que já não "
+            "vale.\n\n"
             "Um ΔP de dezenas de % quase sempre indica entrada errada, e não "
             "modelo ruim: confira se P está em kPa, se a temperatura é a dos "
             "dados e se os componentes estão na ordem certa (x₁ e y₁ são do "
             "Componente 1).\n\n"
-            "Todos os pontos pesam igual, inclusive os repetidos. A mensagem "
-            "\"calculada em N ponto(s) da tabela\" conta composições x₁ "
-            "distintas, e o erro usa todos os pontos válidos."
+            "Todos os pontos pesam igual, inclusive os repetidos. Depois de "
+            "\"Comparar\", a mensagem do card \"Dados experimentais\" diz com "
+            "quantos pontos o erro foi calculado e onde (em que x₁) estão o "
+            "maior desvio de pressão e o maior desvio de y₁ — é por aí que "
+            "vale começar a procurar um ponto digitado errado ou a região em "
+            "que o modelo falha."
         ),
     },
     {
@@ -782,8 +779,8 @@ AJUDA_TOPICOS = [
             "temperatura.\n\n"
             "# Detalhes da tela\n"
             "O gráfico é redesenhado sozinho ao mexer em parâmetro, modelo ou "
-            "sistema. Pontos digitados na tabela só entram nele ao clicar em "
-            "\"Gerar Gráfico\". Sem pontos válidos, só as curvas do modelo "
+            "sistema e quando você edita a tabela (ao sair do campo ou apertar "
+            "Enter). Sem pontos válidos, só as curvas do modelo "
             "aparecem; se o modelo falhar, aparecem só os pontos e a mensagem "
             "\"Curva do modelo não calculada\". O eixo vertical se ajusta para "
             "caber dados e curvas.\n\n"
@@ -1019,24 +1016,12 @@ def main(page: ft.Page):
     # Estilo dos botões do card "Dados experimentais" (2026-10-03, a pedido
     # do autor, a critério do assistente). Secundários: fundo azul bem claro,
     # texto e ícone azul-escuro, contorno azul e cantos de 12px (a mesma
-    # família das caixas do card Sistema). Primário ("Gerar Gráfico"): azul
-    # cheio com texto branco. O mapa de estados é por `ft.ControlState` para
-    # o botão apagado (Comparar sem dado) ficar cinza em vez de azul. O
-    # estilo é definido na criação do botão, nunca mutado depois.
-    def estilo_botao(primario=False):
-        if primario:
-            return ft.ButtonStyle(
-                bgcolor={
-                    ft.ControlState.DEFAULT: ft.Colors.BLUE_700,
-                    ft.ControlState.DISABLED: ft.Colors.GREY_300,
-                },
-                color={
-                    ft.ControlState.DEFAULT: ft.Colors.WHITE,
-                    ft.ControlState.DISABLED: ft.Colors.GREY_600,
-                },
-                shape=ft.RoundedRectangleBorder(radius=12),
-                padding=ft.Padding(16, 12, 16, 12),
-            )
+    # família das caixas do card Sistema). O mapa de estados é por
+    # `ft.ControlState` para o botão apagado (Comparar sem dado) ficar cinza em
+    # vez de azul. O estilo é definido na criação do botão, nunca mutado
+    # depois. (O estilo "primário", azul cheio, era do "Gerar Gráfico", retirado
+    # em 2026-10-08.)
+    def estilo_botao():
         return ft.ButtonStyle(
             bgcolor={
                 ft.ControlState.DEFAULT: ft.Colors.BLUE_50,
@@ -1117,8 +1102,7 @@ def main(page: ft.Page):
         # `extra_titulo` (opcional) — um controle extra ao lado do título,
         # no cabeçalho do card, em vez de só mais um item na lista debaixo.
         # Usado pelo botão "Comparar" no card "Dados experimentais" (pedido
-        # do autor, 2026-09-28): fica junto do título, não lá embaixo perto
-        # de "Gerar Gráfico".
+        # do autor, 2026-09-28): fica junto do título, não lá embaixo.
         # `extra_junto` (2026-10-07): o extra fica logo depois do texto do
         # título (usado pelo selo de origem no card "Parâmetros do modelo"),
         # em vez de empurrado para a ponta direita.
@@ -1290,15 +1274,14 @@ def main(page: ft.Page):
                 # Sem preenchimento lateral: com `filled`, o padrão do Material
                 # (12px de cada lado) cortava "0.935" nos 60px da coluna.
                 content_padding=ft.Padding(0, 8, 0, 8),
-                # Sem isso, "Comparar"/"Limpar Tabela" só reavaliavam se
-                # havia dado válido quando "Gerar Gráfico" era clicado —
-                # digitar direto na tabela não acendia nem apagava os
-                # botões (relatado pelo autor, 2026-09-28). `atualizar_
-                # estado_botoes_tabela` é leve (só recalcula os dois
-                # `.disabled`, não redesenha o gráfico inteiro a cada
-                # tecla) e é definida mais abaixo — resolvida por closure
-                # só quando o campo de verdade perde o foco.
-                on_blur=lambda e: atualizar_estado_botoes_tabela(),
+                # Ao sair do campo (ou Enter): reavalia os botões e, se o
+                # conteúdo da tabela mudou, redesenha os gráficos (ver
+                # `ao_sair_do_campo`, definida mais abaixo — resolvida por
+                # closure só quando o evento acontece).
+                # `lambda`: `ao_sair_do_campo` ainda não existe quando as linhas
+                # iniciais são criadas; o nome só é resolvido no evento.
+                on_blur=lambda e: ao_sair_do_campo(e),
+                on_submit=lambda e: ao_sair_do_campo(e),
             )
 
         # Prepara a nova linha
@@ -1308,9 +1291,9 @@ def main(page: ft.Page):
         def excluir_esta_linha(e):
             dt.rows.remove(nova_linha)
             invalidar_comparacao()
-            # Recalcula o que acende (Comparar, Limpar dados, Regressão) e
-            # já faz o page.update().
-            atualizar_estado_botoes_tabela()
+            # Redesenha se o conteúdo mudou (ou só reavalia os botões, se a
+            # linha excluída estava em branco) e já faz o page.update().
+            ao_sair_do_campo()
 
         # O botão da lixeira permanece o mesmo (ft.IconButton suporta ícones nativamente)
         botao_excluir = ft.IconButton(
@@ -1732,10 +1715,10 @@ def main(page: ft.Page):
         controls=[botao_adicionar, botao_importar_csv, botao_exemplos], wrap=True
     )
 
-    # Reavaliação leve de "Comparar"/"Limpar Tabela" ao editar a tabela
-    # diretamente (ver criar_campo, on_blur) — só checa se existe ao menos
-    # um ponto válido, sem recalcular o modelo nem redesenhar os gráficos
-    # (isso só acontece em "Gerar Gráfico"). `botao_comparar` é definido
+    # Reavaliação leve de "Comparar"/"Limpar dados"/"Regressão" quando o
+    # conteúdo da tabela não mudou (ver `ao_sair_do_campo`): só checa se
+    # existe ponto válido, sem recalcular o modelo nem redesenhar os
+    # gráficos. `botao_comparar` é definido
     # mais abaixo; resolvido por closure, sem problema (mesmo padrão já
     # usado em `aplicar_importacao`/`gerar_grafico`).
     # Dica ao tocar num botão apagado (2026-10-07, pedido do autor): botão
@@ -1806,6 +1789,40 @@ def main(page: ft.Page):
     def atualizar_estado_botoes_tabela():
         atualizar_habilitacao_botoes(contar_pontos_validos())
         page.update()
+
+    # Redesenho automático (2026-10-08, pedido do autor: retirar o botão "Gerar
+    # Gráfico" e automatizar). Os pontos da tabela entram nos gráficos quando o
+    # campo perde o foco (ou Enter) **e o conteúdo da tabela mudou** desde o
+    # último desenho: só entrar e sair de um campo não redesenha nem apaga a
+    # comparação. A cada tecla só o `invalidar_comparacao` roda (barato). Ao
+    # excluir uma linha, importar, limpar e trocar modelo/parâmetros o gráfico
+    # já era redesenhado; agora também ao editar a tabela.
+    ultima_assinatura = {"v": ()}
+    comparacao_escondida = {"v": False}
+
+    def assinatura_tabela():
+        # Linhas com algum campo preenchido, na ordem; linhas em branco não
+        # contam (adicionar/excluir linha em branco não muda o desenho).
+        linhas = []
+        for linha in dt.rows:
+            campos = tuple((linha.cells[i].content.value or "").strip() for i in range(3))
+            if any(campos):
+                linhas.append(campos)
+        return tuple(linhas)
+
+    def ao_sair_do_campo(e=None):
+        if assinatura_tabela() == ultima_assinatura["v"]:
+            atualizar_estado_botoes_tabela()
+            return
+        esconder_dica()
+        extra = None
+        if comparacao_escondida["v"]:
+            comparacao_escondida["v"] = False
+            extra = (
+                "Tabela editada: a comparação foi escondida. Clique em "
+                "\"Comparar\" de novo."
+            )
+        gerar_grafico(mensagem_extra=extra)
 
     # 4. Gráfico P-x-y a partir dos dados brutos da tabela (Etapa 2 — sem
     # nenhum cálculo de modelo; só visualiza o que o usuário digitou).
@@ -2121,6 +2138,7 @@ def main(page: ft.Page):
     # sliders (parametros_atuais); para UNIQUAC/UNIFAC vêm de
     # montar_parametros_automaticos, resolvido a partir dos componentes.
     def gerar_grafico(e=None, mensagem_extra=None, atualizar_pagina=True):
+        ultima_assinatura["v"] = assinatura_tabela()
         pontos_validos = []
         linhas_ignoradas = 0
         for linha in dt.rows:
@@ -2130,13 +2148,15 @@ def main(page: ft.Page):
                     parse_ponto(p_field.value, x_field.value, y_field.value)
                 )
             except ValueError:
-                # Linha com os 3 campos vazios é só espaço reservado da
-                # tabela (ela nasce com NUM_LINHAS_INICIAIS linhas em
-                # branco), não "dado inválido": não entra na contagem do
-                # aviso. Antes, a tabela vazia no carregamento já mostrava
-                # "10 linha(s) ... ignorada(s)" (achado nos prints,
-                # 2026-10-01).
-                if any((campo.value or "").strip() for campo in (p_field, x_field, y_field)):
+                # Só conta como "dado inválido" a linha com os 3 campos
+                # preenchidos que não viram número (ex.: "-", "1.2.3"). Linha
+                # em branco é espaço reservado da tabela (ela nasce com
+                # NUM_LINHAS_INICIAIS linhas em branco; antes a tabela vazia
+                # mostrava "10 linha(s) ... ignorada(s)", 2026-10-01) e linha
+                # incompleta é um ponto ainda sendo digitado: desde que o
+                # gráfico se atualiza ao sair de cada campo (2026-10-08), avisar
+                # a cada Tab pelo meio de uma linha seria só ruído.
+                if all((campo.value or "").strip() for campo in (p_field, x_field, y_field)):
                     linhas_ignoradas += 1
 
         # "Comparar" só faz sentido havendo dado experimental de verdade na
@@ -2315,16 +2335,6 @@ def main(page: ft.Page):
         if atualizar_pagina:
             page.update()
 
-    botao_gerar_grafico = ft.Button(
-        content=ft.Row(
-            controls=[ft.Icon(ft.Icons.SHOW_CHART), ft.Text("Gerar Gráfico")],
-            tight=True,
-            alignment=ft.MainAxisAlignment.CENTER,
-        ),
-        on_click=gerar_grafico,
-        style=estilo_botao(primario=True),
-    )
-
     # 4c. Comparação calculado-vs-experimental (item 4 do roadmap) — só a
     # parte visual por enquanto (autorizado em 2026-09-27: "implementar o
     # botão para visualizar... e depois adicionar a parte do erro"). Avalia
@@ -2334,7 +2344,7 @@ def main(page: ft.Page):
     # — depende de orientação do Dr. Filipe) fica para depois.
     # A comparação mostrada vale para a tabela e os parâmetros do momento do
     # clique. Se a tabela é editada, ela é escondida (opção (a) do autor,
-    # 2026-10-07; antes ficava na tela defasada até "Gerar Gráfico"). Remove as
+    # 2026-10-07; antes ficava na tela defasada). Remove as
     # 2 séries que `calcular_comparativo` acrescentou a cada gráfico, esconde as
     # colunas "Comparativo" das legendas e a linha ΔP/Δy. Só age se há
     # comparação (barato: roda a cada tecla).
@@ -2344,12 +2354,13 @@ def main(page: ft.Page):
         if not comparativo_ativo["ativo"]:
             return
         comparativo_ativo["ativo"] = False
+        comparacao_escondida["v"] = True
         chart.data_series = chart.data_series[:-2]
         coluna_comparativo_pxy.visible = False
         linha_erro_comparativo.visible = False
         mensagem_status.value = (
             "Tabela editada: a comparação foi escondida. Clique em \"Comparar\" "
-            "de novo (e em \"Gerar Gráfico\" para atualizar os pontos do gráfico)."
+            "de novo."
         )
         mensagem_status.color = COR_DICA
         page.update()
@@ -2432,10 +2443,21 @@ def main(page: ft.Page):
         calc_por_x1 = dict(zip(resultado["x1"], zip(resultado["P_kPa"], resultado["y1"])))
         soma_dp_rel2 = 0.0
         soma_dy_abs2 = 0.0
+        # Maior desvio de cada grandeza e em que x₁ ocorre (2026-10-08, pedido
+        # do autor: mensagem "mais conclusiva"): diz onde o modelo mais se
+        # afasta, o que o RMS sozinho esconde.
+        pior_dp = (0.0, None)
+        pior_dy = (0.0, None)
         for p_exp, x1, y_exp in pontos_validos:
             P_calc, y_calc = calc_por_x1[x1]
-            soma_dp_rel2 += ((P_calc - p_exp) / p_exp) ** 2
-            soma_dy_abs2 += (y_calc - y_exp) ** 2
+            desvio_p = abs(P_calc - p_exp) / p_exp
+            desvio_y = abs(y_calc - y_exp)
+            soma_dp_rel2 += desvio_p ** 2
+            soma_dy_abs2 += desvio_y ** 2
+            if pior_dp[1] is None or desvio_p > pior_dp[0]:
+                pior_dp = (desvio_p, x1)
+            if pior_dy[1] is None or desvio_y > pior_dy[0]:
+                pior_dy = (desvio_y, x1)
         dp_rms_pct = math.sqrt(soma_dp_rel2 / len(pontos_validos)) * 100
         dy_rms = math.sqrt(soma_dy_abs2 / len(pontos_validos))
 
@@ -2444,7 +2466,11 @@ def main(page: ft.Page):
         linha_erro_comparativo.visible = True
         comparativo_ativo["ativo"] = True
 
-        mensagem_status.value = f"Comparação calculada em {len(x1_lista)} ponto(s) da tabela."
+        mensagem_status.value = (
+            f"Comparação feita com {len(pontos_validos)} ponto(s) da tabela. "
+            f"Maior desvio de pressão: {pior_dp[0] * 100:.2f}% em x₁ = {pior_dp[1]:g}. "
+            f"Maior desvio de y₁: {pior_dy[0]:.4f} em x₁ = {pior_dy[1]:g}."
+        )
         mensagem_status.color = ""
         page.update()
 
@@ -2595,8 +2621,8 @@ def main(page: ft.Page):
     # Estado mutável lido por icone_selo_origem no momento do toque — não dá
     # para fechar o texto no clique do ícone como nas explicações fixas
     # (ΔP/Δy) porque este detalhe muda em tempo real (atualizar_selo_origem).
-    # Guarda também o `tipo` (não só o `texto`), necessário pra restaurar o
-    # selo certo ao desfazer (ver empilhar_historico/desfazer, abaixo).
+    # Guarda também o `tipo` (não só o `texto`): `revalidar_selo_ao_mudar_
+    # sistema` precisa saber de que origem era o selo.
     detalhe_selo_origem = {"tipo": None, "texto": ""}
     icone_selo_origem = icone_info(
         lambda: detalhe_selo_origem["texto"],
@@ -2679,61 +2705,6 @@ def main(page: ft.Page):
                 f"resultado pode se afastar do esperado; {banco}",
             )
 
-    # Desfazer (2026-09-28, pedido do autor: "cliquei no Barker e me
-    # arrependi") — histórico dos últimos MAX_HISTORICO_PARAMETROS estados
-    # dos parâmetros do modelo (valores dos sliders + selo de origem),
-    # empilhado só antes de "Buscar do Banco" e "Calcular por Regressão
-    # (Barker)" — as duas ações que sobrescrevem todos os sliders de uma vez
-    # sem o usuário ter digitado nada diretamente. Arrastar um slider
-    # manualmente não empilha: é o próprio usuário no controle, diferente de
-    # um valor que veio de fora. Aumentado de 2 para 5 a pedido do autor
-    # (2026-09-28) — mudança de uma linha, já que o histórico é uma lista
-    # genérica, não variáveis fixas por passo.
-    MAX_HISTORICO_PARAMETROS = 5
-    historico_parametros = []
-
-    def empilhar_historico():
-        if not parametros_atuais:
-            return
-        historico_parametros.append({
-            "parametros": dict(parametros_atuais),
-            "tipo_origem": detalhe_selo_origem["tipo"],
-            "detalhe_origem": detalhe_selo_origem["texto"],
-            "sistema": sistema_do_selo["chave"],
-        })
-        del historico_parametros[:-MAX_HISTORICO_PARAMETROS]
-        botao_desfazer.disabled = False
-
-    def desfazer(e=None):
-        if not historico_parametros:
-            return
-        estado = historico_parametros.pop()
-        for chave, valor in estado["parametros"].items():
-            if chave not in sliders_por_chave:
-                continue
-            slider, valor_texto, rotulo = sliders_por_chave[chave]
-            slider.value = max(slider.min, min(slider.max, valor))
-            valor_texto.value = formatar_parametro(valor)
-            parametros_atuais[chave] = valor
-        if estado["tipo_origem"] is not None:
-            atualizar_selo_origem(estado["tipo_origem"], estado["detalhe_origem"])
-            # O selo restaurado vale para o sistema em que foi definido; se o
-            # sistema atual for outro, gerar_grafico o volta a "Fornecido".
-            sistema_do_selo["chave"] = estado["sistema"]
-        botao_desfazer.disabled = not historico_parametros
-        gerar_grafico(mensagem_extra="Última alteração de parâmetros desfeita.")
-
-    botao_desfazer = ft.Button(
-        content=ft.Row(
-            controls=[ft.Icon(ft.Icons.UNDO), ft.Text("Desfazer")],
-            tight=True,
-            alignment=ft.MainAxisAlignment.CENTER,
-        ),
-        on_click=desfazer,
-        disabled=True,
-        style=estilo_botao(),
-    )
-
     # Nota fixa do NRTL (requisito de UI da seção 2.8): α12 só é regredido
     # nunca — quando não vem do banco IPDB (que traz valor medido real),
     # fica fixado por convenção. Verdadeira nos dois casos, sem precisar
@@ -2791,14 +2762,9 @@ def main(page: ft.Page):
         aviso_parametro.visible = False
         parametros_atuais.clear()
         sliders_por_chave.clear()
-        # Histórico não atravessa troca de modelo — os parâmetros de um
-        # modelo diferente não têm relação com os do anterior.
-        historico_parametros.clear()
-        botao_desfazer.disabled = True
 
         botao_buscar_banco.visible = nome_modelo in MODELOS_COM_BANCO_IPDB
         caixa_regressao.visible = nome_modelo in PARAM_SLIDERS
-        caixa_desfazer.visible = nome_modelo in PARAM_SLIDERS
         nota_alpha_fixo.visible = (nome_modelo == "NRTL")
 
         specs = PARAM_SLIDERS.get(nome_modelo)
@@ -2976,7 +2942,6 @@ def main(page: ft.Page):
             page.update()
             return
 
-        empilhar_historico()
         for chave, valor in params.items():
             if chave not in sliders_por_chave:
                 continue
@@ -3058,7 +3023,6 @@ def main(page: ft.Page):
             page.update()
             return
 
-        empilhar_historico()
         for chave, valor in resultado["params"].items():
             if chave not in sliders_por_chave:
                 continue
@@ -3126,12 +3090,6 @@ def main(page: ft.Page):
             "experimental válido (P, x₁ e y₁ preenchidos)."
         )
 
-    def dica_desfazer():
-        mostrar_dica(
-            "Nada para desfazer: o histórico guarda só as alterações feitas "
-            "por \"Buscar do Banco\" e por \"Calcular por Regressão\"."
-        )
-
     def dica_limpar():
         mostrar_dica("A tabela já está sem pontos válidos.", lugar="status")
 
@@ -3144,7 +3102,6 @@ def main(page: ft.Page):
         )
 
     caixa_regressao = caixa_com_dica(botao_regressao, dica_regressao)
-    caixa_desfazer = caixa_com_dica(botao_desfazer, dica_desfazer)
     caixa_comparar = caixa_com_dica(botao_comparar, dica_comparar)
     caixa_limpar = caixa_com_dica(botao_limpar_tabela, dica_limpar)
 
@@ -3183,11 +3140,11 @@ def main(page: ft.Page):
             # junto com o card de parâmetros"): numa linha própria, sob os
             # sliders. O selo de origem foi para o cabeçalho do card
             # (`extra_titulo`, logo após o título). Comparar vale para todos os
-            # modelos (UNIQUAC/UNIFAC inclusos), ao contrário da regressão e do
-            # "Desfazer", que dependem dos sliders.
+            # modelos (UNIQUAC/UNIFAC inclusos), ao contrário da regressão, que
+            # depende dos sliders.
             ft.Row(controls=[caixa_comparar], wrap=True),
             nota_alpha_fixo,
-            ft.Row(controls=[botao_buscar_banco, caixa_regressao, caixa_desfazer], wrap=True),
+            ft.Row(controls=[botao_buscar_banco, caixa_regressao], wrap=True),
             # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
             # parâmetros"): o erro do modelo fica junto dos parâmetros que o
             # produzem, em vez de no fim do card "Dados experimentais".
@@ -3249,7 +3206,6 @@ def main(page: ft.Page):
             *acoes_topo,
             dt,
             botoes,
-            botao_gerar_grafico,
             *mensagens,
             centralizar=centralizar,
             expand=expand,
