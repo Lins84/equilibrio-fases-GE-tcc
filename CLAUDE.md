@@ -304,9 +304,10 @@ Snapshot; o histórico por sessão vem logo abaixo.
   **suspenso por ordem do autor em 2026-10-08** ("esqueça o Replit até a segunda
   ordem"): não lembrar nem mexer até ele pedir;
   (5) **origem do dado de 1,4-dioxano/metanol** (abaixo, depende do professor);
-  (6) **revisar os tópicos de ajuda "Modelos de Gᴱ" e "Limitações"**, escritos em
-  2026-10-08 como rascunho do assistente a partir do Koretsky (o roteiro "Qual
-  usar" é síntese do assistente);
+  (6) ~~revisar os tópicos de ajuda "Modelos de Gᴱ" e "Limitações"~~ **Revisão do
+  assistente feita em 2026-10-08 (autor: "Itens 6 e 9, faça os ajustes")**, ver a
+  última entrada de "Decisões de engenharia do aluno"; a revisão do **autor** sobre
+  o texto segue em aberto (o roteiro "Qual usar" é síntese do assistente);
   (7) ~~UNIQUAC sem q′~~ **Feito em 2026-10-08, como opção desligada por
   padrão** (autor: "7 prossiga"; depois da pergunta sobre o ganho, propôs "um
   check box que dá a opção de usar q′" e liberou: "Libera, faça o checkbox"). O
@@ -351,9 +352,9 @@ Snapshot; o histórico por sessão vem logo abaixo.
   não descrevem bem essa região"), e os tópicos de ajuda "Limitações" e o "?" do
   exemplo metanol/dimetilbuteno foram ajustados só nessa frase (antes diziam "o
   app não avisa"). `testes/teste_instabilidade_liquida.py`;
-  (9) **ajustar o texto dos tópicos de ajuda "Modelos de Gᴱ" e "Limitações"
-  (cosmético):** pedido do autor em 2026-10-08, depois de ler os dois tópicos no
-  celular; os ajustes de redação ainda não foram especificados;
+  (9) ~~ajustar o texto dos tópicos de ajuda "Modelos de Gᴱ" e "Limitações"
+  (cosmético)~~ **Feito em 2026-10-08 só nos ajustes que o assistente identificou**
+  (o autor não especificou os dele); se faltar algum, é só dizer qual;
   **Pendência de informação (2026-10-07):** origem do dado de
   1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
@@ -3510,6 +3511,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   não como liberação dos itens que aguardam o orientador (1 e 5) nem dos ajustes
   de texto dos tópicos "Modelos de Gᴱ" e "Limitações" (6 e 9), que seguem
   aguardando pedido explícito.
+
+- **(2026-10-08) Itens 6 e 9: ajustes de redação nos tópicos "Modelos de Gᴱ" e
+  "Limitações" e na nota do exemplo clorofórmio/MEK.** Ordem do autor: "Itens 6 e 9,
+  faça os ajustes", sem dizer quais. O assistente releu os dois tópicos e fez só o
+  que achou verificável, **sem mudar conteúdo técnico**: (a) a nota do exemplo
+  clorofórmio/MEK dizia que a mensagem após "Comparar" "conta 21 composições
+  distintas", o que deixou de valer quando a mensagem passou a contar os pontos do
+  erro; agora diz que os dois pontos em x₁ = 0,252 entram no erro e a mensagem conta
+  os 22; (b) no tópico "Modelos de Gᴱ", o roteiro "Qual usar" passou a dizer que é
+  um roteiro prático montado pelo app a partir das descrições do livro, não regra
+  publicada nele (antes só dizia "um roteiro"); (c) no Margules 1-P, A/RT > 2 passou
+  a ser apresentado como vindo da condição de estabilidade da fase líquida. **Não
+  alterado:** o resto do texto, nem as citações de páginas e equações do Koretsky
+  (não reconferidas nesta rodada). **A confirmar pelo autor:** se há outros ajustes
+  que ele tinha em mente depois de ler os tópicos no celular; a leitura crítica dele
+  continua sendo o que fecha o item 6.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

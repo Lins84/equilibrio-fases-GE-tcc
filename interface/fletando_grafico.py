@@ -473,7 +473,7 @@ EXEMPLOS_NIST = [
         "fonte": "Clara, Marigliano e Solimo, J. Chem. Eng. Data 51 (2006) 1473-1478, via NIST ThermoML",
         "nota": "desvio negativo, azeótropo de pressão mínima em x₁ ≈ 0,19 (máximo ponto de ebulição)",
         "limitacoes": (
-            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL, Wilson e UNIQUAC) e o clorofórmio não está na tabela de grupos UNIFAC, então \"Buscar do Banco\", UNIQUAC e UNIFAC não funcionam. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Azeótropo: o modelo não acerta a composição\nO modelo ajustado reproduz a existência e o tipo do azeótropo de pressão mínima e a pressão (≈ 15 kPa), mas o coloca em x₁ ≈ 0,14 a 0,15, contra 0,19 do dado: a região é quase plana e a composição é pouco determinada.\n\n# Pontos do dado\nA pressão medida da 2-butanona pura (15,74 kPa) fica 3,2 % acima da pressão de vapor do thermo (15,25 kPa), o que desloca um pouco o erro ΔP. Há dois pontos em x₁ = 0,252, então a mensagem após \"Comparar\" conta 21 composições distintas (o erro usa os 22 pontos).\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 e passa no teste da área (D ≈ 3 %). Por Barker, ΔP fica em 1,5 a 1,6 % e Δy em 0,008 a 0,009; o Van Laar sai com A₁₂ e A₂₁ negativos (−0,97 e −1,33), como se espera de um desvio negativo."
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL, Wilson e UNIQUAC) e o clorofórmio não está na tabela de grupos UNIFAC, então \"Buscar do Banco\", UNIQUAC e UNIFAC não funcionam. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Azeótropo: o modelo não acerta a composição\nO modelo ajustado reproduz a existência e o tipo do azeótropo de pressão mínima e a pressão (≈ 15 kPa), mas o coloca em x₁ ≈ 0,14 a 0,15, contra 0,19 do dado: a região é quase plana e a composição é pouco determinada.\n\n# Pontos do dado\nA pressão medida da 2-butanona pura (15,74 kPa) fica 3,2 % acima da pressão de vapor do thermo (15,25 kPa), o que desloca um pouco o erro ΔP. Há dois pontos em x₁ = 0,252; os dois entram no erro, e a mensagem após \"Comparar\" conta os 22 pontos.\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 e passa no teste da área (D ≈ 3 %). Por Barker, ΔP fica em 1,5 a 1,6 % e Δy em 0,008 a 0,009; o Van Laar sai com A₁₂ e A₂₁ negativos (−0,97 e −1,33), como se espera de um desvio negativo."
         ),
     },
 ]
@@ -903,7 +903,8 @@ AJUDA_TOPICOS = [
             "interações entre moléculas iguais: A > 0 quando as diferentes se "
             "atraem menos (γ > 1) e A < 0 quando se atraem mais (γ < 1) (Koretsky, "
             "Exemplo 7.9). Se A/RT passa de 2, o modelo passa a prever que a "
-            "mistura se separa em duas fases líquidas (ver o tópico \"Limitações\").\n\n"
+            "mistura se separa em duas fases líquidas, o que vem da condição de "
+            "estabilidade da fase líquida (ver o tópico \"Limitações\").\n\n"
             "# Margules 2-P (três sufixos) e Van Laar\n"
             "Dois parâmetros, A₁₂ e A₂₁, que são o ln γ de cada componente à "
             "diluição infinita. Descrevem misturas assimétricas, em que as duas "
@@ -948,7 +949,9 @@ AJUDA_TOPICOS = [
             "Não existe um modelo melhor para tudo. Numa comparação com 3563 pares "
             "da coletânea DECHEMA, o Wilson foi o de melhor ajuste em só 30 % dos "
             "casos, e cada um dos modelos assimétricos foi o melhor em pelo menos "
-            "467 sistemas (Koretsky, p. 437). Um roteiro, a adaptar a cada caso:\n"
+            "467 sistemas (Koretsky, p. 437). Um roteiro prático, montado pelo app a "
+            "partir das descrições do livro (não é uma regra publicada nele), a "
+            "adaptar a cada caso:\n"
             "• moléculas parecidas, poucos pontos: Margules 1-P;\n"
             "• desvio assimétrico: Margules 2-P ou Van Laar;\n"
             "• polar com apolar (álcool com hidrocarboneto, por exemplo): Wilson, "
