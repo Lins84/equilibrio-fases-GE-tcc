@@ -3528,6 +3528,27 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   que ele tinha em mente depois de ler os tópicos no celular; a leitura crítica dele
   continua sendo o que fecha o item 6.
 
+- **(2026-10-08) Teste do motor de cálculo no Pyodide (formato web estático);
+  nada decidido.** Pergunta do autor sobre hospedagem gratuita e amostra ao
+  orientador (que usa **Mac**, seção 2.4 do mapeamento: um `.exe` do Windows não
+  serve). O assistente testou, em rascunho fora do repositório e por Node, o
+  `calculos/gemini.py` dentro do Pyodide **314.0.6 (Python 3.14.2, numpy 2.4.6,
+  scipy 1.18.0, pandas 3.0.2)** — o que o `flet publish` do Flet 1.0.0 embute — e
+  também no 0.27.7: NRTL e Wilson (banco), UNIQUAC, UNIFAC e a regressão de Barker
+  (Van Laar e NRTL, isoterma de 90 °C do NIST) rodam e dão **resultados idênticos
+  ao ambiente nativo**; o alerta do XML do ChemSep não dispara. `thermo`, `chemicals`
+  e `fluids` entram como pacotes de Python puro do PyPI (no Pyodide 0.27.7 foi preciso
+  carregar o pacote `sqlite3`; no 314.0.6 não). Tempos em Node: cerca de 10 s para
+  carregar bibliotecas e `thermo`, mais 4 s no primeiro cálculo; pico de 1,1 GB no
+  processo Node (não é medida de navegador). **Não testado:** a interface Flet em
+  navegador, o seletor de arquivos, e tempo e memória no celular. **Achado de
+  empacotamento:** `flet publish` empacota só a pasta do script (`interface/`) e lê
+  `pyproject.toml` dessa mesma pasta; `calculos/` e `referencias/` ficam fora, então
+  a publicação exige uma pasta de trabalho temporária (passo a passo entregue no
+  chat). Dois caminhos de hospedagem institucional (STI/UFC e RNP) foram pesquisados,
+  sem confirmação de que alunos de graduação possam usar; texto de chamado para a STI
+  entregue no chat, não enviado.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
