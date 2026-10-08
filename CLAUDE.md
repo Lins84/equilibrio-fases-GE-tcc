@@ -283,6 +283,9 @@ Snapshot; o histórico por sessão vem logo abaixo.
   (8) **aviso de instabilidade da fase líquida:** o app não avisa quando um
   modelo prevê duas fases líquidas (Margules 1-P com A/RT > 2); decidir se vale
   um aviso;
+  (9) **ajustar o texto dos tópicos de ajuda "Modelos de Gᴱ" e "Limitações"
+  (cosmético):** pedido do autor em 2026-10-08, depois de ler os dois tópicos no
+  celular; os ajustes de redação ainda não foram especificados;
   **Pendência de informação (2026-10-07):** origem do dado de
   1,4-dioxano/metanol a 308,5 K, de um exercício do professor sem fonte
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
