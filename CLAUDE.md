@@ -3118,6 +3118,46 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   direto, e então corrigir essas linhas; (b) a decisão sobre os círculos vazados no
   ln γ (acima).
 
+- **(2026-10-08) Retirar o "Comparativo" do gráfico de ln γ; auditoria de
+  funções de pouco valor.** Depois de o assistente responder que os círculos
+  vazados do ln γ (o mesmo modelo avaliado nos x₁ da tabela) caem sobre a
+  curva e não informam nada, o autor decidiu: "se os pontos [...] são
+  redundantes, não há razão para plotá-los" e ordenou "pode retirar e me avise
+  se tem mais inutilidades como essa na aplicação". **Feito** em
+  `fletando_grafico.py`: saíram as duas séries que "Comparar" acrescentava ao
+  `chart_gamma`, a coluna "Comparativo" da legenda do ln γ (no card e na lupa) e
+  a lógica de limpá-las (`invalidar_comparacao`, segunda chamada de "Comparar");
+  `montar_legenda_gamma()` não recebe mais coluna; o ln γ agora só tem a curva do
+  modelo e **não muda com "Comparar"**. O P-x-y não mudou. Textos de ajuda dos
+  tópicos "Comparar" e "ln γ" ajustados. **Revê parte das decisões de
+  2026-10-03** (paleta com comparativo vazado no ln γ; peso do tooltip dos
+  vazados no ln γ; legenda em grade com três colunas no ln γ). Verificado por
+  captura a 1400 px (exemplo metanol/dimetilbuteno + "Comparar": P-x-y com os
+  vazados e ΔP = 31,78 %/Δy = 0,1530, iguais aos de antes; ln γ só com
+  "Modelo"; lupa do ln γ abre sem a coluna) e a 360 px (carrega); testes
+  passam. Corrigida de passagem uma quebra de string estranha no texto do
+  tópico "Comparar" (sem efeito no texto exibido).
+  *Auditoria pedida (sem alteração; para o autor decidir).* Método:
+  varredura estática de funções sem uso em `gemini.py` e `fletando_grafico.py`
+  (nenhuma encontrada), conferência de dependências e leitura funcional de cada
+  recurso da tela; **não há telemetria de uso real**, então o juízo de utilidade é
+  do assistente. Candidatos, do mais ao menos claro: (1) **protótipos
+  `interface/main.py` e `interface/fletando.py`** — já descritos como "só registro
+  da evolução"; o `main.py` importa `matplotlib`, que **não está nas dependências**
+  do projeto, então nem roda no ambiente do projeto; (2) **lupa dos gráficos** —
+  abre o mesmo gráfico em tamanho maior, não é zoom de região (decidida pelo autor
+  em 2026-10-03 sabendo disso); (3) **ⓘ do ΔP e do Δy** — explicam o que o tópico
+  de ajuda "Comparar" já explica; (4) **"Desfazer"** — só guarda estados de
+  "Buscar do Banco" e de regressão (até 5); digitar valor e mover slider não entram;
+  (5) **botão "Gerar Gráfico"** — não é inútil (é o gatilho decidido em 2026-09-21),
+  mas é a causa de os marcadores cheios ficarem defasados ao editar a tabela e de
+  dois avisos e vários parágrafos de ajuda existirem; atualizar os pontos ao editar
+  tornaria o botão e esses avisos desnecessários; (6) **`teste_dioxano_nrtl.py`**
+  — teste manual visual de um par sem fonte experimental, redundante com os testes
+  automatizados; (7) cosmético: a mensagem pós-"Comparar" ("calculada em N
+  ponto(s)") conta composições distintas, não os pontos usados no erro.
+  Nada acima foi alterado.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente

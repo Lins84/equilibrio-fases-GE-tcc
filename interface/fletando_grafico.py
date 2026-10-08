@@ -74,7 +74,8 @@ PARAM_SLIDERS = {
 # Paleta dos gráficos (item 4 da lista de estética, 2026-10-03, opção A do
 # autor): a COR identifica a fase, o ESTILO identifica a origem do dado —
 # marcador cheio = tabela (experimental), linha contínua = modelo, marcador
-# vazado = modelo calculado nos x1 da tabela ("Comparar"). Azul/laranja é o
+# vazado = modelo calculado nos x1 da tabela ("Comparar", só no P-x-y desde
+# 2026-10-08). Azul/laranja é o
 # par que melhor se distingue em daltonismo, e o vermelho fica livre para o
 # que ele já significa no app (erro, exclusão). No gráfico de ln γ a
 # distinção é por componente (outra grandeza), com par de cores próprio.
@@ -699,9 +700,8 @@ AJUDA_TOPICOS = [
             "\"Comparativo\" da legenda): o modelo calculado nos x₁ da tabela, "
             "com a mesma cor e forma da fase (quadrado: líquido; círculo: vapor). "
             "A distância entre um marcador cheio (dado da tabela) e o vazado do "
-            "mesmo ponto é o erro. No gráfico de ln γ os círculos vazados mostram "
-            "só onde o modelo foi calculado: não há ln γ experimental para "
-            "comparar.\n\n"
+            "mesmo ponto é o erro. O gráfico de ln γ não muda com \"Comparar\": "
+            "não há ln γ experimental para comparar.\n\n"
             "# O que são ΔP e Δy\n"
             "ΔP é o erro relativo da pressão, em %, em relação à pressão medida. "
             "Δy é o erro absoluto da fração molar do vapor (sem unidade; 0,02 é "
@@ -727,7 +727,8 @@ AJUDA_TOPICOS = [
             "preciso clicar em \"Comparar\" de novo. Isso evita mostrar um erro "
             "que já não vale.\n\n"
             "Editar a tabela não atualiza os marcadores cheios do gráfico: para "
-            "isso, clique em \"Gerar Gráfico\".\n\n"            "Um ΔP de dezenas de % quase sempre indica entrada errada, e não "
+            "isso, clique em \"Gerar Gráfico\".\n\n"
+            "Um ΔP de dezenas de % quase sempre indica entrada errada, e não "
             "modelo ruim: confira se P está em kPa, se a temperatura é a dos "
             "dados e se os componentes estão na ordem certa (x₁ e y₁ são do "
             "Componente 1).\n\n"
@@ -838,15 +839,11 @@ AJUDA_TOPICOS = [
             "Dá para conferir lendo as duas curvas no x₁ do azeótropo e as "
             "pressões de vapor dos puros nas pontas do P-x-y.\n\n"
             "# Detalhes da tela\n"
-            "A legenda tem as colunas \"Modelo\" (as curvas, calculadas em 101 "
-            "valores de x₁) e, depois de \"Comparar\", \"Comparativo\" (círculos "
-            "vazados: o mesmo modelo, avaliado nos x₁ da tabela).\n\n"
-            "O app não calcula ln γ a partir dos pontos da tabela (ela traz P e "
-            "y₁, não γ), então este gráfico mostra só o que o modelo prevê. Por "
-            "isso os círculos vazados caem sobre a curva do modelo e aqui não "
-            "medem erro; só marcam em que x₁ ficam os pontos da tabela. Para "
-            "conferir o modelo contra os dados, use o diagrama P-x-y e os erros "
-            "ΔP e Δy.\n\n"
+            "As curvas são calculadas em 101 valores de x₁. O app não calcula "
+            "ln γ a partir dos pontos da tabela (ela traz P e y₁, não γ), então "
+            "este gráfico mostra só o que o modelo prevê e não muda com "
+            "\"Comparar\". Para conferir o modelo contra os dados, use o "
+            "diagrama P-x-y e os erros ΔP e Δy.\n\n"
             "Passando o cursor sobre um ponto, o balão mostra x₁ e o ln γ do "
             "componente. O eixo vertical se ajusta aos valores (o zero aparece "
             "como \"0\"). Com UNIQUAC e UNIFAC o gráfico aparece normalmente, "
@@ -1888,8 +1885,9 @@ def main(page: ft.Page):
     # Colunas da comparação calculado-vs-experimental (item 4 do roadmap):
     # só aparecem depois de "Comparar" ser clicado, e são escondidas de novo
     # sempre que gerar_grafico() reconstrói o gráfico do zero (modelo/tabela
-    # mudou). Uma coluna por gráfico (P-x-y e ln γ) — γ1/γ2 do modelo
-    # avaliados exatamente nos x1 da tabela, junto com "Comparar".
+    # mudou). Só o P-x-y tem coluna "Comparativo": no ln γ os marcadores
+    # vazados caíam sobre a curva do modelo e não diziam nada (não há ln γ
+    # experimental para comparar); retirados em 2026-10-08, pedido do autor.
     # Funções (e não objetos únicos) porque o diálogo "Ampliar" monta uma
     # legenda própria — um controle não pode ter dois pais.
     def nova_coluna_comparativo_pxy():
@@ -1899,17 +1897,8 @@ def main(page: ft.Page):
             84,
         )
 
-    def nova_coluna_comparativo_gamma():
-        return coluna_legenda(
-            "Comparativo",
-            [glifo_legenda(COR_GAMMA1, "circulo_vazado"), glifo_legenda(COR_GAMMA2, "circulo_vazado")],
-            84,
-        )
-
     coluna_comparativo_pxy = nova_coluna_comparativo_pxy()
     coluna_comparativo_pxy.visible = False
-    coluna_comparativo_gamma = nova_coluna_comparativo_gamma()
-    coluna_comparativo_gamma.visible = False
 
     # Resultado numérico da comparação (ΔP/Δy, seção "Próximos passos" item
     # 4 do CLAUDE.md) — mesmo padrão selo+ícone ⓘ já usado para a origem do
@@ -1974,13 +1963,11 @@ def main(page: ft.Page):
     legenda = montar_legenda_pxy(coluna_comparativo_pxy)
     legenda.visible = False
 
-    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — a curva do
-    # modelo na malha genérica de 101 pontos, mais (via "Comparar", igual ao
-    # gráfico 1) o próprio modelo avaliado exatamente nos x1 da tabela. Não
-    # tem γ "experimental": γ1/γ2 sempre vêm da fórmula do modelo Gᴱ, nunca
-    # de inverter a Lei de Raoult a partir de P/y medidos (método indireto
-    # de regressão descartado na seção 2.8) — a diferença entre as duas
-    # curvas aqui é só a malha de x1 usada, não a origem do γ.
+    # 4b. Segundo gráfico: ln γ vs x1 (seção 2.2 do mapeamento) — só a curva
+    # do modelo na malha genérica de 101 pontos. Não tem γ "experimental":
+    # γ1/γ2 sempre vêm da fórmula do modelo Gᴱ, nunca de inverter a Lei de
+    # Raoult a partir de P/y medidos (método indireto de regressão descartado
+    # na seção 2.8). "Comparar" não mexe neste gráfico (2026-10-08).
     chart_gamma = fch.LineChart(
         data_series=[],
         min_x=0,
@@ -2003,7 +1990,7 @@ def main(page: ft.Page):
         visible=False,
     )
 
-    def montar_legenda_gamma(coluna_comparativo):
+    def montar_legenda_gamma():
         return ft.Row(
             controls=[
                 coluna_legenda(
@@ -2016,13 +2003,12 @@ def main(page: ft.Page):
                     [glifo_legenda(COR_GAMMA1, "linha"), glifo_legenda(COR_GAMMA2, "linha")],
                     60,
                 ),
-                coluna_comparativo,
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             spacing=4,
         )
 
-    legenda_gamma = montar_legenda_gamma(coluna_comparativo_gamma)
+    legenda_gamma = montar_legenda_gamma()
     legenda_gamma.visible = False
 
     # Lupa do card (2026-10-03, opção A do autor, só no desktop): abre o
@@ -2109,10 +2095,8 @@ def main(page: ft.Page):
         )
 
     def ampliar_gamma(e=None):
-        coluna = nova_coluna_comparativo_gamma()
-        coluna.visible = coluna_comparativo_gamma.visible
         ampliar_grafico(
-            "Coeficientes de atividade (ln γ)", chart_gamma, montar_legenda_gamma(coluna),
+            "Coeficientes de atividade (ln γ)", chart_gamma, montar_legenda_gamma(),
             "x₁ (fração molar)", "ln γ", 52,
         )
 
@@ -2168,7 +2152,6 @@ def main(page: ft.Page):
         # ou importado via CSV — `limpar_tabela` não distingue a origem.
         botao_limpar_tabela.disabled = not pontos_validos
         coluna_comparativo_pxy.visible = False
-        coluna_comparativo_gamma.visible = False
         linha_erro_comparativo.visible = False
         comparativo_ativo["ativo"] = False
 
@@ -2362,9 +2345,7 @@ def main(page: ft.Page):
             return
         comparativo_ativo["ativo"] = False
         chart.data_series = chart.data_series[:-2]
-        chart_gamma.data_series = chart_gamma.data_series[:-2]
         coluna_comparativo_pxy.visible = False
-        coluna_comparativo_gamma.visible = False
         linha_erro_comparativo.visible = False
         mensagem_status.value = (
             "Tabela editada: a comparação foi escondida. Clique em \"Comparar\" "
@@ -2412,7 +2393,6 @@ def main(page: ft.Page):
         # comparação anterior antes de acrescentar a nova.
         if comparativo_ativo["ativo"]:
             chart.data_series = chart.data_series[:-2]
-            chart_gamma.data_series = chart_gamma.data_series[:-2]
             comparativo_ativo["ativo"] = False
 
         liquido_comp = sorted(zip(resultado["x1"], resultado["P_kPa"]))
@@ -2434,26 +2414,6 @@ def main(page: ft.Page):
         ]
         coluna_comparativo_pxy.visible = True
 
-        ln_gamma1_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma1"])))
-        ln_gamma2_comp = sorted(zip(resultado["x1"], (math.log(g) for g in resultado["gamma2"])))
-        chart_gamma.data_series = chart_gamma.data_series + [
-            fch.LineChartData(
-                color=COR_GAMMA1,
-                stroke_width=0,
-                point=marcador_vazado("circulo", COR_GAMMA1),
-                points=[ponto_grafico(x, g, "x₁", "ln γ₁", negrito=False) for x, g in ln_gamma1_comp],
-            ),
-            fch.LineChartData(
-                color=COR_GAMMA2,
-                stroke_width=0,
-                point=marcador_vazado("circulo", COR_GAMMA2),
-                points=[ponto_grafico(x, g, "x₁", "ln γ₂", negrito=False) for x, g in ln_gamma2_comp],
-            ),
-        ]
-        coluna_comparativo_gamma.visible = True
-        chart_gamma.visible = True
-        legenda_gamma.visible = True
-        botao_lupa_gamma.disabled = False
 
         # Erro do ajuste: ΔP relativo (%) e Δy absoluto (fração molar),
         # cada um como RMS — mesma convenção de `regress_params_barker`
