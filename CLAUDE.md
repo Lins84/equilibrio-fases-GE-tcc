@@ -3573,8 +3573,15 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   **Confirmação do autor (2026-10-09):** no PC dele, depois do F5, o app voltou em
   **cerca de 15 a 18 s** (menos que os 35 a 45 s medidos pelo Claude Code local num
   navegador automatizado); o F5 funcionou, sem erro. Para comparação, o app normal
-  em `localhost:5000` (servidor Python) recarrega com F5 em cerca de **2 s**. Continuam
-  pendentes: celular, memória, hospedagem pública e o Mac do orientador.
+  em `localhost:5000` (servidor Python) recarrega com F5 em cerca de **2 s**.
+  **Teste no celular (2026-10-09, autor):** abrindo `http://IP:8000` pela rede local, o
+  tempo de carga e de recarga foi **levemente menor que no PC**; os gráficos redesenham,
+  a troca de modelo e a regressão de Barker respondem em bom tempo (a regressão
+  "imediata"), "Comparar" funciona, a rotação do aparelho ficou boa, sem erro, sem
+  crash da aba e **sem aquecimento perceptível**. Modelo e RAM do aparelho não foram
+  informados; a memória não foi medida, só observado que não houve falha. Continuam
+  pendentes: hospedagem pública e o Mac do orientador. Nenhuma decisão tomada; a escolha
+  de formato e de hospedagem é do autor.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
