@@ -3572,8 +3572,9 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   cada recarga (~40 s) é um ponto de atenção para uso em aula.
   **Confirmação do autor (2026-10-09):** no PC dele, depois do F5, o app voltou em
   **cerca de 15 a 18 s** (menos que os 35 a 45 s medidos pelo Claude Code local num
-  navegador automatizado); o F5 funcionou, sem erro. Continuam pendentes: celular,
-  memória, hospedagem pública e o Mac do orientador.
+  navegador automatizado); o F5 funcionou, sem erro. Para comparação, o app normal
+  em `localhost:5000` (servidor Python) recarrega com F5 em cerca de **2 s**. Continuam
+  pendentes: celular, memória, hospedagem pública e o Mac do orientador.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
