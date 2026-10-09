@@ -821,6 +821,23 @@ continuar sendo mantido.
   público no repositório), em que o professor projeta um QR code. Nenhuma foi
   implementada nem escolhida.
 
+- **Hospedagem institucional (STI/UFC ou RNP).** Levantada em 2026-10-08/09, a
+  partir da pergunta do autor sobre hospedagem gratuita para dar uma amostra ao
+  orientador (que usa Mac). **Adiada por ordem do autor em 2026-10-09 ("coloque a
+  decisão de STI como atualizações futuras") — não abrir chamado nem mexer sem pedido
+  explícito.** Motivo: com o app em formato web estático (Pyodide, testado no PC e no
+  celular — ver "Decisões de engenharia do aluno", entrada de 2026-10-08 sobre o
+  Pyodide), basta hospedar arquivos, e o **GitHub Pages** faz isso de graça para
+  repositório público, sem servidor e sem aprovação institucional. O passo a passo do
+  GitHub Pages foi preparado no chat (publicação com `flet publish --base-url`, branch
+  `gh-pages`); **a publicação em si ainda não foi feita**. A STI só voltaria a valer
+  a pena para (a) um endereço institucional `ufc.br`, que dá mais peso diante da banca
+  ou numa disciplina, e (b) permanência garantida depois da formatura, já que o Pages
+  depende da conta do autor. Se for retomada: o texto do chamado entregue em
+  2026-10-08 pedia hospedagem de **aplicação** e precisa ser reescrito para
+  hospedagem de **arquivos estáticos**; ainda não há confirmação de que aluno de
+  graduação possa usar STI ou RNP.
+
 ## Sessão de estética e bug de renderização intermitente (2026-09-28/29)
 
 Sessão longa dedicada à "fase de estética" (autorizada em 2026-09-28, ver
