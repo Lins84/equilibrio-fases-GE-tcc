@@ -3559,6 +3559,18 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   similar) e o Mac do orientador. Nenhuma decisão tomada; o formato estático segue
   como candidato a avaliar, e a escolha de hospedagem é do autor.
 
+  **F5 no formato estático (2026-10-09, PC do autor):** o autor viu uma tela de erro
+  "PythonError: Traceback (most recent call last):" ao dar F5 numa publicação feita
+  com uma cópia local **24 commits atrás** (HEAD local `8e9a692`; o `git status`
+  dizia "up to date" porque o `fetch` não tinha sido refeito). Com o código atualizado
+  (`ee99525`), um Claude Code local republicou (Python 3.14, Pyodide 314.0.6) e
+  testou: **a primeira carga funcionou e o F5 não deu erro** (nada no Console).
+  Tempo medido por ele: cerca de 35 a 45 s até a interface aparecer, **também no F5**
+  (o worker reinicia a cada recarga). Causa do erro anterior **não provada**: pode ter
+  sido a versão antiga da cópia ou estado do navegador. **Pendente:** o autor repetir
+  o F5 por conta própria na publicação nova; celular; memória. O tempo de carga a
+  cada recarga (~40 s) é um ponto de atenção para uso em aula.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
