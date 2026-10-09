@@ -830,7 +830,8 @@ continuar sendo mantido.
   Pyodide), basta hospedar arquivos, e o **GitHub Pages** faz isso de graça para
   repositório público, sem servidor e sem aprovação institucional. O passo a passo do
   GitHub Pages foi preparado no chat (publicação com `flet publish --base-url`, branch
-  `gh-pages`); **a publicação em si ainda não foi feita**. A STI só voltaria a valer
+  `gh-pages`); **o autor publicou em 2026-10-09** (ver o fim da entrada do Pyodide em
+  "Decisões de engenharia do aluno"). A STI só voltaria a valer
   a pena para (a) um endereço institucional `ufc.br`, que dá mais peso diante da banca
   ou numa disciplina, e (b) permanência garantida depois da formatura, já que o Pages
   depende da conta do autor. Se for retomada: o texto do chamado entregue em
@@ -3599,6 +3600,22 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   informados; a memória não foi medida, só observado que não houve falha. Continuam
   pendentes: hospedagem pública e o Mac do orientador. Nenhuma decisão tomada; a escolha
   de formato e de hospedagem é do autor.
+  **Publicação no GitHub Pages (2026-10-09, feita pelo autor no PC dele):** site estático
+  gerado com `flet publish --base-url equilibrio-fases-GE-tcc` a partir de uma cópia
+  temporária (`calculos/`, `interface/`, `referencias/`, `pyproject.toml` e um `main.py`),
+  enviado à branch `gh-pages` (só o build, sem histórico; `push --force`) e ligado em
+  Settings → Pages (Deploy from a branch, `gh-pages`, `/ (root)`). Endereço:
+  `https://lins84.github.io/equilibrio-fases-GE-tcc/`. Um tropeço no caminho: o primeiro
+  `git commit` falhou por falta de identidade do Git, o que impediu a criação da branch
+  (o `push` dizia "src refspec gh-pages does not match any"); resolvido com
+  `git config user.email/user.name` local à pasta temporária, sem `--global`. **Resultado
+  (autor):** funcionou de primeira — no PC, em Wi-Fi, cerca de **18 s** até a interface;
+  no celular, com **dados móveis**, cerca de **40 s**. Reproduz o que se esperava: a
+  carga é maior que a do servidor Python (~2 s no F5) e depende de internet. Fica
+  pendente o **Mac do orientador**. Nenhuma decisão de rumo tomada por isso: o
+  repositório continua com o app normal (`flet run`) como linha viva, e o site é um
+  espelho gerado a mão. Para atualizar o site é preciso repetir a publicação (não há
+  automação, e não foi pedida).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
