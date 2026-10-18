@@ -471,6 +471,95 @@ em toda a faixa — mesmo padrão de validação usado nos outros 6 modelos.
 Com isso, os **7 modelos Gᴱ** (`Margules 1P/2P`, `Van Laar`, `Wilson`,
 `NRTL`, `UNIQUAC`, `UNIFAC`) estão implementados e validados em `gemini.py`.
 
+> **Notas trazidas da branch `claude/python-thermo-learning-3byxj6` para a `main`**
+> em 2026-10-18, a pedido do autor, antes de a branch ser apagada. Texto de
+> 2026-07-29, copiado sem mudança de conteúdo (só a lista numerada virou seção).
+
+## Sessão de validação cruzada com thermo (2026-07-29)
+
+Comparação numérica, ponto a ponto (x1 de 0 a 1, 101 pontos), entre os
+modelos manuais do `gemini.py` e as implementações equivalentes da própria
+`thermo` (`Wilson_gammas`, `NRTL_gammas`, `UNIQUAC_gammas`,
+`UNIFAC.from_subgroups(...).gammas()`):
+
+- **Wilson** e **NRTL**: erro máximo de `~1e-16` contra `thermo`, em toda a
+  faixa de x1 incluindo os extremos (x1=0 e x1=1). Equivalência total.
+- **UNIQUAC** e **UNIFAC**: erro máximo de `~1e-14`/`1e-15` contra `thermo`
+  no interior da faixa (0 < x1 < 1). Equivalência total onde a `thermo`
+  consegue calcular.
+
+**Achado**: nos extremos exatos (x1=0 e x1=1), a própria `thermo` **falha**
+para UNIQUAC — tanto a função solta `UNIQUAC_gammas` (retorna `NaN`, com
+`RuntimeWarning: invalid value encountered in scalar divide`) quanto a
+classe completa `thermo.UNIQUAC` (`ZeroDivisionError: float division by
+zero`). O `model_uniquac` do `gemini.py` trata esses limites analiticamente
+(mesmo padrão dos outros `model_xxx`) e por isso **não tem esse problema**
+— ou seja, nesse caso específico a implementação manual do projeto é mais
+robusta que a implementação de referência da própria `thermo`. Já o
+`UNIFAC.from_subgroups(...).gammas()` da `thermo` lida bem com os extremos
+(testado x1=0 e x1=1), então esse problema é específico do UNIQUAC.
+
+**Decisão**: manter todos os 7 modelos Gᴱ manuais em `gemini.py`, sem
+migrar nenhum para chamar `thermo` diretamente (nem Wilson/NRTL, que
+poderiam ser substituídos sem perda). Motivos: (1) já validados
+exaustivamente contra a `thermo`, migrar não ganha corretude; (2) evita
+risco de regressão em código que já funciona; (3) evita depender de
+versão da `thermo` para resultados reproduzirem igual no futuro; (4) valor
+pedagógico de ter a matemática implementada e compreendida na mão, com o
+achado do bug de fronteira do UNIQUAC como evidência extra de rigor de
+validação. Margules (1P/2P) e Van Laar continuam sendo os únicos
+"obrigatoriamente" manuais, por não existir equivalente na `thermo`.
+
+## Exploração descartada: tradução PT→EN de nomes (2026-07-29)
+
+**[Descartado]** Tradução PT→EN do nome da substância para resolver
+`Chemical(...)`: foi explorado um protótipo (`Puros`, fora deste repo)
+usando `deep_translator.GoogleTranslator` para traduzir o nome digitado
+em português antes de passar pra `Chemical`. Testado nesta sessão:
+- A chamada ao Google Translate **é bloqueada por proxy/firewall em
+  ambientes restritos** (confirmado neste sandbox: `ProxyError: 403
+  Forbidden`). Trocar de provedor dentro do `deep_translator` (testado
+  `MyMemoryTranslator`, host diferente) **não resolve** — o bloqueio é da
+  política de rede do ambiente, não específico do Google, então
+  qualquer serviço externo de tradução tem o mesmo risco.
+- O protótipo também tentava um "modo flash" (`Chemical.calculate(H=...,
+  S=..., VF=...)`) que **não existe** nesta versão da `thermo`
+  (`Chemical.calculate(self, T=None, P=None)` só aceita T e P — testado,
+  dá `TypeError`). Flash com outras variáveis de estado exigiria a API
+  mais pesada `thermo.flash`, fora do escopo do objeto `Chemical` simples
+  usado hoje em `gemini.py`.
+- **Decisão**: não levar essa abordagem pro projeto, por causa da
+  dependência de rede externa (risco real de falhar em ambiente
+  restrito, ex. rede da universidade no dia da defesa). Se a UI
+  precisar de nomes em português no futuro, a alternativa é um
+  dicionário PT→EN local pros nomes mais comuns do curso — sem depender
+  de serviço externo.
+
+## Sessão de tutoria — fundamentos de `Chemical` (2026-07-29)
+
+Explorando `thermo.chemical.Chemical` além do `Psat` já usado em `gemini.py`:
+
+- **`Chemical.Hvap` está em J/kg (base mássica), não J/mol.** Testado com
+  água a 298.15 K: `Chemical('water', T=298.15).Hvap` retorna `2441674.29`,
+  que só bate com o valor conhecido de literatura (~44000 J/mol) depois de
+  multiplicar por `MW/1000` (`Hvap * MW / 1000 ≈ 43987 J/mol`). A própria
+  docstring confirma: "in units of [J/kg]... converts its results from
+  molar to mass units". `gemini.py` não usa `Hvap` hoje, mas é uma pegadinha
+  de unidade real caso o projeto venha a precisar dessa propriedade —
+  **nunca assumir unidade pelo nome do atributo, sempre checar a docstring**
+  (`MW` também foge do padrão SI: é g/mol, não kg/mol).
+- **`Chemical(id, ...)` aceita nome, sinônimo, fórmula ou CAS** como
+  identificador — inclusive testado `'Agua'` (português, sem acento), que
+  resolveu corretamente para água (`CAS 7732-18-5`). Provavelmente
+  coincidência de correspondência ampla no banco de sinônimos, não suporte
+  i18n oficial, mas relevante para a UI do projeto (que é em português) —
+  vale testar a robustez disso com mais nomes em português antes de confiar
+  como recurso de UX.
+- Composto não reconhecido lança `ValueError` claro
+  (`"Chemical name (...) not recognized"`), útil para tratamento de erro na
+  UI ao validar entrada do usuário.
+
+
 ## Próximos passos
 
 > **Roadmap, não fila de tarefas autorizadas** — ver "Como trabalhar neste
