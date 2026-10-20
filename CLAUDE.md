@@ -268,7 +268,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   **confirmadas pelo autor em 2026-10-07** (ver "Decisões de engenharia do
   aluno", últimas entradas).
   **Decisões pendentes (atualizado em 2026-10-08), todas do autor:**
-  (1) **Veredito "bom/ruim" depois de "Comparar"** (pedido de registro do
+  (1) **[ENCERRADO em 2026-10-20: o orientador declinou; ver "Decisões de engenharia do aluno", última entrada]** **Veredito "bom/ruim" depois de "Comparar"** (pedido de registro do
   autor em 2026-10-08): hoje a mensagem só informa o nº de pontos e onde estão
   os maiores desvios de P e de y₁; um veredito exigiria um **limiar** de ΔP e de
   Δy, que precisa ser definido (referência medida nos exemplos NIST: ΔP 0,5–2,3 %
@@ -303,7 +303,7 @@ Snapshot; o histórico por sessão vem logo abaixo.
   (4) **`.replit` reapontado em 2026-10-08, não testado no Replit** — conferir;
   **suspenso por ordem do autor em 2026-10-08** ("esqueça o Replit até a segunda
   ordem"): não lembrar nem mexer até ele pedir;
-  (5) **origem do dado de 1,4-dioxano/metanol** (abaixo, depende do professor);
+  (5) **[ENCERRADO em 2026-10-20: dado excluído por orientação do orientador]** **origem do dado de 1,4-dioxano/metanol** (abaixo, dependia do professor);
   (6) ~~revisar os tópicos de ajuda "Modelos de Gᴱ" e "Limitações"~~ **Revisão do
   assistente feita em 2026-10-08 (autor: "Itens 6 e 9, faça os ajustes")**, ver a
   última entrada de "Decisões de engenharia do aluno"; a revisão do **autor** sobre
@@ -803,6 +803,10 @@ continuar sendo mantido.
   existente) — não é ajuste pequeno, é um segundo modo de diagrama.
   Adiado para depois da entrega do piloto; **não implementar sem pedido
   explícito do autor**.
+  **Atualização (2026-10-20):** o orientador perguntou se o modo isobárico poderia
+  ser feito; pelo prazo (só até o fim do semestre letivo, fase de retoques e escrita
+  do TCC), **fica para depois do TCC** — análise em "Decisões de engenharia do
+  aluno", entrada de 2026-10-20.
 
 - **Sessão compartilhada em tempo real (modo "aula": professor no desktop,
   alunos em celular e desktop).** Levantada pelo autor em 2026-10-04: usar
@@ -3705,6 +3709,41 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   repositório continua com o app normal (`flet run`) como linha viva, e o site é um
   espelho gerado a mão. Para atualizar o site é preciso repetir a publicação (não há
   automação, e não foi pedida).
+
+- **(2026-10-20) Reunião com o orientador: veredito declinado, dado do dioxano
+  excluído, dois pedidos novos e isobárico para depois do TCC.** Relato do autor
+  (o assistente não participou); o orientador "curtiu demais a aplicação".
+  **(1) Veredito "bom/ruim" depois de "Comparar": declinado** — a crítica do erro
+  cabe aos alunos, então a mensagem continua só informando o nº de pontos e os
+  maiores desvios, sem limiar (pendência 1 encerrada). **(2) Dado de
+  1,4-dioxano/metanol: excluído do trabalho** — o orientador disse que vem de "um
+  calc qualquer da Internet", sem consistência (pendência 5 encerrada). O app não
+  usa esse dado nem esse par (conferido: nada em `calculos/` nem em `interface/`);
+  os testes `teste_regressao_barker.py` e `teste_banco_ipdb.py` usam o **par** com
+  parâmetros do banco IPDB e dados sintéticos gerados pelo modelo, ou seja, só
+  mecânica, e não foram alterados. As frases do mapeamento (seções 2, 2.4, 2.8, 5)
+  foram reescritas para dizer que o dado foi excluído e que o par não é
+  validação; as entradas antigas deste arquivo ficam como histórico. **A confirmar
+  pelo autor:** manter os testes com o par (opção A, recomendada) ou trocá-lo por
+  etanol/água (opção B). **(3) Pedidos novos do orientador, ainda sem ordem de
+  execução:** botão **"Gerar relatório"** (formato e conteúdo em aberto; o
+  assistente recomendou HTML enxuto, que o aluno imprime como PDF no navegador, e
+  avisou que baixar arquivo no site estático precisa ser testado) e **logo da UFC
+  monocromática no lugar do texto "UFC"** na faixa do cabeçalho (falta o arquivo
+  oficial; o assistente não desenha nem reproduz o logo). **(4) Modo isobárico
+  (T-x-y):** o orientador perguntou se poderia ser feito; o autor fixou o prazo —
+  **só há até o fim do semestre letivo, a fase é de retoques do app e escrita do
+  TCC, e qualquer item adicional que leve muito tempo vai para depois do TCC**.
+  Pela regra, o isobárico **fica em "Atualizações futuras"** (agora como pedido do
+  orientador). Análise do assistente, para quando for retomado: é um segundo modo,
+  com função de motor nova (busca de raiz em T), tabela T-x-y, erro em ΔT e Δy,
+  regressão em T e y, parâmetros do banco reavaliados em cada T, e dado de
+  validação com fonte (candidato: Voutsas et al., *Fluid Phase Equilib.* 308
+  (2011) 135-141, `10.1016/j.fluid.2011.06.009`, etanol/água isobárico no ThermoML;
+  o dataset de 101,325 kPa de 2026-09-27 não tem fonte). **Observação:** a seção 6
+  do mapeamento ainda fala em folga até fev/2027, o que o novo prazo contradiz;
+  não foi alterada, a decidir pelo autor (data limite do semestre ainda não
+  informada).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

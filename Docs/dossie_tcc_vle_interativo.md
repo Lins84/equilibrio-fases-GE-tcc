@@ -84,7 +84,7 @@ Dados do arquivo público NIST ThermoML (doi:10.18434/mds2-2422; Riccardi et al.
 | Metanol + 2,3-dimetil-2-buteno | Feng, Dong e Li, *Fluid Phase Equilib.* **309**, 201–205 (2011), doi:10.1016/j.fluid.2011.07.014 | 4 isotermas (70 a 100 °C), 85 pontos; o aplicativo oferece 70 °C | Azeótropo de pressão máxima em x₁ ≈ 0,58–0,63; teste da área D = 2,8 a 6,5 % (consistente). |
 | Clorofórmio + 2-butanona | Clara, Marigliano e Solimo, *J. Chem. Eng. Data* **51**, 1473–1478 (2006), doi:10.1021/je060150a | 303,15 K, 22 pontos | Desvio negativo; azeótropo de pressão mínima em x₁ ≈ 0,19–0,20; D = 3,4 %; P da 2-butanona pura 3,2 % acima da Psat da `thermo`. |
 
-- **Dioxano + metanol (308,5 K):** par de um **exercício do professor sem fonte conhecida**. Não há validação experimental com fonte desse par; serve só para testar a mecânica do motor. O autor vai perguntar ao professor a origem do dado. [pendência]
+- **Dioxano + metanol (308,5 K):** par de um **exercício do professor**. Em 2026-10-20 o orientador informou que o dado vem de um cálculo qualquer da internet, sem consistência, e que pode ser excluído do trabalho. **Foi excluído; não é validação.** O par segue só como teste de mecânica do motor (parâmetros do banco IPDB e dados sintéticos gerados pelo modelo).
 - **Planilha XSEOS** (MEK/tolueno, 323,15 K; canal Youtermo): usada só como conferência secundária do Margules 2-P.
 
 ## 8. Resultados numéricos registrados (cada um vem de um script de `testes/`)
@@ -182,18 +182,20 @@ Tabela editável de pontos P (kPa), x₁, y₁ com gráficos que se atualizam ao
 - UNIQUAC e UNIFAC dependem de o par constar nos dados do aplicativo (grupos UNIFAC ou ChemSep).
 - A regressão não avisa resíduo alto com parâmetros dentro dos limites.
 - Dados NIST usados **não são avaliados criticamente**; os de etanol/água têm faixa incompleta e T alta.
-- Dioxano/metanol sem fonte experimental.
+- Dado de dioxano/metanol excluído do trabalho (2026-10-20); o par serve só como teste de mecânica.
 - Tempo de carga do formato estático (20–40 s) e dependência de internet.
 
 ## 16. Plano de execução do TCC (mapeamento, seção 6)
 
-Fase 0 preparação (jul–ago/2026); Fase 1 núcleo funcional (ago–out/2026); Fase 2 validação e robustez (out–dez/2026); Fase 3 folga (dez/2026–fev/2027); Fase 4 escrita e fechamento (mar–mai/2027); Fase 5 reta final (jun/2027). Em 2026-10-18 o núcleo funcional está pronto e a Fase 2 começou (Koretsky e NIST). **Pendente da Fase 2:** exercícios de Smith, Van Ness e Abbott; mais exercícios do Koretsky com resposta publicada (os problemas do cap. 8 não foram lidos); transformar os scripts avulsos em suíte com runner.
+Fase 0 preparação (jul–ago/2026); Fase 1 núcleo funcional (ago–out/2026); Fase 2 validação e robustez (out–dez/2026); Fase 3 folga (dez/2026–fev/2027); Fase 4 escrita e fechamento (mar–mai/2027); Fase 5 reta final (jun/2027). Em 2026-10-18 o núcleo funcional está pronto e a Fase 2 começou (Koretsky e NIST). **Atualização de prazo (2026-10-20, informada pelo autor):** só há tempo até o **fim do semestre letivo**; a fase é de retoques do app e escrita do TCC, e qualquer item adicional que leve muito tempo vai para depois do TCC. As datas acima (folga até fev/2027 e escrita em mar–mai/2027) ficam, portanto, desatualizadas; a data limite exata ainda não foi informada. **Pendente da Fase 2:** exercícios de Smith, Van Ness e Abbott; mais exercícios do Koretsky com resposta publicada (os problemas do cap. 8 não foram lidos); transformar os scripts avulsos em suíte com runner.
 
 ## 17. Pendências do autor (não escrever como resolvidas)
 
-1. Limiar de ΔP e Δy para um veredito "bom/ruim" (com o orientador).
-2. Origem do dado de 1,4-dioxano/metanol (com o professor).
+1. ~~Limiar de ΔP e Δy para veredito "bom/ruim"~~ — **encerrada em 2026-10-20**: o orientador declinou; a crítica do erro cabe aos alunos.
+2. ~~Origem do dado de 1,4-dioxano/metanol~~ — **encerrada em 2026-10-20**: dado excluído do trabalho por orientação do orientador.
 3. Leitura crítica do autor dos tópicos de ajuda "Modelos de Gᴱ" e "Limitações".
 4. Teste no Mac do orientador.
 5. Conferir as referências marcadas na seção 14.
 6. Hospedagem institucional e automatização da publicação: adiadas.
+7. **Pedidos do orientador (2026-10-20), ainda sem ordem de execução:** botão "Gerar relatório" (formato e conteúdo em aberto; recomendação do assistente: HTML enxuto) e logo da UFC monocromática no lugar do texto "UFC" na faixa do cabeçalho (falta o arquivo oficial).
+8. **Modo isobárico (T-x-y):** pedido pelo orientador; por causa do prazo fica **para depois do TCC** (em "Atualizações futuras").
