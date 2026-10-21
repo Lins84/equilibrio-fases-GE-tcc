@@ -42,7 +42,7 @@ def main():
 
     # NRTL via buscar_parametros_banco continua funcionando (mesmo adaptador
     # de nomes -> CAS usado para Wilson).
-    params_nrtl = buscar_parametros_banco("NRTL", "1,4-dioxane", "methanol", T_K)
+    params_nrtl = buscar_parametros_banco("NRTL", "ethanol", "water", T_K)
     ok = all(chave in params_nrtl for chave in ("tau12", "tau21", "alpha12"))
     print(f"  [NRTL via banco] chaves esperadas presentes -> {'OK' if ok else 'FALHA'}")
     todos_ok &= ok

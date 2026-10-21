@@ -3764,11 +3764,14 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   aparece em `teste_regressao_barker.py` (dados sintéticos com parâmetros arbitrários, 2
   casos) e `teste_banco_ipdb.py` (checa só a presença das chaves `tau12`/`tau21`/`alpha12`),
   e o resultado desses testes não sustenta nenhuma alegação do projeto; a única validação
-  em que o par entrou (NRTL contra a `thermo`, 29/07) é histórica. **A troca por
-  etanol/água ainda não foi feita**: o ambiente da nuvem não tem o `.venv` e o assistente
-  aguarda ordem para rodar `uv sync` (criar o `.venv` a partir do `uv.lock`) e então
-  rodar os testes depois da troca, porque parâmetros arbitrários podem convergir
-  diferente num par novo. **Logo da UFC:** segue faltando o arquivo oficial.
+  em que o par entrou (NRTL contra a `thermo`, 29/07) é histórica. **Troca feita em 2026-10-21**
+  (autor: "Sim, rode o uv sync"): `uv sync --locked` criou o `.venv` na sessão da nuvem a
+  partir do `uv.lock` (sem alterar o lock); os dois testes foram rodados **antes** (passam
+  com o par dioxano/metanol) e **depois** da troca do par por etanol/água em
+  `teste_regressao_barker.py` (os casos NRTL e UNIQUAC; recuperação dos parâmetros com erro
+  abaixo de 1 %) e `teste_banco_ipdb.py` (NRTL via banco) — **os dois continuam passando**.
+  O nome "dioxano" não aparece mais nos testes (só no histórico e no texto histórico deste
+  arquivo). **Logo da UFC:** segue faltando o arquivo oficial.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

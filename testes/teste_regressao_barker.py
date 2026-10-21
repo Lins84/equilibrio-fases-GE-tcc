@@ -65,26 +65,26 @@ def main():
     # Caso 2: NRTL — alpha12 fixado por convenção (não é ajustado).
     params_verdadeiros = {"tau12": 0.3, "tau21": 0.4, "alpha12": 0.3}
     pontos = amostrar_pontos(
-        "1,4-dioxane", "methanol", 70.0, "NRTL", params_verdadeiros, [0.1, 0.3, 0.5, 0.7, 0.9]
+        "ethanol", "water", 70.0, "NRTL", params_verdadeiros, [0.1, 0.3, 0.5, 0.7, 0.9]
     )
     resultado = regress_params_barker(
-        "NRTL", "1,4-dioxane", "methanol", 70.0, pontos, params_fixos={"alpha12": 0.3}
+        "NRTL", "ethanol", "water", 70.0, pontos, params_fixos={"alpha12": 0.3}
     )
     todos_ok &= verificar_recuperacao("NRTL", params_verdadeiros, resultado["params"])
     assert resultado["sucesso"], "otimizador não convergiu para NRTL"
 
     # Caso 3: UNIQUAC — r1/q1/r2/q2 vêm dos grupos UNIFAC (estruturais,
     # fixos), só a12/a21 são ajustados.
-    grupos1 = unifac_groups_from_name("1,4-dioxane")
-    grupos2 = unifac_groups_from_name("methanol")
+    grupos1 = unifac_groups_from_name("ethanol")
+    grupos2 = unifac_groups_from_name("water")
     r1, q1 = uniquac_rq_from_groups(grupos1)
     r2, q2 = uniquac_rq_from_groups(grupos2)
     params_verdadeiros = {"a12": -227.0, "a21": 9.6, "r1": r1, "q1": q1, "r2": r2, "q2": q2}
     pontos = amostrar_pontos(
-        "1,4-dioxane", "methanol", 70.0, "UNIQUAC", params_verdadeiros, [0.1, 0.3, 0.5, 0.7, 0.9]
+        "ethanol", "water", 70.0, "UNIQUAC", params_verdadeiros, [0.1, 0.3, 0.5, 0.7, 0.9]
     )
     resultado = regress_params_barker(
-        "UNIQUAC", "1,4-dioxane", "methanol", 70.0, pontos,
+        "UNIQUAC", "ethanol", "water", 70.0, pontos,
         params_fixos={"r1": r1, "q1": q1, "r2": r2, "q2": q2},
     )
     todos_ok &= verificar_recuperacao("UNIQUAC", params_verdadeiros, resultado["params"])
