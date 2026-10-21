@@ -3813,6 +3813,17 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   ajuda ainda não citam o botão novo. **Pendências:** logo da UFC (falta o arquivo
   oficial).
 
+- **(2026-10-21) Relatório em HTML: download testado pelo autor.** O autor gerou o
+  relatório do exemplo metanol/dimetilbuteno 70 °C (Margules 1-P, A = 0,5) e o
+  imprimiu como PDF: o download funcionou e o conteúdo saiu certo (ΔP = 31,78 % e
+  Δy = 0,1530, iguais aos do botão "Comparar"; tabela, fonte NIST, os dois gráficos e a
+  nota sem veredito; 5 páginas). **Aviso do navegador:** ao baixar, o navegador
+  avisou de segurança por o site não usar HTTPS. Não é defeito do relatório: é o
+  aviso padrão para download vindo de endereço `http://` que não é `localhost` (por
+  exemplo `http://IP:porta` na rede local). O ambiente exato do teste não foi
+  informado. No GitHub Pages (HTTPS) o aviso não deve aparecer; **não testado**. O
+  teste no site estático (Pyodide) e no celular continua pendente.
+
 - **(2026-10-21) Orientador citado no tópico "Sobre".** Pedido do autor: "cite o
   orientador no sobre pra ele também receber os créditos". Seção nova "Orientação",
   logo depois de "Autor": nomeia o Dr. Filipe Xavier Feitosa como orientador do
