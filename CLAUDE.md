@@ -3813,6 +3813,15 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   ajuda ainda não citam o botão novo. **Pendências:** logo da UFC (falta o arquivo
   oficial).
 
+- **(2026-10-21) Orientador citado no tópico "Sobre".** Pedido do autor: "cite o
+  orientador no sobre pra ele também receber os créditos". Seção nova "Orientação",
+  logo depois de "Autor": nomeia o Dr. Filipe Xavier Feitosa como orientador do
+  trabalho, com os créditos pela orientação, discussões de escopo e sugestões. Isso
+  **reverte** a escolha anterior do assistente (2026-10-07) de não citar o orientador.
+  **Redação do assistente, a revisar pelo autor:** só o nome e a função, sem
+  titulação além do "Dr." do mapeamento nem instituição. Continua **fora** do "Sobre"
+  o uso do Claude Code (decisão do autor, a explicitar no TCC).
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
