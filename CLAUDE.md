@@ -182,7 +182,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   sem veredito, casos sem tabela e sem comparação) e
   `teste_smith_van_ness_formulas.py` (2026-10-21 — Margules 1-P e 2-P e Van Laar contra as
   Eqs. 13.37 a 13.44 de Smith, Van Ness e Abbott, 8ª ed., a condição de estabilidade A < 2 e o
-  Exemplo 13.1 do livro, itens a a e).
+  Exemplo 13.1 do livro, itens a a e) e
+  `teste_smith_van_ness_tabelas_13.py` (2026-10-21 — Tabelas 13.3, 13.4 e 13.5 do mesmo livro: dados contra a Eq. 13.24,
+  parâmetros do livro, resíduo de consistência e Barker só em P).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -3903,6 +3905,38 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   tabelas (pp. 474, 477 e 480) se quiser incorporá-las, e conferir o P do item (b) no
   impresso. O Exemplo 15.6 (VLLE, Margules de 4 parâmetros) fica de fora: o app não calcula
   equilíbrio líquido-líquido.
+
+- **(2026-10-21) Tabelas 13.3, 13.4 e 13.5 do Smith incorporadas; a função-objetivo do Barker
+  continua não informada.** O outro chat sugeriu, para a parte escrita do TCC: citar o Smith
+  (2018, p. 481) para a descrição do método, o Van Ness (1995, Pure Appl. Chem. 67) para a
+  função-objetivo e o Barker (1953) como origem, e validar com o Exemplo 13.4. **É sugestão, não
+  decisão do autor**; a redação do TCC fica com ele. O autor mandou as três tabelas em CSV, conferidas
+  na imagem das páginas (pp. 474, 477 e 480). Elas entraram como constantes em
+  `testes/teste_smith_van_ness_tabelas_13.py` (com a citação; mesmo tratamento da Tabela E8.9A do
+  Koretsky). **Resultados (todos passam):** (1) os dados batem com a **Eq. 13.24**: ln γ₁*, ln γ₂* e
+  GE/(x₁x₂RT)* recalculados de P, x₁, y₁ reproduzem as colunas do livro a ≤ 0,0005 (arredondamento
+  de 3 casas), o que confere a transcrição e a equação; (2) a reta de GE/(x₁x₂RT)* por mínimos
+  quadrados reproduz os parâmetros publicados (13.5: A₁₂ = 1,349 e A₂₁ = 0,693 contra 1,35 e 0,70;
+  13.3: 0,384 e 0,196 contra 0,372 e 0,198; 13.4: −0,756 e −1,179 contra −0,72 e −1,27, o livro
+  "desenha" a reta); (3) o `model_margules_2p` com esses parâmetros e a Psat do livro dá ΔP =
+  0,33 % (13.3), 1,37 % (13.4) e 5,04 % (13.5, onde a reta ajusta mal P); (4) **teste de consistência
+  (Eq. 13.59)**: média de |δ ln(γ₁/γ₂)| = **0,153 na 13.5**, o "about 0.15" do livro (p. 481; limiar de
+  0,10 = aceitável), 0,016 na 13.3 (< 0,03, alta consistência) e 0,057 na 13.4 (entre 0,03 e 0,10),
+  coerentes com os limiares do livro; (5) **Barker só em P na 13.5** (livro: A₂₁ = 0,596 e A₁₂ =
+  1,153): Σ(δP)² dá A₁₂ = 1,154 e A₂₁ = 0,567; Σ(δP/P)² dá 1,129 e 0,599; Σ|δP| dá 1,112 e 0,618;
+  **nenhuma função-objetivo reproduz os dois números ao mesmo tempo** (a superfície é achatada, ΔP
+  ≈ 1,4 % em todas), então o teste exige concordância aproximada (±0,03), não igualdade; (6) o
+  `regress_params_barker` do app (P relativo e y juntos, Psat da `thermo`) dá A₁₂ = 1,081 e A₂₁ = 0,654
+  na 13.5, mesma ordem de grandeza, **não igual**, como esperado (objetivo e Psat diferentes). **A
+  função-objetivo:** o outro chat reconferiu a p. 481 na imagem: o livro só diz "as close as possible
+  to the measured values" (a nota 15 da p. 480 fala em soma de quadrados, mas de δ(GE/RT), do outro
+  procedimento). O **Van Ness (1995)** abre no IPDB (`iupac.org/publications/pac/pdf/1995/pdf/
+  6706x0859.pdf`) e traz uma comparação de funções-objetivo (Σ(δP)², Σ(δy₁)², Σ(δg)²) com uma tabela do
+  RMS de δP e δy₁ para cada uma — **mas eu não consegui confirmar a frase que nomeia o Barker nem qual
+  função o autor recomenda** (leitura automática só devolveu fragmentos): o autor deve ler o trecho no
+  PDF antes de citar. **Pendências do autor:** ler o Van Ness (1995) e decidir a citação da
+  função-objetivo no TCC; decidir se o app deve ganhar um modo de ajuste só em P (mudança de código,
+  não recomendada pelo prazo).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
