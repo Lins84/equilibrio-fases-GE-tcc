@@ -3745,6 +3745,31 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   não foi alterada, a decidir pelo autor (data limite do semestre ainda não
   informada).
 
+- **(2026-10-21) Prazo, formato do relatório e teste com o par dioxano/metanol.**
+  Respostas do autor às perguntas da entrada de 2026-10-20. **(1) Data limite:**
+  "busque pelo calendário universitário da UFC desse ano" — pelo Calendário
+  Universitário 2026 da UFC (portal da UFC e Prograd), o semestre **2026.2** vai de
+  **10/08 a 11/12/2026** (100 dias letivos; 11/12 é também o último dia de trancamento
+  total). Essa é a data tomada como limite do semestre letivo; **a data de entrega do
+  TCC pode ser outra, fixada pela coordenação, e não foi informada**. A seção 6 do
+  mapeamento (folga até fev/2027) segue desatualizada, a decidir pelo autor. **(2)
+  Relatório: formato HTML** ("Html"). Proposta do assistente para o conteúdo, ainda
+  **sem ordem de início**: um arquivo `.html` único, estilo embutido, sem biblioteca
+  nova; título e data; sistema (componentes, T, modelo); parâmetros com o selo de
+  origem; tabela de dados; ΔP e Δy com os maiores desvios; os dois gráficos como imagem;
+  fonte do exemplo NIST quando houver; sem veredito. Risco a testar antes de prometer:
+  baixar o arquivo no site estático (Pyodide) e no celular. **(3) Testes com o par
+  dioxano/metanol: opção B** ("pode deixar o teste B como teste genérico, a não ser que
+  o resultado do teste tenha sido usado para algo importante"). Conferido: o par só
+  aparece em `teste_regressao_barker.py` (dados sintéticos com parâmetros arbitrários, 2
+  casos) e `teste_banco_ipdb.py` (checa só a presença das chaves `tau12`/`tau21`/`alpha12`),
+  e o resultado desses testes não sustenta nenhuma alegação do projeto; a única validação
+  em que o par entrou (NRTL contra a `thermo`, 29/07) é histórica. **A troca por
+  etanol/água ainda não foi feita**: o ambiente da nuvem não tem o `.venv` e o assistente
+  aguarda ordem para rodar `uv sync` (criar o `.venv` a partir do `uv.lock`) e então
+  rodar os testes depois da troca, porque parâmetros arbitrários podem convergir
+  diferente num par novo. **Logo da UFC:** segue faltando o arquivo oficial.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
