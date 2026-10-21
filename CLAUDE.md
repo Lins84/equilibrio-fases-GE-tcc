@@ -181,7 +181,8 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   "Comparar" nos exemplos NIST, HTML e SVG bem formados, texto do usuário escapado,
   sem veredito, casos sem tabela e sem comparação) e
   `teste_smith_van_ness_formulas.py` (2026-10-21 — Margules 1-P e 2-P e Van Laar contra as
-  Eqs. 13.37 a 13.44 de Smith, Van Ness e Abbott, 8ª ed., e a condição de estabilidade A < 2).
+  Eqs. 13.37 a 13.44 de Smith, Van Ness e Abbott, 8ª ed., a condição de estabilidade A < 2 e o
+  Exemplo 13.1 do livro, itens a a e).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -3880,6 +3881,28 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   instabilidade, tabela, relatório e Koretsky passam. **Pendências do autor:** ano da
   referência (2018 ou 2017); se quer incorporar algum exemplo acima como teste; e, para o
   TCC, conferir o Barker no artigo original (1953), já que o livro não dá a função-objetivo.
+
+- **(2026-10-21) Candidatos do Smith incorporados: só o Exemplo 13.1 entrou.** Ordem do
+  autor: "Incorpore os candidatos". **Feito:** o **Exemplo 13.1** (metanol/acetato de
+  metila, Margules 1-P com A = 2,771 − 0,00523 T e Antoine do livro, pp. 457-460) virou
+  bloco de `testes/teste_smith_van_ness_formulas.py`, com os itens **(a) a (e)**
+  (bolha e orvalho em P e em T, e azeótropo) pela Eq. 13.19 e pelo `model_margules_1p` do
+  app, **com a Psat do livro** (não a da `thermo`), para o teste depender só das equações.
+  Todos batem com as respostas publicadas (T a 0,01 K, P a 0,01 kPa, γ e frações a ~5e-4):
+  por exemplo (a) P = 73,500 kPa e y₁ = 0,2822; (c) T = 331,201 K; (d) T = 326,697 K e
+  x₁ = 0,4602; (e) x₁ = y₁ = 0,3245, γ₁ = 1,657 e P = 73,760 kPa. **Uma discrepância:** no
+  item (b) o app e a própria Eq. 13.19 dão **P = 62,89 kPa** (com o x₁ = 0,8169 e os γ do livro,
+  y₁ sai 0,600), e o texto extraído do livro traz **62,59** (daria y₁ = 0,603, incoerente
+  com o enunciado); pode ser erro do livro ou da leitura da extração — **conferir no
+  exemplar impresso**. O teste verifica a coerência com y₁ = 0,60 em vez de fixar 62,59. **Não
+  incorporados, por falta do dado (o chat de extração trouxe só os parâmetros, não as
+  tabelas):** MEK/tolueno a 50 °C (Tabela 13.3, p. 474), clorofórmio/dioxano a 50 °C
+  (Tabela 13.4, p. 477) e dietilcetona/n-hexano a 65 °C (Tabela 13.5, p. 480, com o Barker
+  do livro: A₂₁ = 0,596 e A₁₂ = 1,153; o livro ajusta só P, o app P e y, então a
+  comparação seria só de ordem de grandeza). **Pendência do autor:** mandar essas três
+  tabelas (pp. 474, 477 e 480) se quiser incorporá-las, e conferir o P do item (b) no
+  impresso. O Exemplo 15.6 (VLLE, Margules de 4 parâmetros) fica de fora: o app não calcula
+  equilíbrio líquido-líquido.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
