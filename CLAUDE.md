@@ -97,6 +97,10 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   (desligada por padrão). Todos os modelos e adaptadores
   validados contra o `thermo`/dados sintéticos.
 
+- `calculos/relatorio.py` (2026-10-21) — relatório em HTML (módulo puro, sem Flet nem
+  `thermo`): `erros_comparacao` (a conta do ΔP/Δy, compartilhada com o botão
+  "Comparar"), gráficos SVG e `gerar_relatorio_html`.
+
 **UI — `interface/`:**
 
 - `interface/fletando_grafico.py` (~1525 linhas) — **a linha viva da UI,
@@ -172,7 +176,10 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   `teste_xml_chemsep.py` (2026-10-07 — alerta de atualização do XML interno do
   ChemSep que o UNIQUAC usa: falha com código 1 se a versão do `chemicals` ou o
   XML — nome e conteúdo — diferirem dos validados, e confere que o alerta de
-  execução dispara).
+  execução dispara) e
+  `teste_relatorio.py` (2026-10-21 — relatório em HTML: ΔP/Δy iguais aos do botão
+  "Comparar" nos exemplos NIST, HTML e SVG bem formados, texto do usuário escapado,
+  sem veredito, casos sem tabela e sem comparação).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -3772,6 +3779,39 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   abaixo de 1 %) e `teste_banco_ipdb.py` (NRTL via banco) — **os dois continuam passando**.
   O nome "dioxano" não aparece mais nos testes (só no histórico e no texto histórico deste
   arquivo). **Logo da UFC:** segue faltando o arquivo oficial.
+
+- **(2026-10-21) Relatório em HTML: implementado (versão enxuta).** Ordem do autor:
+  "Pode começar o relatório em HTML". **O que foi feito:** botão **"Gerar relatório"**
+  no card "Parâmetros do modelo", na mesma linha do "Comparar" (sempre aceso: sem
+  tabela, o relatório sai só com o modelo). Recalcula tudo a partir da tela e salva um
+  arquivo `.html` único, com estilo e gráficos SVG embutidos, sem biblioteca nova;
+  o aluno o abre no navegador e imprime como PDF. Nome do arquivo:
+  `relatorio-vle_<comp1>_<comp2>_<T>C.html`. **Conteúdo:** sistema e hipóteses
+  (Raoult modificada, vapor ideal); parâmetros com o selo de origem e seu detalhe;
+  tabela experimental, com a fonte se a tabela ainda é um exemplo NIST embutido;
+  comparação (ΔP e Δy RMS, maiores desvios e tabela ponto a ponto); diagrama P-x-y e
+  ln γ com os mesmos estilos do app (cheio = tabela, linha = modelo, vazado = modelo
+  nos x₁ da tabela); avisos do app (fase líquida instável, T crítica). **Sem veredito
+  de bom/ruim** (o orientador declinou); o texto diz que a análise cabe a quem lê.
+  **Arquitetura:** a montagem mora em `calculos/relatorio.py` (pura, testável); o
+  botão só junta o estado da tela e chama `ft.FilePicker().save_file(src_bytes=...)`,
+  criado no clique como o import. **A conta do ΔP/Δy foi movida** de
+  `calcular_comparativo` para `erros_comparacao` (uma só conta para o botão e o
+  relatório); o resultado é idêntico (conferido: metanol/dimetilbuteno 70 °C
+  ΔP 31,78 % e Δy 0,1530; etanol/água 108 °C 14,19 % e 0,0658, Margules 1-P com
+  A = 0,5). **Verificado:** `teste_relatorio.py`; o `main()` rodado com uma página
+  falsa e o botão disparado de verdade com o exemplo metanol/dimetilbuteno (arquivo
+  de 22 KB, mensagem correta); o HTML aberto no Chromium (captura e PDF de 4 páginas
+  A4; cada gráfico fica na mesma página da legenda). **NÃO verificado, a testar pelo
+  autor:** o **download no navegador** (no `flet run --web`, no site estático/Pyodide
+  e no celular) — o Flet documenta `save_file` com `src_bytes` para web, mas não
+  foi exercitado em navegador real aqui; no desktop o diálogo de salvar não foi
+  aberto. **Escolhas do assistente, a confirmar:** botão ao lado do "Comparar"; números
+  com ponto decimal (como a tela); só a fonte e a nota dos exemplos NIST (não as
+  "limitações" longas); gráficos em SVG desenhados pelo próprio módulo (os do Flet
+  são canvas e não exportam imagem); nome do arquivo com os componentes. Os tópicos de
+  ajuda ainda não citam o botão novo. **Pendências:** logo da UFC (falta o arquivo
+  oficial).
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 

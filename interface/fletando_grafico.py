@@ -4,6 +4,7 @@ import io
 import math
 import re
 import textwrap
+from datetime import datetime
 from pathlib import Path
 
 import flet as ft
@@ -22,6 +23,7 @@ from calculos.gemini import (
     uniquac_fonte_rq,
     uniquac_qprime_do_par,
 )
+from calculos.relatorio import erros_comparacao, gerar_relatorio_html
 
 # Selo de origem do parâmetro (seção 2.8 do mapeamento): cor de fundo, cor
 # do texto e rótulo por tipo de origem. "preditivo" cobre o UNIFAC (sem
@@ -1599,6 +1601,10 @@ def main(page: ft.Page):
         mensagem_status.color = ft.Colors.RED_800
         page.update()
 
+    # Fonte do exemplo embutido carregado (2026-10-21): o relatório cita a fonte
+    # enquanto a tabela ainda é a do exemplo (mesma assinatura e mesmo sistema).
+    fonte_exemplo = {"texto": None, "assinatura": None, "sistema": None}
+
     def importar_exemplo(exemplo):
         def acao(e):
             page.pop_dialog()
@@ -1616,6 +1622,9 @@ def main(page: ft.Page):
                 f"exemplo {exemplo['rotulo']}. Fonte: {exemplo['fonte']}; "
                 f"{exemplo['nota']}",
             )
+            fonte_exemplo["texto"] = f"{exemplo['fonte']}; {exemplo['nota']}"
+            fonte_exemplo["assinatura"] = assinatura_tabela()
+            fonte_exemplo["sistema"] = chave_sistema()
 
         return acao
 
@@ -2697,26 +2706,14 @@ def main(page: ft.Page):
         # indireto na seção 2.8. Autorizado pelo autor em 2026-09-27,
         # sem aguardar orientação do Dr. Filipe — decisão registrada e
         # justificada em CLAUDE.md.
-        calc_por_x1 = dict(zip(resultado["x1"], zip(resultado["P_kPa"], resultado["y1"])))
-        soma_dp_rel2 = 0.0
-        soma_dy_abs2 = 0.0
-        # Maior desvio de cada grandeza e em que x₁ ocorre (2026-10-08, pedido
-        # do autor: mensagem "mais conclusiva"): diz onde o modelo mais se
-        # afasta, o que o RMS sozinho esconde.
-        pior_dp = (0.0, None)
-        pior_dy = (0.0, None)
-        for p_exp, x1, y_exp in pontos_validos:
-            P_calc, y_calc = calc_por_x1[x1]
-            desvio_p = abs(P_calc - p_exp) / p_exp
-            desvio_y = abs(y_calc - y_exp)
-            soma_dp_rel2 += desvio_p ** 2
-            soma_dy_abs2 += desvio_y ** 2
-            if pior_dp[1] is None or desvio_p > pior_dp[0]:
-                pior_dp = (desvio_p, x1)
-            if pior_dy[1] is None or desvio_y > pior_dy[0]:
-                pior_dy = (desvio_y, x1)
-        dp_rms_pct = math.sqrt(soma_dp_rel2 / len(pontos_validos)) * 100
-        dy_rms = math.sqrt(soma_dy_abs2 / len(pontos_validos))
+        # A conta mora em `calculos.relatorio.erros_comparacao`, para o botão e o
+        # relatório (2026-10-21) darem exatamente os mesmos números. Maior
+        # desvio de cada grandeza e em que x₁ ocorre (2026-10-08, pedido do
+        # autor: mensagem "mais conclusiva"): diz onde o modelo mais se afasta,
+        # o que o RMS sozinho esconde.
+        erros = erros_comparacao(pontos_validos, resultado)
+        dp_rms_pct, dy_rms = erros["dp_rms_pct"], erros["dy_rms"]
+        pior_dp, pior_dy = erros["pior_dp"], erros["pior_dy"]
 
         texto_dp_comparativo.value = f"ΔP = {dp_rms_pct:.2f}% (RMS)"
         texto_dy_comparativo.value = f"Δy = {dy_rms:.4f} (RMS)"
@@ -3444,6 +3441,137 @@ def main(page: ft.Page):
     caixa_comparar = caixa_com_dica(botao_comparar, dica_comparar)
     caixa_limpar = caixa_com_dica(botao_limpar_tabela, dica_limpar)
 
+    # Relatório em HTML (pedido do orientador, 2026-10-20; formato HTML escolhido
+    # pelo autor em 2026-10-21). Recalcula tudo a partir do estado atual da tela
+    # (sistema, modelo, parâmetros, tabela) e salva um arquivo único; o aluno o
+    # abre no navegador e imprime como PDF. Sem veredito de "bom/ruim" (o
+    # orientador declinou). O arquivo é montado em `calculos.relatorio`.
+    ROTULOS_PARAM_AUTOMATICOS = {
+        "a12": "a₁₂ (K)", "a21": "a₂₁ (K)", "r1": "r₁", "q1": "q₁",
+        "r2": "r₂", "q2": "q₂", "qp1": "q′₁", "qp2": "q′₂",
+    }
+
+    def pontos_da_tabela():
+        pontos = []
+        for linha in dt.rows:
+            p_field, x_field, y_field = (linha.cells[i].content for i in range(3))
+            try:
+                pontos.append(parse_ponto(p_field.value, x_field.value, y_field.value))
+            except ValueError:
+                continue
+        return pontos
+
+    def parametros_do_relatorio(nome_modelo, params_modelo):
+        if nome_modelo in PARAM_SLIDERS:
+            return [
+                (sliders_por_chave[chave][2], valor)
+                for chave, valor in parametros_atuais.items()
+                if chave in sliders_por_chave
+            ]
+        return [
+            (ROTULOS_PARAM_AUTOMATICOS.get(chave, chave), valor)
+            for chave, valor in params_modelo.items()
+            if chave in ROTULOS_PARAM_AUTOMATICOS
+            and isinstance(valor, (int, float)) and not isinstance(valor, bool)
+        ]
+
+    async def gerar_relatorio(e):
+        try:
+            nome_modelo = modelo_selecionado["nome"]
+            comp1 = campo_componente1.value.strip()
+            comp2 = campo_componente2.value.strip()
+            T_C = float(campo_temperatura.value)
+            pontos = pontos_da_tabela()
+            if nome_modelo in PARAM_SLIDERS:
+                params_modelo = dict(parametros_atuais)
+            else:
+                params_modelo = montar_parametros_automaticos(
+                    nome_modelo, comp1, comp2, usar_qprime=usar_qprime["v"]
+                )
+            curva = calculate_vle_isothermal(comp1, comp2, T_C, nome_modelo, params_modelo)
+            comparacao = None
+            ln_exp = []
+            if pontos:
+                x1_lista = sorted({x1 for _, x1, _ in pontos})
+                nos_x1 = calculate_vle_isothermal(
+                    comp1, comp2, T_C, nome_modelo, params_modelo, x1_values=x1_lista,
+                )
+                comparacao = erros_comparacao(pontos, nos_x1)
+                ln_exp = ln_gamma_experimental(pontos, comp1, comp2, T_C)
+            avisos = [
+                a for a in (
+                    aviso_instabilidade_liquida(curva["x1"], curva["gamma1"]),
+                    aviso_temperatura_critica(comp1, comp2, T_C, curva.get("Tc_C", [])),
+                ) if a
+            ]
+            tipo_selo = detalhe_selo_origem["tipo"]
+            fonte = None
+            if (
+                fonte_exemplo["texto"]
+                and fonte_exemplo["assinatura"] == assinatura_tabela()
+                and fonte_exemplo["sistema"] == chave_sistema()
+            ):
+                fonte = fonte_exemplo["texto"]
+            texto = gerar_relatorio_html({
+                "gerado_em": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "comp1": comp1, "comp2": comp2, "T_C": T_C, "modelo": nome_modelo,
+                "parametros": parametros_do_relatorio(nome_modelo, params_modelo),
+                "origem_rotulo": ORIGENS_SELO[tipo_selo][2] if tipo_selo else None,
+                "origem_detalhe": detalhe_selo_origem["texto"] or None,
+                "pontos": pontos,
+                "fonte_dados": fonte,
+                "curva": curva,
+                "comparacao": comparacao,
+                "ln_gamma_exp": ln_exp,
+                "avisos": avisos,
+            })
+        except Exception as exc:
+            mensagem_status.value = f"Relatório não gerado: {exc}."
+            mensagem_status.color = ft.Colors.RED_800
+            page.update()
+            return
+
+        def trecho(s):
+            return re.sub(r"[^A-Za-z0-9]+", "-", s).strip("-") or "x"
+
+        nome_arquivo = f"relatorio-vle_{trecho(comp1)}_{trecho(comp2)}_{T_C:g}C.html"
+        try:
+            caminho = await ft.FilePicker().save_file(
+                dialog_title="Salvar relatório",
+                file_name=nome_arquivo,
+                src_bytes=texto.encode("utf-8"),
+                file_type=ft.FilePickerFileType.CUSTOM,
+                allowed_extensions=["html"],
+            )
+        except (RuntimeError, TimeoutError):
+            mensagem_status.value = (
+                "Não foi possível salvar o relatório (o navegador não "
+                "respondeu). Recarregue a página (F5) e tente de novo."
+            )
+            mensagem_status.color = ft.Colors.RED_800
+            page.update()
+            return
+        if not page.web and not caminho:
+            mensagem_status.value = "Salvamento do relatório cancelado."
+            mensagem_status.color = ""
+        else:
+            mensagem_status.value = (
+                f"Relatório gerado ({nome_arquivo}). Abra o arquivo no navegador; "
+                "para PDF, use Imprimir e Salvar como PDF."
+            )
+            mensagem_status.color = ""
+        page.update()
+
+    botao_relatorio = ft.Button(
+        content=ft.Row(
+            controls=[ft.Icon(ft.Icons.DESCRIPTION), ft.Text("Gerar relatório")],
+            tight=True,
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        on_click=gerar_relatorio,
+        style=estilo_botao(),
+    )
+
     construir_sliders(modelo_selecionado["nome"])
 
     # Layout adaptativo (2026-09-28) — implementa, enfim, o arranjo previsto
@@ -3483,7 +3611,7 @@ def main(page: ft.Page):
             # (`extra_titulo`, logo após o título). Comparar vale para todos os
             # modelos (UNIQUAC/UNIFAC inclusos), ao contrário da regressão, que
             # depende dos sliders.
-            ft.Row(controls=[caixa_comparar], wrap=True),
+            ft.Row(controls=[caixa_comparar, botao_relatorio], wrap=True),
             nota_alpha_fixo,
             ft.Row(controls=[botao_buscar_banco, caixa_regressao], wrap=True),
             # ΔP/Δy (2026-10-06, pedido do autor: "o erro agora no card de
