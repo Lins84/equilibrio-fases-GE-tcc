@@ -6,14 +6,14 @@ aplica essa condição à malha de `calculate_vle_isothermal`, e a UI usa
 líquidas — nesse trecho o diagrama de Raoult modificada (uma só fase) não vale.
 
 Verifica:
-  1. Margules 1-P: a condição se reduz a A/RT > 2 (derivada de 1/(x₁x₂) − 2A/RT,
-     mínimo 4 − 2A/RT em x₁ = 0,5) — sem aviso em A = 2,0 e abaixo; com aviso em
+  1. Margules 1-P: a condição se reduz a A > 2 (derivada de 1/(x₁x₂) − 2A,
+     mínimo 4 − 2A em x₁ = 0,5) — sem aviso em A = 2,0 e abaixo; com aviso em
      A = 2,01 e acima, em torno de x₁ = 0,5, e a faixa cresce com A (a faixa
      exata é 1/(x₁x₂) = 2A; a malha de 101 pontos erra por até ~0,015);
   2. sem falso positivo: os modelos do banco para etanol/água (miscível em tudo)
      e os ajustes de Barker às 10 isotermas NIST de etanol/água e clorofórmio/MEK
      não geram aviso. Metanol/dimetilbuteno é o caso que avisa de propósito:
-     Margules, Van Laar e NRTL ajustados chegam a A/RT ≈ 2,2 e o modelo prevê
+     Margules, Van Laar e NRTL ajustados chegam a A ≈ 2,2 e o modelo prevê
      separação de fases (o Wilson não), embora o dado seja de fase única;
   3. sistema que se separa de fato (1-butanol/água, UNIFAC e UNIQUAC) gera aviso;
   4. NRTL com τ grandes e Van Laar com A₁₂ e A₂₁ grandes geram aviso;
@@ -83,7 +83,7 @@ for modelo, p in (("Margules (2-P)", {"A12": 1.9, "A21": 1.0}), ("Van Laar", {"A
     f, _ = faixa("ethanol", "water", 70.0, modelo, p)
     conferir(f is None, f"{modelo} {p}: sem aviso (Wilson nem prevê separação de fases).")
 # modelos ajustados por Barker aos 10 isotermas NIST: etanol/água e clorofórmio/MEK sem aviso;
-# metanol/dimetilbuteno (desvio positivo forte, A/RT ≈ 2,2): Margules, Van Laar e NRTL
+# metanol/dimetilbuteno (desvio positivo forte, A ≈ 2,2): Margules, Van Laar e NRTL
 # cruzam o limite de estabilidade e DEVEM avisar (é o que o modelo prevê); o Wilson não prevê
 # separação de fases e não avisa. Medido em 2026-10-08.
 sys.path.insert(0, str(RAIZ / "testes"))

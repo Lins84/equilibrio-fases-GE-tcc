@@ -820,8 +820,8 @@ def detectar_instabilidade_liquida(x1, gamma1):
     componente 1 cresce com x₁: d ln(x₁γ₁)/dx₁ > 0 (equivalente a
     d²(Gmist/RT)/dx₁² > 0; Koretsky, cap. 7-8). Onde isso falha, o modelo prevê
     duas fases líquidas e o diagrama P-x-y de Raoult modificada (uma só fase
-    líquida) não vale. No Margules 1-P a condição se reduz a A/RT > 2 (derivada de
-    1/(x₁x₂) − 2A/RT, mínimo 4 − 2A/RT em x₁ = 0,5).
+    líquida) não vale. No Margules 1-P a condição se reduz a A > 2 (derivada de
+    1/(x₁x₂) − 2A, mínimo 4 − 2A em x₁ = 0,5).
 
     `x1` e `gamma1` são as listas devolvidas por `calculate_vle_isothermal` na malha
     padrão (várias composições, crescentes). Devolve (x_min, x_max) — os x₁ extremos

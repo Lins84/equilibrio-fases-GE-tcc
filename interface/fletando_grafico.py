@@ -464,7 +464,7 @@ EXEMPLOS_NIST = [
         "fonte": "Feng, Dong e Li, Fluid Phase Equilib. 309 (2011) 201-205, via NIST ThermoML",
         "nota": "azeótropo de pressão máxima em x₁ ≈ 0,58 (mínimo ponto de ebulição)",
         "limitacoes": (
-            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL e Wilson) e o 2,3-dimetil-2-buteno não está na tabela de grupos UNIFAC, então UNIQUAC e UNIFAC não funcionam e \"Buscar do Banco\" não encontra o par. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Pressão\nP de 91 a 191 kPa (acima de 1 atm em boa parte da faixa); o app supõe fase vapor ideal.\n\n# Aviso de duas fases líquidas\nMargules, Van Laar e NRTL ajustados por Barker a este dado chegam a desvios positivos tão fortes (A/RT ≈ 2,2 no Margules 1-P) que o modelo prevê separação em duas fases líquidas para x₁ entre cerca de 0,34 e 0,67 (Margules e Van Laar), e o app mostra um aviso laranja. O dado é de fase única e o ajuste reproduz P e y bem; o aviso diz que o modelo, extrapolado, prevê uma separação que o dado não mostra. O Wilson não prevê separação de fases e não avisa.\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 com os dois puros medidos (P dentro de 0,1 % da pressão de vapor do thermo) e passa no teste da área (D ≈ 4 %). Depois de ajustados por Barker, os modelos erram ΔP em 1 a 2 % e Δy em 0,011 a 0,025, e reproduzem o azeótropo de pressão máxima a menos de 0,015 em x₁ (experimental 0,575; Wilson 0,579).\n\n# Cosmético\nO campo \"Componente 2\" mostra o nome cortado; o valor está inteiro."
+            "# Origem do dado\nNIST/TRC ThermoML (dados públicos), extraídos pelo TRC e não avaliados criticamente.\n\n# Só a regressão se aplica\nO par não tem parâmetros no banco (NRTL e Wilson) e o 2,3-dimetil-2-buteno não está na tabela de grupos UNIFAC, então UNIQUAC e UNIFAC não funcionam e \"Buscar do Banco\" não encontra o par. Use \"Calcular por Regressão (Barker)\" ou digite os parâmetros.\n\n# Pressão\nP de 91 a 191 kPa (acima de 1 atm em boa parte da faixa); o app supõe fase vapor ideal.\n\n# Aviso de duas fases líquidas\nMargules, Van Laar e NRTL ajustados por Barker a este dado chegam a desvios positivos tão fortes (A ≈ 2,2 no Margules 1-P) que o modelo prevê separação em duas fases líquidas para x₁ entre cerca de 0,34 e 0,67 (Margules e Van Laar), e o app mostra um aviso laranja. O dado é de fase única e o ajuste reproduz P e y bem; o aviso diz que o modelo, extrapolado, prevê uma separação que o dado não mostra. O Wilson não prevê separação de fases e não avisa.\n\n# O que funciona\nO dado cobre x₁ de 0 a 1 com os dois puros medidos (P dentro de 0,1 % da pressão de vapor do thermo) e passa no teste da área (D ≈ 4 %). Depois de ajustados por Barker, os modelos erram ΔP em 1 a 2 % e Δy em 0,011 a 0,025, e reproduzem o azeótropo de pressão máxima a menos de 0,015 em x₁ (experimental 0,575; Wilson 0,579).\n\n# Cosmético\nO campo \"Componente 2\" mostra o nome cortado; o valor está inteiro."
         ),
     },
     {
@@ -886,8 +886,10 @@ AJUDA_TOPICOS = [
         # Rascunho do assistente (2026-10-08), a revisar pelo autor, a partir do
         # Koretsky (2ª ed., 2013), cap. 7 (pp. 425-442) e dos fatos do projeto. O
         # roteiro "Qual usar" é síntese do assistente sobre as descrições do livro
-        # (o livro só dá a estatística de p. 437). O limite A/RT > 2 do Margules 1-P
-        # é derivado: d²(gᴱ/RT)/dx₁² = 1/(x₁x₂) − 2A/RT, mínimo 4 − 2A/RT em x₁ = 0,5.
+        # (o livro só dá a estatística de p. 437). O limite A > 2 do Margules 1-P
+        # é derivado: d²(gᴱ/RT)/dx₁² = 1/(x₁x₂) − 2A, mínimo 4 − 2A em x₁ = 0,5; o
+        # mesmo resultado está em Smith, Van Ness e Abbott (8ª ed.), Ex. 15.4, p. 597,
+        # com gᴱ/RT = A·x₁x₂ (A adimensional, como no app).
         "conteudo": (
             "Um modelo de Gᴱ é uma expressão para a energia de Gibbs em excesso da "
             "mistura líquida, gᴱ, em função da composição. Dela saem os "
@@ -904,9 +906,10 @@ AJUDA_TOPICOS = [
             "compara a interação entre moléculas diferentes com a média das "
             "interações entre moléculas iguais: A > 0 quando as diferentes se "
             "atraem menos (γ > 1) e A < 0 quando se atraem mais (γ < 1) (Koretsky, "
-            "Exemplo 7.9). Se A/RT passa de 2, o modelo passa a prever que a "
+            "Exemplo 7.9). Se A passa de 2, o modelo passa a prever que a "
             "mistura se separa em duas fases líquidas, o que vem da condição de "
-            "estabilidade da fase líquida (ver o tópico \"Limitações\").\n\n"
+            "estabilidade da fase líquida (Smith, Van Ness e Abbott, Exemplo 15.4; "
+            "ver o tópico \"Limitações\").\n\n"
             "# Margules 2-P (três sufixos) e Van Laar\n"
             "Dois parâmetros, A₁₂ e A₂₁, que são o ln γ de cada componente à "
             "diluição infinita. Descrevem misturas assimétricas, em que as duas "
@@ -1003,12 +1006,12 @@ AJUDA_TOPICOS = [
             "# Uma só fase líquida\n"
             "O app supõe que o líquido é uma única fase em qualquer composição e não "
             "calcula equilíbrio líquido-líquido. Se os parâmetros dão desvio positivo "
-            "forte (no Margules 1-P, A/RT acima de 2), o modelo prevê separação em "
+            "forte (no Margules 1-P, A acima de 2), o modelo prevê separação em "
             "duas fases líquidas (Koretsky, seção 7.4), e a curva calculada na região "
             "instável não corresponde a um equilíbrio real. O app testa isso: quando "
             "o modelo prevê a separação, aparece um aviso laranja com a faixa de x₁ "
             "afetada. Por exemplo, o ajuste do Margules 1-P ao exemplo de "
-            "metanol/dimetilbuteno a 70 °C dá A/RT = 2,25 e dispara o aviso.\n\n"
+            "metanol/dimetilbuteno a 70 °C dá A = 2,25 e dispara o aviso.\n\n"
             "# Dados e unidades\n"
             "A pressão da tabela é em kPa e o app não confere a unidade: outra "
             "unidade dá ΔP sem sentido, sem aviso. x₁ e y₁ são frações molares do "
@@ -1072,9 +1075,19 @@ AJUDA_TOPICOS = [
             "distribuído com a thermo e a chemicals.\n\n"
             "UNIFAC: grupos e parâmetros do método original (Fredenslund, Jones e "
             "Prausnitz), conforme as tabelas da thermo.\n\n"
-            "Regressão: técnica de redução de dados de equilíbrio líquido-vapor "
-            "(método de Barker) descrita em Smith, Van Ness e Abbott.\n\n"
-            "# Livro de referência\n"
+            "Regressão: ajuste dos parâmetros do modelo à pressão medida, no "
+            "espírito do método de Barker (Smith, Van Ness e Abbott, seção 13.5, "
+            "pp. 481-482; Barker, Austral. J. Chem. 6, 207-210, 1953). Diferença: "
+            "o livro ajusta só a pressão; o app minimiza juntos os resíduos de "
+            "pressão (relativo) e de y₁.\n\n"
+            "# Livros de referência\n"
+            "Smith, J. M.; Van Ness, H. C.; Abbott, M. M.; Swihart, M. T. "
+            "Introduction to Chemical Engineering Thermodynamics, 8ª ed. New York: "
+            "McGraw-Hill Education, 2018. Referência do método de Barker "
+            "(seção 13.5), da lei de Raoult modificada (Eq. 13.19), das equações de "
+            "Margules e Van Laar (Eqs. 13.37 a 13.44), da condição de estabilidade "
+            "da fase líquida (Eq. 12.5 e Exemplo 15.4) e do teste de consistência "
+            "por resíduos (Eq. 13.59).\n\n"
             "Koretsky, M. D. Engineering and Chemical Thermodynamics, 2ª ed. "
             "Hoboken: Wiley, 2013. Referência das equações dos modelos "
             "(Tabelas 7.2 e 7.4), da equação de Gibbs-Duhem (Eqs. 6.19, 7.42 e "

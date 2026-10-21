@@ -179,7 +179,9 @@ Layout de pastas adotado em 2026-08-20 (item de Fase 0 do plano):
   execução dispara) e
   `teste_relatorio.py` (2026-10-21 — relatório em HTML: ΔP/Δy iguais aos do botão
   "Comparar" nos exemplos NIST, HTML e SVG bem formados, texto do usuário escapado,
-  sem veredito, casos sem tabela e sem comparação).
+  sem veredito, casos sem tabela e sem comparação) e
+  `teste_smith_van_ness_formulas.py` (2026-10-21 — Margules 1-P e 2-P e Van Laar contra as
+  Eqs. 13.37 a 13.44 de Smith, Van Ness e Abbott, 8ª ed., e a condição de estabilidade A < 2).
 - `Docs/mapeamento_e_plano_TCC-1.md` — documento de escopo do TCC (autor,
   orientador, problema, objetivos, plano de execução).
 - `referencias/` — material de referência: print da planilha XSEOS, dois
@@ -3832,6 +3834,52 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   **Redação do assistente, a revisar pelo autor:** só o nome e a função, sem
   titulação além do "Dr." do mapeamento nem instituição. Continua **fora** do "Sobre"
   o uso do Claude Code (decisão do autor, a explicitar no TCC).
+
+- **(2026-10-21) Smith, Van Ness, Abbott e Swihart (8ª ed.) como fonte conferida.** O
+  autor tem o livro e abriu um chat à parte, com o PDF, para extrair o que o projeto cita
+  de memória; colou o resultado aqui. **Edição:** *Introduction to Chemical Engineering
+  Thermodynamics*, 8ª ed., McGraw-Hill Education, ISBN 978-1-259-69652-7; a p. 3 traz
+  "Copyright © 2018" e a ficha catalográfica "2017" (**decisão do autor: qual ano citar;
+  usei 2018, o do copyright**). O PDF tem carimbos de pré-impressão ("Rev. Confirming
+  Pages", "Final PDF to printer"): conferir páginas e numeração no exemplar impresso antes
+  de citar. **Achados:** (1) **Barker** — seção 13.5, pp. 481-482, "Barker's method" (nota
+  16: J. A. Barker, Austral. J. Chem. 6, 207-210, 1953): ajusta os parâmetros do modelo de
+  Gᴱ para que a **P** calculada (Eq. 13.57) fique o mais perto possível da medida,
+  **ignorando y no ajuste**; o livro não dá a função-objetivo em fórmula. **O app difere:**
+  `regress_params_barker` minimiza juntos o resíduo relativo de P e o de y₁ (já registrado
+  para o Koretsky). O "Sobre" e o mapeamento (seção 2.8) passaram a dizer isso; a citação
+  "de memória" saiu. (2) **Teste de consistência** — o livro **não** traz o teste da área;
+  traz um teste de resíduos (Eq. 13.59, pp. 479-480) com limiares 0,03 (alta consistência)
+  e 0,10 (provavelmente aceitável), que o app não usa (o orientador declinou o veredito).
+  O teste da área continua com a fonte do Koretsky (Eq. 7.50). (3) **Margules e Van Laar**
+  — Eqs. 13.37 a 13.44 (pp. 470-471): o livro não chama o caso de um parâmetro de
+  "Margules" (é o termo A0 da expansão de Redlich/Kister) e dá A0 + A1 = A21 e A0 − A1 =
+  A12. Transcritas à parte em `testes/teste_smith_van_ness_formulas.py`, batem com
+  `MODELS_GE` a ~1e-16 em 101 composições (extremos pelos limites analíticos), com o
+  auto-teste reprovando o Van Laar com γ₁ e γ₂ trocados. Passa a ser a **segunda fonte de
+  livro** do Margules e do Van Laar. (4) **Estabilidade** — Eq. 12.5 e Exemplo 15.4 (p.
+  597): para gᴱ/RT = A·x₁x₂, estável em toda a faixa se e só se **A < 2**; o teste confere
+  com `detectar_instabilidade_liquida` (sem aviso em 2,0; aviso em 2,1). **Correção de
+  texto:** o app e a documentação diziam "A/RT > 2", notação do Koretsky (A em J/mol); no
+  app o A é adimensional, então o limite é "A > 2". Corrigido nos tópicos de ajuda
+  (Margules 1-P, Limitações, exemplo metanol/dimetilbuteno), na docstring de
+  `detectar_instabilidade_liquida` e no teste de instabilidade; as entradas antigas deste
+  arquivo ficam como histórico. (5) **Lei de Raoult modificada** — Eq. 13.19, com Φᵢ = 1;
+  o livro justifica omitir o fator de Poynting (p. 453) e dá Φᵢ ≠ 1 nas Eqs. 13.60-13.65. (6)
+  **Exemplos** — nenhum problema do cap. 13 traz resposta numérica publicada; há exemplos
+  resolvidos, **não incorporados como teste** (aguardam pedido): Exemplo 13.1 (metanol/
+  acetato de metila, Margules 1-P com A(T) e Antoine do livro, pp. 457-460), Seção 13.5
+  (MEK/tolueno a 50 °C, Tabela 13.3, A12 = 0,372 e A21 = 0,198; clorofórmio/dioxano a
+  50 °C, Tabela 13.4; dietilcetona/n-hexano a 65 °C, Exemplo 13.4, com o Barker do livro:
+  A21 = 0,596 e A12 = 1,153) e Exemplo 15.6 (VLLE, Margules de 4 parâmetros, fora do app).
+  Wilson, NRTL e UNIQUAC não têm exemplo com resposta publicada. **Ressalvas de leitura do
+  chat de extração:** equações lidas na camada de texto (não conferidas na imagem): 13.16 a
+  13.18, 13.20 a 13.24, 13.54 a 13.56, 13.60 a 13.65 e 15.2 a 15.8; erros do próprio livro
+  apontados (Ex. 13.1(e): 65,65 contra 65,64; Prob. 13.75 cita a Eq. 13.19 mas usa a 13.13;
+  Ex. 15.4: "A ≥ 2" no enunciado e "A > 2" na solução). Verificado: o teste novo e os de
+  instabilidade, tabela, relatório e Koretsky passam. **Pendências do autor:** ano da
+  referência (2018 ou 2017); se quer incorporar algum exemplo acima como teste; e, para o
+  TCC, conferir o Barker no artigo original (1953), já que o livro não dá a função-objetivo.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
