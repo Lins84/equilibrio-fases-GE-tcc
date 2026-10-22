@@ -3938,6 +3938,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   função-objetivo no TCC; decidir se o app deve ganhar um modo de ajuste só em P (mudança de código,
   não recomendada pelo prazo).
 
+- **(2026-10-22) O autor só tem o PDF do Smith, não o exemplar impresso; pendências
+  reformuladas.** Correção do autor ("não tenho exemplar impresso e sim o pdf"). **(1) P do item
+  (b) do Exemplo 13.1** (62,59 no texto extraído × 62,89 pela Eq. 13.19): a conferência não pode
+  ser feita no impresso; fica **para a imagem da página do PDF** (pp. 458-459 pela numeração do
+  PDF), lida por quem tem o arquivo (o outro chat, a 150 dpi, ou o autor). O teste segue como está
+  (coerência com y₁ = 0,60, sem fixar 62,59). **(2) Numeração de páginas:** o PDF tem carimbos de
+  pré-impressão ("Rev. Confirming Pages", "Final PDF to printer"), então as páginas citadas (por
+  exemplo pp. 481-482 do Barker) valem para a paginação **do PDF** e podem diferir do livro
+  impresso. Saída proposta pelo assistente, **a decidir pelo autor**: no TCC citar por **seção e
+  equação** (seção 13.5, Eq. 13.19, Eqs. 13.37-13.44), que não dependem da paginação, e manter as
+  páginas só como apoio, com a nota de que vêm do PDF. Textos que dizem "exemplar impresso"
+  (entradas de 2026-10-21 acima) ficam como histórico; não foram reescritos.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
