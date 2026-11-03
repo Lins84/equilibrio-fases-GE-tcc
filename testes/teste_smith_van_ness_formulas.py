@@ -196,10 +196,11 @@ x1 = x1_orvalho(0.60, T)
 g1, g2 = gammas_13_1(x1, T)
 conferir("x1 = 0,8169", perto(x1, 0.8169, 0.0002), f"({x1:.4f}) ")
 conferir("γ1 = 1,0378 e γ2 = 2,0935", perto(g1, 1.0378, 0.0002) and perto(g2, 2.0935, 0.0002), f"({g1:.4f}; {g2:.4f}) ")
-# o texto extraído do livro dá P = 62,59 kPa, mas x1·γ1·P1sat/P só fecha em 0,60 com P = 62,89
-# (62,59 daria y1 = 0,603); provável 62,89 ou erro de leitura da extração: conferir no exemplar.
+# o livro imprime P = 62,59 kPa (conferido na edição em inglês e na tradução LTC 2020), mas com os x1, γ1, γ2
+# e Psat do próprio livro as frações de vapor só somam 1 com P = 62,89 (62,59 daria y1 = 0,603 e soma 1,005):
+# 62,59 é erro de impressão do livro; o teste verifica a coerência com y1 = 0,60 em vez de fixar 62,59.
 P_b = p_bolha(x1, T)
-conferir("P coerente com y1 = 0,60 (Eq. 13.19)", perto(x1 * g1 * p1 / P_b, 0.60, 1e-9), f"(P = {P_b:.2f} kPa; extração do livro: 62,59 — conferir no impresso) ")
+conferir("P coerente com y1 = 0,60 (Eq. 13.19)", perto(x1 * g1 * p1 / P_b, 0.60, 1e-9), f"(P = {P_b:.2f} kPa; livro imprime 62,59 — erro de impressão) ")
 
 print("  (c) P = 101,33 kPa, x1 = 0,85 (bolha em T)")
 Tc = brentq(lambda t: p_bolha(0.85, t) - 101.33, 300, 360)
