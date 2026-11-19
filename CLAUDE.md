@@ -4015,6 +4015,41 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Pages (a cópia publicada é antiga, sem o botão; seria preciso republicar e testar o download por
   HTTPS e no celular) e o Mac do orientador.
 
+- **(2026-11-19) Site do GitHub Pages republicado pelo autor, com o botão "Gerar relatório";
+  Flet fixado só na cópia de publicação (opção A).** O autor viu que o botão não aparecia no link;
+  conferido no GitHub, o `gh-pages` ainda era o commit de 08/10 (`5bf682c`), sem `relatorio.py`: a
+  republicação não tinha sido enviada. O autor refez o procedimento no Windows (cópia temporária
+  em `%TEMP%\vle-pub` com `calculos/`, `interface/`, `referencias/`, `pyproject.toml` e um
+  `main.py` de 3 linhas; `uv run flet publish main.py --base-url equilibrio-fases-GE-tcc`;
+  push forçado só do conteúdo de `dist` para o `gh-pages`) e o push chegou: `5bf682c...bb2ce95`.
+  **Conferido no GitHub depois do push:** `.nojekyll` presente, `calculos/relatorio.py` e "Gerar
+  relatório" no pacote, `base href` `/equilibrio-fases-GE-tcc/`, e `fletando_grafico.py`,
+  `relatorio.py` e `gemini.py` publicados iguais aos da `main` (`1050707`) ignorando CRLF.
+  **Teste do autor no link** `https://lins84.github.io/equilibrio-fases-GE-tcc/`: "o botão
+  apareceu e o relatório baixou" (por HTTPS). Não foram detalhados celular, PDF nem outros
+  modelos. **Decisões do autor nesta rodada:** (1) **opção A** — fixar `flet==1.0.0` e
+  `flet-charts==1.0.0` **só no `pyproject.toml` da cópia temporária**, sem mexer no do repositório,
+  que segue com `>=1.0.0` como na decisão de 2026-09-21 (o motivo explícito do `>=` não está
+  registrado nos documentos; o `uv.lock` é quem trava a versão no PC). **Por que a fixação:** o
+  site estático não tem `uv.lock`; o navegador instala `flet >=1.0.0` do PyPI a cada carga
+  (micropip) e o PyPI já tem a **1.1.2** (06/11/2026), enquanto o cliente do site é o da 1.0.0.
+  Não foi possível provar no navegador que a mistura quebra (o Pyodide e o `github.io` são
+  bloqueados na nuvem), então a fixação é precaução. A publicação de outubro, sem fixação, pode
+  ter ficado exposta a isso desde 06/11. **Correções ao passo a passo, feitas no caminho:**
+  faltava o `.nojekyll` na pasta `dist` (o `gh-pages` de outubro o tinha; sem ele o GitHub Pages
+  passa o site pelo Jekyll). **Achado separado (não afeta a publicação estática):** o
+  `flet-web` 1.0.0 pede `fastapi>=0.115.12` sem teto e **não sobe com o FastAPI atual (0.162+)**:
+  `flet run --web` num ambiente novo falha com `unexpected keyword argument 'openapi_prefix'`
+  (reproduzido em ambiente limpo na nuvem; com `fastapi==0.121.3` funciona; o `flet-web` 1.1.2
+  funciona com o FastAPI novo). O `.venv` já existente do autor não é afetado até ser recriado. O
+  `uv.lock` não inclui o `flet-web`. **Teste do Flet 1.1.2 (nuvem, ambientes separados):** a suíte
+  inteira (23 scripts) passa, o app renderiza igual (0,2 % dos pixels diferem, no máximo 27 níveis
+  de cor) e o roteiro exemplo → regressão → Comparar → Gerar relatório dá os mesmos números e um
+  HTML idêntico byte a byte ao da 1.0.0; o projeto segue em 1.0.0. **`flet-mcp`** 1.1.2 foi
+  instalado no `.venv` da nuvem (efêmero) só para teste; não está no `pyproject.toml`.
+  **Pendente:** a republicação é **manual** (nenhuma automação foi pedida); celular e o Mac do
+  orientador seguem sem teste no link.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
