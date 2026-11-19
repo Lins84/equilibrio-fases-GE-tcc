@@ -3951,6 +3951,18 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   páginas só como apoio, com a nota de que vêm do PDF. Textos que dizem "exemplar impresso"
   (entradas de 2026-10-21 acima) ficam como histórico; não foram reescritos.
 
+- **(2026-11-19) Relatório em HTML testado no Windows pelo autor.** O autor rodou o app
+  localmente no Windows (`uv run flet run interface/fletando_grafico.py --web --port 5000`, com a
+  `main` em dia) e relatou: "Funcionou, o relatório saiu certo". O roteiro entregue a ele foi o
+  exemplo metanol/dimetilbuteno 70 °C → "Calcular por Regressão (Barker)" → "Comparar" → "Gerar
+  relatório" (na nuvem esse roteiro dá A = 2,252, selo "Calculado", ΔP = 2,01 % e Δy = 0,0225, e
+  o HTML gerado é idêntico byte a byte com Flet 1.0.0 e 1.1.2). **O que o relato cobre:** o
+  relatório gerado e aberto no Windows; o autor não detalhou cada item da lista de conferência
+  (números, avisos, PDF, nome de arquivo com vírgula, tabela vazia, outro modelo), então só o
+  resultado geral ("saiu certo") fica registrado. **Segue sem teste:** o botão no site do GitHub
+  Pages (a cópia publicada é antiga, sem o botão; seria preciso republicar e testar o download por
+  HTTPS e no celular) e o Mac do orientador.
+
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
 **Contexto (levantado em 2026-08-10):** comparando visualmente
