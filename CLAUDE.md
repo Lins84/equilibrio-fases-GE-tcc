@@ -252,33 +252,92 @@ pedido do autor; continuam no histórico do git.
 > — é um fato técnico descoberto ao rodar de verdade, registrado para
 > quando isso importar.
 
-## Estado atual (2026-10-07)
+## Estado atual (2026-11-19)
 
-Snapshot; o histórico por sessão vem logo abaixo.
+Snapshot curto. O histórico por sessão vem logo abaixo e o detalhe de cada
+escolha, em "Decisões de engenharia do aluno". A lista de pendências de
+2026-10-08, hoje quase toda fechada, ficou preservada numa subseção ao fim
+desta seção.
 
-- **Cálculo — pronto.** Os 7 modelos Gᴱ implementados e validados contra
-  as referências do `thermo` em toda a faixa de x1 (0 a 1, extremos
-  inclusos). Parâmetros via IPDB (NRTL, Wilson, UNIQUAC; UNIQUAC com r/q do
-  ChemSep, grupos UNIFAC como reserva), via grupos UNIFAC e via regressão de
-  Barker (`regress_params_barker`). Desde 2026-10-06/07 há também validação
-  contra **dado experimental com fonte citável** (NIST ThermoML): etanol/água
-  (modelos do banco e Barker), metanol/2,3-dimetil-2-buteno e clorofórmio/
-  2-butanona (Barker e azeótropo).
-- **UI — integrada.** `fletando_grafico.py` calcula e plota a curva do
-  modelo sobre os pontos digitados, com banco IPDB, regressão, selo de
-  origem, comparação calculado-vs-experimental (ΔP/Δy no card de
-  parâmetros), importação de dados (botão "Importar dados": arquivo e texto colado) e
-  botão "Exemplos" (quatro exemplos NIST: etanol/água a 90 e 108 °C,
-  metanol/2,3-dimetil-2-buteno a 70 °C e clorofórmio/2-butanona a 30 °C), valor de parâmetro digitável, lupa nos gráficos (só
-  no desktop), estética **encerrada** (2026-10-07) e botão para alternar entre
-  layout de celular e de computador.
-- **Pendências.** A fase de estética foi **encerrada pelo autor em
-  2026-10-07**; o tooltip dos gráficos fica como está; a visualização no
-  aparelho real (Termux) foi considerada ok pelo autor. O modo isobárico
-  (T-x-y) está adiado para depois do piloto, em "Atualizações futuras". As
-  escolhas do assistente que estavam marcadas "a confirmar" foram
-  **confirmadas pelo autor em 2026-10-07** (ver "Decisões de engenharia do
-  aluno", últimas entradas).
+- **Cálculo — pronto e com fonte.** Os 7 modelos Gᴱ em `calculos/gemini.py`
+  (~1050 linhas). Wilson, NRTL, UNIQUAC e UNIFAC conferidos contra a
+  `thermo` em toda a faixa de x₁; Margules e Van Laar, que a `thermo` **não
+  tem**, ganharam em outubro duas fontes de livro (Koretsky 2ª ed. e Smith,
+  Van Ness e Abbott 8ª ed., com exemplos de resposta publicada virando
+  teste) e validação **por primeiros princípios** (ln γ pela definição, via
+  passo complexo; Euler, Gibbs-Duhem, limites). Parâmetros via IPDB
+  (NRTL/Wilson/UNIQUAC), r/q do ChemSep com q′ opcional, grupos UNIFAC como
+  reserva, e regressão de Barker. Validação contra **dado experimental com
+  fonte citável** (NIST ThermoML) em três pares: etanol/água,
+  metanol/2,3-dimetil-2-buteno e clorofórmio/2-butanona.
+- **UI — completa para o piloto.** `interface/fletando_grafico.py` (~3980
+  linhas). Além do que já havia (curva do modelo sobre os pontos, banco,
+  regressão, selo de origem, ΔP/Δy, "Importar dados", "Exemplos" com os
+  quatro conjuntos NIST, valor de parâmetro digitável, lupa, botão de modo
+  celular/computador), ganhou em outubro: **botão "Ajuda"** com 10 tópicos
+  escritos e um "?" por card; **ln γ experimental da tabela** no gráfico de
+  ln γ (método indireto, 0,10 ≤ x₁ ≤ 0,90); caixa **"Usar q′"** no UNIQUAC,
+  desligada por padrão; e três **avisos** — instabilidade da fase líquida,
+  temperatura acima da crítica e regressão suspeita. Saíram o botão "Gerar
+  Gráfico" (os gráficos se atualizam ao sair do campo) e o "Desfazer"; os
+  protótipos `main.py` e `fletando.py` foram removidos. Estética
+  **encerrada em 2026-10-07**.
+- **Relatório — feito (2026-10-21).** Botão "Gerar relatório" mais
+  `calculos/relatorio.py` (módulo puro, sem Flet nem `thermo`): um `.html`
+  único, com estilo e gráficos SVG embutidos, que o usuário imprime como
+  PDF. **Sem veredito "bom/ruim"** — o orientador declinou. **Testado no
+  Windows pelo autor em 2026-11-19** ("saiu certo"); ainda **não** testado
+  no site publicado nem no Mac do orientador.
+- **Publicação.** O app roda também em formato web estático (Pyodide) e está
+  no GitHub Pages: `https://lins84.github.io/equilibrio-fases-GE-tcc/`.
+  **A cópia publicada é de 2026-10-09 e está defasada** — não tem o
+  relatório nem nada posterior a essa data; atualizar exige republicar à
+  mão, não há automação.
+- **Documentação.** Além deste arquivo e do mapeamento, há
+  `Docs/dossie_tcc_vle_interativo.md` (2026-10-18): um apanhado em 17 seções
+  para apoiar a redação do TCC.
+- **Testes.** 23 scripts em `testes/`, todos automatizados, rodados à mão,
+  sem runner nem CI. A interface é verificada visualmente pelo autor no
+  dispositivo real **e**, desde 2026-09-30, também pelo Claude Code por
+  captura de tela em ambiente de nuvem — ver a sessão de 2026-09-30/10-01
+  para o alcance e os limites de cada uma.
+- **Prazo (fixado pelo autor em 2026-10-20).** Há até o fim do semestre
+  letivo **2026.2, que fecha em 11/12/2026**; a fase é de retoques do app e
+  escrita do TCC, e item adicional demorado vai para depois do TCC. A data
+  de entrega do TCC em si não foi informada.
+
+**Pendências abertas (2026-11-19), todas do autor:**
+
+1. **Logo da UFC monocromática** na faixa do cabeçalho, no lugar do texto
+   "UFC" — pedido do orientador em 2026-10-20. Falta o arquivo oficial; o
+   assistente não desenha nem reproduz o logo.
+2. **Relatório no site publicado e no Mac do orientador** — não testado. A
+   cópia do GitHub Pages teria de ser republicada antes, já que é anterior
+   ao botão.
+3. **Revisão do autor sobre os tópicos de ajuda** "Modelos de Gᴱ" e
+   "Limitações" (item 6 da lista antiga). O assistente já fez a parte dele;
+   o roteiro "Qual usar" é síntese do assistente, não regra publicada.
+4. **Smith, Van Ness e Abbott:** qual ano citar (2018 do copyright ou 2017
+   da ficha); ler o Van Ness (1995) para a função-objetivo do Barker, que o
+   livro não dá; e decidir se o app ganha um modo de ajuste só em P
+   (mudança de código, não recomendada pelo prazo).
+5. **Seção 6 do mapeamento** ainda traz o cronograma antigo (folga até
+   fev/2027, defesa em 2027.1), que o prazo de 2026-10-20 contradiz. O
+   cabeçalho do mapeamento também diz "Última atualização: 2026-09-29",
+   embora o arquivo tenha sido editado depois.
+6. **`.replit`** — reapontado em 2026-10-08 e não testado no Replit;
+   **suspenso por ordem do autor** ("esqueça o Replit até a segunda ordem").
+7. **Modo isobárico (T-x-y)** — pedido do orientador, adiado por prazo para
+   "Atualizações futuras".
+
+### A lista de pendências de 2026-10-08 (texto original)
+
+Preservada porque vários itens trazem medições que **não estão registradas
+em nenhum outro lugar deste arquivo** — os números do q′ e a medição do
+aviso de instabilidade, por exemplo. Quase todos estão fechados; os dois que
+seguem abertos (4, `.replit`, e 6, a revisão do autor sobre os tópicos de
+ajuda) foram repetidos na lista acima.
+
   **Decisões pendentes (atualizado em 2026-10-08), todas do autor:**
   (1) **[ENCERRADO em 2026-10-20: o orientador declinou; ver "Decisões de engenharia do aluno", última entrada]** **Veredito "bom/ruim" depois de "Comparar"** (pedido de registro do
   autor em 2026-10-08): hoje a mensagem só informa o nº de pontos e onde estão
@@ -372,13 +431,6 @@ Snapshot; o histórico por sessão vem logo abaixo.
   conhecida — o autor vai perguntar ao professor; até lá a frase da seção 2 do
   mapeamento fica em redação provisória (ver "Decisões de engenharia do
   aluno", terceira rodada de busca no ThermoML).
-- **Testes** são scripts avulsos rodados à mão, sem runner nem CI (20
-  scripts em `testes/`, todos automatizados; o `teste_dioxano_nrtl.py`, visual e
-  manual, foi removido em 2026-10-08). A interface é verificada visualmente pelo autor no dispositivo
-  real **e**, desde 2026-09-30, também pelo Claude Code por captura de tela em
-  ambiente de nuvem — ver sessão de 2026-09-30/10-01 para o alcance e os
-  limites de cada uma.
-
 ## Sessão de auditoria dos modelos (2026-07-27)
 
 Os 6 modelos Gᴱ então registrados em `MODELS_GE` (`model_margules_1p`,
