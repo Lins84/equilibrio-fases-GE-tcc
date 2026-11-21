@@ -872,6 +872,28 @@ continuar sendo mantido.
   do TCC), **fica para depois do TCC** — análise em "Decisões de engenharia do
   aluno", entrada de 2026-10-20.
 
+- **Seletor de função-objetivo na regressão (as três do ThermoSolver).**
+  Decidido pelo autor em 2026-11-21, a partir da pergunta sobre usar o
+  ThermoSolver (Koretsky/Barnes 2006) como referência: fica para **depois da
+  entrega**, na versão **mais completa** (opção C da análise), **sem
+  implementar antes de pedido explícito**. Escopo previsto: `regress_params_barker`
+  passa a aceitar a função-objetivo — (1) erro quadrático em P (o "só P" do Barker
+  do Smith, Van Ness e Abbott, seção 13.5), (2) erro quadrático em gᴱ e (3) erro
+  relativo quadrático em γ₁ e γ₂ — mantendo como padrão a combinação atual
+  (ΔP relativo + Δy absoluto), que foi decisão do autor; seletor na UI (criado
+  na montagem, sem mutar controle existente), com ajuste dos textos de ajuda, do ⓘ
+  do selo de origem e do relatório. **Validação prevista:** Koretsky, Tabela
+  E8.9 e Exemplos 8.9 a 8.11, que publicam o resultado por função (Margules 1-P:
+  A = 1401, 1399 e 1424 J/mol para P, gᴱ e γ; Margules 2-P: A = 1397 e B = 69 J/mol),
+  trocando a faixa larga de hoje (`FAIXA_A_1P = (1390, 1430)`) por alvos exatos.
+  **Cuidado:** as funções (2) e (3) dependem de gᴱ e γ experimentais (método
+  indireto, descartado como padrão da regressão em 2026-09-13 por amplificar ruído
+  perto de x₁ → 0 e 1); entram só como opção, com a faixa restrita já usada no ln γ
+  experimental (0,10 a 0,90) ou outra a decidir. **Antes de implementar:** reler as
+  definições literais (pesos, normalização, obtenção de gᴱ experimental) na tese de
+  Barnes, seção "Numerical Methods Used for Parameter Fitting", ou no Koretsky — não
+  foram reconferidas em 2026-11-21 (a raspagem da tese estourou o tempo).
+
 - **Sessão compartilhada em tempo real (modo "aula": professor no desktop,
   alunos em celular e desktop).** Levantada pelo autor em 2026-10-04: usar
   uma sessão em que os dados e os controles fossem compartilhados
@@ -4049,6 +4071,28 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   instalado no `.venv` da nuvem (efêmero) só para teste; não está no `pyproject.toml`.
   **Pendente:** a republicação é **manual** (nenhuma automação foi pedida); celular e o Mac do
   orientador seguem sem teste no link.
+
+- **(2026-11-21) ThermoSolver como referência: só citar e documentar agora (opção
+  A); seletor de função-objetivo vai para depois da entrega.** Pergunta do autor
+  ("o ThermoSolver usa funções objetivo, eu poderia usá-lo como referência e usar as
+  funções objetivo que ele usa?"). O assistente levou três opções — **A** só citar e
+  documentar, sem mudar código; **B** modo "só P" fiel ao Barker (`residuos` devolvendo
+  só o desvio de P); **C** seletor completo com as três funções — e recomendou A
+  agora. **Decisão do autor: A, e registrar a C em "Atualizações futuras"** (feito,
+  com o escopo e a validação prevista). **Estado do código:** inalterado; a regressão
+  segue minimizando juntos o desvio relativo de P e o absoluto de y₁
+  (`gemini.py`, `regress_params_barker`), que **não é** nenhuma das três funções do
+  ThermoSolver (a mais próxima é a (1), só em P, à qual o app acrescenta y). **Efeito
+  sobre a redação do TCC:** a introdução pode dizer que o ThermoSolver é referência e
+  que oferece três funções-objetivo (P, gᴱ, γ), mas **não** que o app usa as mesmas;
+  o app usa uma combinação própria, justificada em 2026-09-13 e 2026-09-27. A
+  diferença de 1399 a 1424 J/mol no Exemplo da Tabela E8.9 do Koretsky (função-objetivo
+  P, gᴱ ou γ) serve de argumento de que a escolha importa. **Ressalva:** as fórmulas
+  literais do ThermoSolver não foram reconferidas na tese nesta data (raspagem com
+  tempo esgotado; servidor bloqueado na nuvem); conferir no Koretsky ou na seção
+  "Numerical Methods Used for Parameter Fitting" antes de citá-las. **Pendência 4 da
+  lista de 2026-11-19 (modo de ajuste só em P):** passa a ser tratada junto com esse
+  item de "Atualizações futuras", sem mudança de código antes da entrega.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
