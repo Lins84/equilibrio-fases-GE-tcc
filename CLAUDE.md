@@ -889,10 +889,13 @@ continuar sendo mantido.
   **Cuidado:** as funções (2) e (3) dependem de gᴱ e γ experimentais (método
   indireto, descartado como padrão da regressão em 2026-09-13 por amplificar ruído
   perto de x₁ → 0 e 1); entram só como opção, com a faixa restrita já usada no ln γ
-  experimental (0,10 a 0,90) ou outra a decidir. **Antes de implementar:** reler as
-  definições literais (pesos, normalização, obtenção de gᴱ experimental) na tese de
-  Barnes, seção "Numerical Methods Used for Parameter Fitting", ou no Koretsky — não
-  foram reconferidas em 2026-11-21 (a raspagem da tese estourou o tempo).
+  experimental (0,10 a 0,90) ou outra a decidir. **Definições literais conferidas em
+  2026-11-21** na tese de Barnes (seção "Numerical Methods Used for Parameter Fitting",
+  Eqs. 4.9 a 4.14; ver a entrada de mesma data em "Decisões de engenharia do aluno"):
+  OF_gᴱ = Σ(gᴱ_exp − gᴱ_calc)² e OF_γ = Σ[((γₐ,exp − γₐ,calc)/γₐ,exp)² + ((γ_b,exp −
+  γ_b,calc)/γ_b,exp)²], com γᵢ,exp obtido de xᵢγᵢPᵢˢᵃᵗ = yᵢP (nos puros, γᵢPᵢˢᵃᵗ = P) e
+  gᴱ_exp = RT(xₐ ln γₐ + x_b ln γ_b). **Falta antes de implementar:** a Eq. 4.10 (erro
+  quadrático em P) saiu ilegível na extração automática e deve ser lida no PDF.
 
 - **Sessão compartilhada em tempo real (modo "aula": professor no desktop,
   alunos em celular e desktop).** Levantada pelo autor em 2026-10-04: usar
@@ -4087,10 +4090,8 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   que oferece três funções-objetivo (P, gᴱ, γ), mas **não** que o app usa as mesmas;
   o app usa uma combinação própria, justificada em 2026-09-13 e 2026-09-27. A
   diferença de 1399 a 1424 J/mol no Exemplo da Tabela E8.9 do Koretsky (função-objetivo
-  P, gᴱ ou γ) serve de argumento de que a escolha importa. **Ressalva:** as fórmulas
-  literais do ThermoSolver não foram reconferidas na tese nesta data (raspagem com
-  tempo esgotado; servidor bloqueado na nuvem); conferir no Koretsky ou na seção
-  "Numerical Methods Used for Parameter Fitting" antes de citá-las. **Pendência 4 da
+  P, gᴱ ou γ) serve de argumento de que a escolha importa. **Ressalva superada no
+  mesmo dia:** as fórmulas literais foram conferidas na tese (ver o fim desta entrada). **Pendência 4 da
   lista de 2026-11-19 (modo de ajuste só em P):** passa a ser tratada junto com esse
   item de "Atualizações futuras", sem mudança de código antes da entrega.
   **Correção de classificação da fonte (2026-11-21, a pedido do autor):** a "tese de
@@ -4106,6 +4107,30 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   Koretsky. As menções anteriores a "tese de Barnes" neste arquivo (inclusive "Koretsky/Barnes
   2006") valem como histórico; a autoria da tese é só de Barnes, e **quem a orientou não foi
   verificado**.
+  **Funções-objetivo do ThermoSolver conferidas na tese (2026-11-21, a pedido do autor;
+  leitura pelo espelho `cbee.engineering.oregonstate.edu/education/Thermosolver/Barnes.pdf`,
+  seção "Numerical Methods Used for Parameter Fitting").** Base: Eq. 4.9, xᵢγᵢPᵢˢᵃᵗ = yᵢP
+  (Raoult modificada, a mesma do app). Três funções: **(1)** erro quadrático em P (Eq. 4.10,
+  **ilegível na extração automática**; pelo texto e pela Eq. 4.14, P_calc = Σ xᵢγᵢ,calcPᵢˢᵃᵗ
+  depende só de x e do modelo, **não usa y**); **(2)** OF_gᴱ = Σ(gᴱ_exp − gᴱ_calc)² (Eq. 4.11);
+  **(3)** OF_γ = Σ[((γₐ,exp − γₐ,calc)/γₐ,exp)² + ((γ_b,exp − γ_b,calc)/γ_b,exp)²] (Eq. 4.12).
+  γᵢ,exp sai de resolver a Eq. 4.9 em cada ponto; gᴱ_exp = RT(xₐ ln γₐ + x_b ln γ_b) (Eq. 4.13);
+  P_exp = Σ xᵢγᵢPᵢˢᵃᵗ (Eq. 4.14); nos pontos puros (xᵢ e yᵢ nulos) usa-se γᵢPᵢˢᵃᵗ = P.
+  **Otimização:** simplex de Nelder-Mead; chutes iniciais A = RT (Margules 2 sufixos),
+  (A, B) = (RT, RT) (Margules 3 sufixos e Van Laar), (Λab, Λba) = (1, 1) (Wilson) e
+  (αab, τab, τba) = ±(0,1; 0,1; 0,1) (NRTL, duas partidas, fica a de menor função-objetivo);
+  cerca de 1000 iterações, menos de 1 s num processador de 1 GHz. **Limitação declarada pelo
+  autor da tese:** em poucos conjuntos de dados o solver cai em mínimo local e produz mau
+  ajuste; o remédio é o usuário trocar o chute e resolver de novo. **Leitura para o projeto
+  (do assistente, a confirmar):** (a) a função (1) ignora y, ou seja, é o "só P" do Barker
+  descrito no Smith, Van Ness e Abbott (seção 13.5); o app soma o desvio de y e usa desvio
+  **relativo** de P — logo **não coincide com nenhuma das três**; (b) as funções (2) e (3)
+  usam γ experimental (método indireto), sem a faixa restrita 0,10–0,90 do ln γ experimental
+  do app; (c) o app usa `scipy.optimize.least_squares` com limites e chutes extras, e o
+  ThermoSolver, Nelder-Mead sem limites; (d) o ThermoSolver também permite ao usuário
+  **editar o banco de substâncias** (adicionar, remover ou alterar constantes) e **criar
+  conjuntos de dados novos** — o app não deixa cadastrar substância própria. Esta
+  conferência **não muda decisão alguma**: a opção A de 2026-11-21 segue valendo.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
