@@ -4093,6 +4093,19 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   "Numerical Methods Used for Parameter Fitting" antes de citá-las. **Pendência 4 da
   lista de 2026-11-19 (modo de ajuste só em P):** passa a ser tratada junto com esse
   item de "Atualizações futuras", sem mudança de código antes da entrega.
+  **Correção de classificação da fonte (2026-11-21, a pedido do autor):** a "tese de
+  Barnes" **não é de mestrado nem de doutorado**: é uma *Honors thesis* de graduação,
+  *ThermoSolver: An Integrated Educational Thermodynamics Software Program*, de
+  Connelly S. Barnes, apresentada em 2 de junho de 2006 ao University Honors College da
+  Oregon State University (*Honors Baccalaureate of Science in Computational Physics and
+  Mathematics*). Conferido no repositório da OSU (catalogada como *Honors College Thesis*,
+  nível Bachelor's) e na página do próprio autor ("Undergraduate honors thesis, 2006").
+  **Efeito na redação:** citar como trabalho de conclusão de curso (*Honors thesis*), não
+  como tese ou dissertação; na referência, manter o tipo de documento. É fonte primária do
+  programa, mas não é literatura revisada por pares — para afirmações fortes, preferir o
+  Koretsky. As menções anteriores a "tese de Barnes" neste arquivo (inclusive "Koretsky/Barnes
+  2006") valem como histórico; a autoria da tese é só de Barnes, e **quem a orientou não foi
+  verificado**.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
