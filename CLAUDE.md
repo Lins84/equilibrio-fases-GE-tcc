@@ -896,6 +896,12 @@ continuar sendo mantido.
   γ_b,calc)/γ_b,exp)²], com γᵢ,exp obtido de xᵢγᵢPᵢˢᵃᵗ = yᵢP (nos puros, γᵢPᵢˢᵃᵗ = P) e
   gᴱ_exp = RT(xₐ ln γₐ + x_b ln γ_b). **Falta antes de implementar:** a Eq. 4.10 (erro
   quadrático em P) saiu ilegível na extração automática e deve ser lida no PDF.
+  **Orientação do orientador (relato do autor, 2026-11-25):** "basta a função objetivo
+  P"; o autor esclareceu que isso significa **dispensar as outras duas** (gᴱ e γ), não
+  trocar o ajuste atual. Por isso o seletor com as três funções (opção C) perde a
+  justificativa; o que pode sobrar é o modo "só P" (opção B). **A redução formal deste
+  item fica com o autor** — ver a entrada de 2026-11-25 em "Decisões de engenharia do
+  aluno".
 
 - **Sessão compartilhada em tempo real (modo "aula": professor no desktop,
   alunos em celular e desktop).** Levantada pelo autor em 2026-10-04: usar
@@ -4131,6 +4137,26 @@ confiáveis**, e por isso as mais defensáveis perante a banca.
   **editar o banco de substâncias** (adicionar, remover ou alterar constantes) e **criar
   conjuntos de dados novos** — o app não deixa cadastrar substância própria. Esta
   conferência **não muda decisão alguma**: a opção A de 2026-11-21 segue valendo.
+
+- **(2026-11-25) Orientador: para a função-objetivo, basta a de P (relato do autor).**
+  O autor relatou, estando com o orientador, que ele "já falou que basta a função
+  objetiva P". Perguntado se isso queria dizer **(a)** dispensar as outras duas funções
+  ou **(b)** trocar o ajuste atual (P e y) por só P, o autor respondeu **(a): "não precisa
+  das outras duas"** (funções de gᴱ e γ). **Efeito:** o seletor completo (opção C de
+  2026-11-21) perde a justificativa; as funções (2) e (3), que dependem do método
+  indireto, ficam dispensadas. **O padrão atual do app não mudou** (ΔP relativo + Δy
+  absoluto, juntos), e **nenhum código foi alterado**. **Em aberto, do autor:** (1) fazer
+  o modo "só P" (opção B1: troca só a função-objetivo, mantendo o y obrigatório na
+  tabela, desligado por padrão) **antes ou depois da entrega**; (2) o erro em P
+  **absoluto** (como o ThermoSolver e o Koretsky; a Eq. 4.10 ainda não foi lida no PDF)
+  ou **relativo** — no Smith 13.5 as duas versões deram parâmetros diferentes e nenhuma
+  reproduziu os dois números do livro; (3) a opção B2 (aceitar linhas sem y, para dados
+  só de P-x) fica, pela recomendação do assistente, para depois da entrega. **Raciocínio
+  do assistente, a confirmar:** com o ajuste só em P, o Δy do "Comparar" passaria a ser
+  uma verificação independente, porque o y não entraria no ajuste. Pendências de
+  conversa com o orientador (prazos oficiais, logo da UFC, teste no Mac, modo isobárico)
+  seguem como listadas em 2026-11-25 no chat; as respostas dele sobre elas não foram
+  trazidas.
 
 ## Decisão tomada: curva poligonal em fletando_grafico.py (2026-08-19)
 
